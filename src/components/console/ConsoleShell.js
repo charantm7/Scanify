@@ -10,8 +10,9 @@ import QRPanel from './panels/QrPanel';
 import AnalyticsPanel from './panels/AnalyticsPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import { getSupabaseClient } from '@/lib/supabase/client';
-
+import { AppProvider } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useApp } from '@/context/AppContext';
 
 function ThemeIcon({ dark }) {
     return dark ? (
@@ -82,74 +83,23 @@ function Panel({ id, onNavigate }) {
 }
 
 
-
 export default function ConsoleShell() {
+    <AppProvider>
+        <ConsoleShellInner />
+    </AppProvider>
+
+}
+
+
+function ConsoleShellInner() {
 
     const [activeTab, setActiveTab] = useState('dashboard');
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [error, setError] = useState(null)
 
-    const [user, setUser] = useState(null)
-    const [profile, setProfile] = useState(null)
-    const [plan, setPlan] = useState(null)
-    const [loading, setLoading] = useState(false)
-
-    const supabase = getSupabaseClient()
-
     const { theme, toggleTheme } = useTheme();
-
-
-    useEffect(() => {
-        let isMounted = true;
-
-        async function fetchData() {
-            try {
-                setLoading(true);
-
-                const { data: { user }, error } = await supabase.auth.getUser();
-
-                if (error) {
-                    console.error(error);
-                    setError(error)
-                    return;
-                }
-
-                if (user && isMounted) {
-                    setUser(user);
-
-                    const { data: profileData, error: profileError } =
-                        await supabase
-                            .from("users")
-                            .select("*")
-                            .eq("id", user.id)
-                            .maybeSingle();
-
-                    if (profileError) {
-                        console.error(profileError);
-                        setError(error)
-                        return;
-                    }
-
-                    if (profileData && isMounted) {
-                        setProfile(profileData);
-                        setPlan(profileData.plan);
-                    }
-                }
-            } catch (err) {
-                console.error("Unexpected error:", err);
-                setError(error)
-            } finally {
-                if (isMounted) setLoading(false);
-            }
-        }
-
-        fetchData();
-
-        return () => {
-            isMounted = false;
-        };
-    }, []);
+    const { loading } = useApp()
 
 
     if (loading) return <ConsoleLoader />;
@@ -172,9 +122,6 @@ export default function ConsoleShell() {
                 setActiveTab={setActiveTab}
                 open={sidebarOpen}
                 setOpen={setSidebarOpen}
-                user={user}
-                plan={plan}
-                profile={profile}
             />
 
             {/* Main content */}

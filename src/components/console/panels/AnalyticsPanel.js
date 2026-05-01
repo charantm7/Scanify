@@ -1,22 +1,11 @@
 'use client';
 
-/**
- * components/console/panels/AnalyticsPanel.js
- *
- * Minimal, clean analytics for Scanify.
- * Free tier: shows teaser numbers + upgrade wall.
- * Paid: full scan trends, top items, peak hours.
- *
- * Uses pure CSS/SVG charts — no chart lib dependency.
- */
 
 import { useCallback, useEffect, useState } from 'react';
 import { BarChart2, Eye, TrendingUp, Clock, Zap, Lock, Loader2, Calendar } from 'lucide-react';
-import { getSupabaseClient } from '../../../lib/supabase/client';
-import { useApp } from '../../../context/AppContext';
+import { getSupabaseClient } from '@/lib/supabase/client';
 import { StatCard, Card, Alert, Badge, Skeleton } from '../../shared/ui';
 
-// ─── Mini bar chart (pure CSS) ─────────────────────────────────────────────────
 function BarChart({ data, label }) {
   const max = Math.max(...data.map((d) => d.value), 1);
   return (
@@ -41,7 +30,6 @@ function BarChart({ data, label }) {
   );
 }
 
-// ─── Blurred upgrade gate ─────────────────────────────────────────────────────
 function UpgradeGate({ children }) {
   return (
     <div className="relative rounded-2xl overflow-hidden">
@@ -70,7 +58,6 @@ function UpgradeGate({ children }) {
   );
 }
 
-// ─── Top items list ────────────────────────────────────────────────────────────
 function TopItemsList({ items }) {
   if (!items.length) return <p className="text-sm text-theme2 py-6 text-center">No scan data yet.</p>;
   const max = Math.max(...items.map((i) => i.scans), 1);
@@ -98,7 +85,6 @@ function TopItemsList({ items }) {
   );
 }
 
-// ─── Main Panel ───────────────────────────────────────────────────────────────
 export default function AnalyticsPanel() {
   const { hotel, plan, isFreeTier } = useApp();
   const supabase = getSupabaseClient();

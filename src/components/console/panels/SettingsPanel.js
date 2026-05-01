@@ -1,13 +1,5 @@
 'use client';
 
-/**
- * components/console/panels/SettingsPanel.js
- *
- * Tabs:
- *   Profile     — name, email, password
- *   Restaurant  — hotel name, description, logo_url, address
- *   Plan        — current plan, usage meter, upgrade CTA
- */
 
 import { useState } from 'react';
 import {
