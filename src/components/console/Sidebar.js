@@ -8,6 +8,7 @@ import {
 import { getSupabaseClient } from '@/lib/supabase/client';
 import { Badge } from '../shared/ui';
 import toast from 'react-hot-toast';
+import { useApp } from '@/context/AppContext';
 
 function Logo() {
   return (
@@ -44,8 +45,9 @@ function PlanBadge({ plan }) {
   return <Badge variant="warning">Free</Badge>;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, open, setOpen, user, plan, profile }) {
+export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
   const [signingOut, setSigningOut] = useState(false);
+  const { user, plan, profile } = useApp()
   const supabase = getSupabaseClient();
 
   async function handleSignOut() {

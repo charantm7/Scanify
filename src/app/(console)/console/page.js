@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import ConsoleShell from "@/components/console/ConsoleShell"
 
 export default async function Console() {
     const supabase = await createClient()
@@ -22,8 +23,6 @@ export default async function Console() {
         redirect('/onboarding')
     }
     return (
-        <div>
-            This is console
-        </div>
+        <ConsoleShell />
     )
 }
