@@ -1,12 +1,5 @@
 'use client';
 
-/**
- * components/console/panels/QRPanel.js
- *
- * Generates QR codes pointing at the hotel's public menu URL.
- * Uses the free QRCode.js-compatible API via canvas approach.
- * Stores generated QRs in Supabase qr_codes table for history.
- */
 
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -18,7 +11,6 @@ import { getSupabaseClient } from '../../../lib/supabase/client';
 import { useApp } from '../../../context/AppContext';
 import { Card, Button, EmptyState, Alert, Badge, Select } from '../../shared/ui';
 
-// Simple QR generation using a free public API
 function qrUrl(text, size = 256) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&color=000000&bgcolor=ffffff&qzone=2&format=png`;
 }
@@ -100,7 +92,7 @@ function QRCard({ qr, onDelete }) {
 }
 
 export default function QRPanel() {
-  const { hotel, plan, limits } = useApp();
+  const { hotel, plan, limits, isFreeTier } = useApp();
   const supabase = getSupabaseClient();
   const [qrCodes, setQrCodes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -108,7 +100,8 @@ export default function QRPanel() {
   const [label, setLabel] = useState('');
 
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'scanify.co.in';
-  const menuUrl = hotel?.slug ? `https://${hotel.slug}.${appDomain}` : null;
+  const menuUrl = hotel?.slug ? `${appDomain}/${hotel.slug}` : null;
+
 
   const isAtLimit = qrCodes.length >= (limits.qrCodes ?? 1);
 
@@ -211,7 +204,7 @@ export default function QRPanel() {
       </Card>
 
       {/* Limit warning */}
-      {isAtLimit && plan === 'free' && (
+      {isAtLimit && isFreeTier && (
         <Alert
           type="info"
           title="QR code limit reached on Free plan"

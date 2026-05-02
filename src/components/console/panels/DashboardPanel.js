@@ -1,16 +1,13 @@
 'use client';
 
-/**
- * components/console/panels/DashboardPanel.js
- */
 
 import { useEffect, useState } from 'react';
 import {
   QrCode, ChefHat, BarChart2, Building2,
   ExternalLink, ArrowRight, Clock, Zap,
 } from 'lucide-react';
-import { useApp, FREE_GRACE_HOURS } from '../../../context/AppContext';
-import { StatCard, Card, Alert, Badge } from '../../shared/ui';
+import { useApp } from '../../../context/AppContext';
+import { StatCard, Card, Alert } from '../../shared/ui';
 
 function QuickAction({ icon: Icon, label, desc, onClick }) {
   return (
@@ -34,12 +31,18 @@ function QuickAction({ icon: Icon, label, desc, onClick }) {
 }
 
 export default function DashboardPanel({ onNavigate }) {
-  const { profile, hotel, supabase, menuItemCount, plan, isFreeTier, isInGracePeriod, hoursLeftInGrace, limits } = useApp();
+  const {
+    profile, hotel, supabase,
+    menuItemCount, plan, limits,
+    isFreeTier, isOnTrial, isInTrial,
+    trialHoursLeft, trialDaysLeft,
+  } = useApp();
+
   const [qrCount, setQrCount] = useState(0);
   const [scanCount, setScanCount] = useState(0);
 
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'scanify.co.in';
-  const menuUrl = hotel?.slug ? `${hotel.slug}.${appDomain}` : null;
+  const menuUrl = hotel?.slug ? `${appDomain}/${hotel.slug}` : null;
 
   useEffect(() => {
     if (!hotel?.id) return;
@@ -51,13 +54,8 @@ export default function DashboardPanel({ onNavigate }) {
           supabase.from('qr_codes').select('id', { count: 'exact', head: true }).eq('hotel_id', hotel.id),
           supabase.from('menu_scans').select('id', { count: 'exact', head: true }).eq('hotel_id', hotel.id),
         ]);
-        if (mounted) {
-          setQrCount(qrs ?? 0);
-          setScanCount(scans ?? 0);
-        }
-      } catch {
-        // Non-critical — stats can silently fail
-      }
+        if (mounted) { setQrCount(qrs ?? 0); setScanCount(scans ?? 0); }
+      } catch { /* non-critical */ }
     }
 
     loadStats();
@@ -66,16 +64,17 @@ export default function DashboardPanel({ onNavigate }) {
 
   return (
     <div className="space-y-6">
-      {/* Free tier grace period banner */}
-      {isFreeTier && isInGracePeriod && (
+
+      {isOnTrial && (
         <Alert
           type="info"
-          title={`Free trial · ${hoursLeftInGrace}h remaining`}
-          message="You're in your 48-hour free window. Upgrade before it ends to keep adding menu items beyond 15."
+          title={`Free Trial · ${trialHoursLeft}h left`}
+          message={`You have full Starter access for ${trialDaysLeft} more day${trialDaysLeft !== 1 ? 's' : ''}. After that, you'll drop to the free tier (5 items, 1 QR). Upgrade now to keep everything.`}
           action={
             <button
-              className="flex-shrink-0 flex items-center gap-1 text-xs font-bold underline"
-              style={{ color: 'var(--accent)' }}
+              onClick={() => onNavigate('billing')}
+              className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-bold"
+              style={{ background: 'var(--accent)' }}
             >
               <Zap size={12} /> Upgrade
             </button>
@@ -83,24 +82,25 @@ export default function DashboardPanel({ onNavigate }) {
         />
       )}
 
-      {/* Free tier expired nudge */}
-      {isFreeTier && !isInGracePeriod && menuItemCount >= limits.maxMenuItems && (
+      {/* ── Trial-expired nudge ───────────────────────────────────────────── */}
+      {isFreeTier && (
         <Alert
           type="warning"
-          title="Menu item limit reached (15/15)"
-          message="Upgrade to Starter or Pro to add more items and unlock advanced features."
+          title="Free trial ended"
+          message="You're now on the free plan — 5 menu items and 1 QR code. Upgrade to Starter to get back full access."
           action={
             <button
-              className="flex-shrink-0 px-3 py-1 rounded-lg text-white text-xs font-bold"
+              onClick={() => onNavigate('billing')}
+              className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-bold"
               style={{ background: 'var(--accent)' }}
             >
-              Upgrade
+              <Zap size={12} /> Upgrade
             </button>
           }
         />
       )}
 
-      {/* Welcome banner */}
+      {/* ── Welcome banner ───────────────────────────────────────────────── */}
       <div
         className="rounded-3xl p-7 flex items-center justify-between"
         style={{ background: 'var(--accent)' }}
@@ -121,7 +121,10 @@ export default function DashboardPanel({ onNavigate }) {
             className="px-3 py-1 rounded-full text-xs font-bold"
             style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}
           >
-            {plan === 'pro' ? '⚡ Pro' : plan === 'starter' ? '✦ Starter' : 'Free'}
+            {plan === 'pro' ? 'Pro'
+              : plan === 'starter' ? 'Starter'
+                : plan === 'trial' ? 'Trial'
+                  : 'Free'}
           </div>
           <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
             <QrCode size={24} color="white" />
@@ -129,7 +132,7 @@ export default function DashboardPanel({ onNavigate }) {
         </div>
       </div>
 
-      {/* Menu URL */}
+      {/* ── Live menu URL ─────────────────────────────────────────────────── */}
       {menuUrl && (
         <Card style={{ borderColor: 'var(--accent)', background: 'var(--accentlt)' }}>
           <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--accent)' }}>
@@ -138,7 +141,7 @@ export default function DashboardPanel({ onNavigate }) {
           <div className="flex items-center justify-between gap-3">
             <code className="text-sm font-bold text-theme break-all">{menuUrl}</code>
             <a
-              href={`https://${menuUrl}`}
+              href={menuUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-80"
@@ -150,34 +153,35 @@ export default function DashboardPanel({ onNavigate }) {
         </Card>
       )}
 
-      {/* Stats */}
+      {/* ── Stats ────────────────────────────────────────────────────────── */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={ChefHat}
           label="Menu Items"
           value={menuItemCount}
-          sub={isFreeTier ? `${menuItemCount} / ${limits.maxMenuItems} free limit` : 'Total items'}
+          sub={`${menuItemCount} / ${limits.maxMenuItems === Infinity ? '∞' : limits.maxMenuItems}`}
         />
         <StatCard icon={QrCode} label="QR Codes" value={qrCount} sub="Generated" />
         <StatCard icon={BarChart2} label="Total Scans" value={scanCount} sub="All time" />
         <StatCard
           icon={Clock}
           label="Account Age"
-          value={
-            profile?.created_at
-              ? `${Math.floor((Date.now() - new Date(profile.created_at)) / 86400000)}d`
-              : '—'
-          }
+          value={profile?.created_at
+            ? `${Math.floor((Date.now() - new Date(profile.created_at)) / 86_400_000)}d`
+            : '—'}
           sub="Since joining"
         />
       </div>
 
-      {/* Free tier meter */}
-      {isFreeTier && (
+      {/* ── Usage meter (free + trial) ────────────────────────────────────── */}
+      {(isFreeTier || isOnTrial) && limits.maxMenuItems !== Infinity && (
         <Card>
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-semibold text-theme">Menu Item Usage</p>
-            <span className="text-xs font-bold" style={{ color: menuItemCount >= limits.maxMenuItems ? '#dc2626' : 'var(--accent)' }}>
+            <span
+              className="text-xs font-bold"
+              style={{ color: menuItemCount >= limits.maxMenuItems ? '#dc2626' : 'var(--accent)' }}
+            >
               {menuItemCount} / {limits.maxMenuItems}
             </span>
           </div>
@@ -192,40 +196,20 @@ export default function DashboardPanel({ onNavigate }) {
           </div>
           <p className="text-xs text-theme2 mt-1.5">
             {limits.maxMenuItems - menuItemCount > 0
-              ? `${limits.maxMenuItems - menuItemCount} slots remaining on Free plan`
+              ? `${limits.maxMenuItems - menuItemCount} slots remaining on ${plan === 'trial' ? 'trial' : 'Free'} plan`
               : 'Limit reached — upgrade to add more items'}
           </p>
         </Card>
       )}
 
-      {/* Quick actions */}
+      {/* ── Quick actions ─────────────────────────────────────────────────── */}
       <div>
         <h3 className="text-sm font-bold text-theme mb-3">Quick Actions</h3>
         <div className="grid sm:grid-cols-2 gap-3">
-          <QuickAction
-            icon={ChefHat}
-            label="Manage Menu"
-            desc="Add items, categories & prices"
-            onClick={() => onNavigate('menu')}
-          />
-          <QuickAction
-            icon={QrCode}
-            label="Generate QR Code"
-            desc="Create scannable QR for your menu"
-            onClick={() => onNavigate('qr-codes')}
-          />
-          <QuickAction
-            icon={BarChart2}
-            label="View Analytics"
-            desc="See scan trends and popular items"
-            onClick={() => onNavigate('analytics')}
-          />
-          <QuickAction
-            icon={Building2}
-            label="Restaurant Settings"
-            desc="Edit hotel profile and branding"
-            onClick={() => onNavigate('settings')}
-          />
+          <QuickAction icon={ChefHat} label="Manage Menu" desc="Add items, categories & prices" onClick={() => onNavigate('menu')} />
+          <QuickAction icon={QrCode} label="Generate QR Code" desc="Create scannable QR for your menu" onClick={() => onNavigate('qr-codes')} />
+          <QuickAction icon={BarChart2} label="View Analytics" desc="See scan trends and popular items" onClick={() => onNavigate('analytics')} />
+          <QuickAction icon={Building2} label="Restaurant Settings" desc="Edit hotel profile and branding" onClick={() => onNavigate('settings')} />
         </div>
       </div>
     </div>

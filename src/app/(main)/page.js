@@ -5,6 +5,7 @@ import HowItWorks from "@/components/home/HowItWorks";
 import Navbar from "@/components/home/Navbar";
 import Pricing from "@/components/home/Pricing";
 import WhySwitch from "@/components/home/WhySwitch";
+import { AppProvider } from "@/context/AppContext";
 
 export const metadata = {
   title: "Scanify",
@@ -12,6 +13,14 @@ export const metadata = {
 };
 
 export default function Home() {
+  return (
+    <AppProvider>
+      <HomeInner />
+    </AppProvider>
+  )
+}
+
+function HomeInner() {
   return (
     <>
       <Navbar />

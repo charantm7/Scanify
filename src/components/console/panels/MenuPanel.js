@@ -1,14 +1,5 @@
 'use client';
 
-/**
- * components/console/panels/MenuPanel.js
- *
- * Full menu management:
- *  - Category CRUD (add / rename / delete / reorder)
- *  - Item CRUD per category (name, description, price, image_url, availability toggle)
- *  - Free-tier hard cap at 15 items total with upgrade nudge
- *  - All mutations optimistically update local state then sync to Supabase
- */
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import {
@@ -160,7 +151,7 @@ function ItemForm({ initial = EMPTY_ITEM, onSubmit, loading, categories, current
       <Textarea
         label="Description"
         placeholder="Brief description of the dish…"
-        value={form.description}
+        value={form.description ?? ""}
         onChange={(e) => set('description')(e.target.value)}
         rows={2}
       />
@@ -179,7 +170,7 @@ function ItemForm({ initial = EMPTY_ITEM, onSubmit, loading, categories, current
         <Input
           label="Image URL"
           placeholder="https://..."
-          value={form.image_url}
+          value={form.image_url ?? ""}
           onChange={(e) => set('image_url')(e.target.value)}
           icon={ImageIcon}
         />
@@ -361,7 +352,8 @@ function CategoryBlock({ category, onRename, onDelete, onAddItem, onEditItem, on
 
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 export default function MenuPanel() {
-  const { hotel, menuItemCount, refreshMenuCount, isFreeTier, isAtMenuLimit, limits } = useApp();
+  const { hotel, menuItemCount, refreshMenuCount, isFreeTier, isOnTrial, limits } = useApp();
+  const isAtMenuLimit = menuItemCount >= limits.maxMenuItems;
   const supabase = getSupabaseClient();
   const [state, dispatch] = useReducer(reducer, INITIAL);
 
@@ -565,7 +557,7 @@ export default function MenuPanel() {
           <h1 className="font-syne font-bold text-2xl text-theme">Menu Builder</h1>
           <p className="text-sm text-theme2 mt-0.5">
             {totalItems} item{totalItems !== 1 ? 's' : ''}
-            {isFreeTier && ` · Free plan: ${totalItems}/${limits.maxMenuItems}`}
+            {(isFreeTier || isOnTrial) && ` · ${isOnTrial ? "Trial" : "Free"} plan: ${totalItems}/${limits.maxMenuItems}`}
           </p>
         </div>
       </div>
@@ -574,7 +566,7 @@ export default function MenuPanel() {
       {isFreeTier && isAtMenuLimit && (
         <Alert
           type="warning"
-          title="Item limit reached (15/15 on Free plan)"
+          title={`Item limit reached (${limits.maxMenuItems}/${limits.maxMenuItems} on ${isOnTrial ? "Trial" : "Free"} plan)`}
           message="Upgrade to Starter or Pro to add unlimited items."
           action={
             <button
@@ -630,7 +622,7 @@ export default function MenuPanel() {
         ))
       )}
 
-      {/* Free tier upgrade nudge at bottom */}
+
       {isFreeTier && !isAtMenuLimit && totalItems > 10 && (
         <UpgradeNudge message={`${limits.maxMenuItems - totalItems} item slot${limits.maxMenuItems - totalItems !== 1 ? 's' : ''} left on Free plan — upgrade for unlimited`} />
       )}

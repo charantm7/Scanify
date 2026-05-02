@@ -4,22 +4,45 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 
-export const FREE_GRACE_HOURS = 48;
+export const TRIAL_HOURS = 48;
 
 export const PLANS = {
-    free: { label: "Free", maxMenuItems: 5, qrCodes: 1, analytics: false },
-    starter: { label: "Starter", maxMenuItems: 30, qrCodes: 10, analytics: false },
-    pro: { label: "Pro", maxMenuItems: 200, qrCodes: Infinity, analytics: true },
-    enterprise: { label: "Enterprise", maxMenuItems: Infinity, qrCodes: Infinity, analytics: true },
+    free: {
+        label: "Free",
+        maxMenuItems: 5,
+        qrCodes: 1,
+        analytics: false,
+    },
+    trial: {
+        label: "Free Trial",
+        maxMenuItems: 50,
+        qrCodes: 10,
+        analytics: true,
+    },
+    starter: {
+        label: "Starter",
+        maxMenuItems: 50,
+        qrCodes: 10,
+        analytics: true,
+    },
+    pro: {
+        label: "Pro",
+        maxMenuItems: 200,
+        qrCodes: Infinity,
+        analytics: true,
+    },
+    enterprise: {
+        label: "Enterprise",
+        maxMenuItems: Infinity,
+        qrCodes: Infinity,
+        analytics: true,
+    },
 };
 
-// ─── Context ──────────────────────────────────────────────────────────────────
 
 const AppContext = createContext(null);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function AppProvider({ children }) {
     const supabase = getSupabaseClient();
@@ -31,19 +54,19 @@ export function AppProvider({ children }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // ── Bootstrap ──────────────────────────────────────────────────────────────
     useEffect(() => {
         let mounted = true;
 
         async function bootstrap() {
             try {
-                const { data: { user }, error: authErr } = await supabase.auth.getUser();
-                if (authErr) throw authErr;
+                const { data: { session } } = await supabase.auth.getSession();
 
-                if (!user) {
+                if (!session?.user) {
                     if (mounted) setLoading(false);
                     return;
                 }
+
+                const user = session.user;
 
                 const [{ data: prof }, { data: hot }] = await Promise.all([
                     supabase.from("users").select("*").eq("id", user.id).maybeSingle(),
@@ -75,7 +98,6 @@ export function AppProvider({ children }) {
 
         bootstrap();
 
-        // Keep session in sync
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (event === "SIGNED_OUT") {
                 setUser(null);
@@ -89,9 +111,8 @@ export function AppProvider({ children }) {
             mounted = false;
             subscription.unsubscribe();
         };
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
 
     const refreshMenuCount = useCallback(async () => {
         if (!hotel?.id) return;
@@ -112,47 +133,51 @@ export function AppProvider({ children }) {
         setHotel(data);
     }, [user?.id, supabase]);
 
-    /** Optimistically update profile fields in-memory (avoids a re-fetch). */
     const updateProfileLocally = useCallback((patch) => {
         setProfile((prev) => (prev ? { ...prev, ...patch } : patch));
     }, []);
 
-    // ── Derived values ─────────────────────────────────────────────────────────
 
-    const plan = profile?.plan ?? "free";
-    const planConfig = PLANS[plan] ?? PLANS.free;
-    const limits = planConfig;
-    const isFreeTier = plan === "free";
-
-    // Grace period: 48 h from account creation for free users
+    const dbPlan = profile?.plan ?? "free";
     const createdAt = profile?.created_at ? new Date(profile.created_at) : null;
-    const hoursSinceSignup = createdAt ? (Date.now() - createdAt.getTime()) / 3_600_000 : Infinity;
-    const isInGracePeriod = isFreeTier && hoursSinceSignup < FREE_GRACE_HOURS;
-    const hoursLeftInGrace = isInGracePeriod ? Math.ceil(FREE_GRACE_HOURS - hoursSinceSignup) : 0;
-    const trialDaysLeft = isFreeTier
-        ? Math.max(0, Math.ceil((FREE_GRACE_HOURS - hoursSinceSignup) / 24))
-        : 0;
+    const hoursOnPlatform = createdAt
+        ? (Date.now() - createdAt.getTime()) / 3_600_000
+        : Infinity;
+
+    const isInTrial = dbPlan === "free" && hoursOnPlatform < TRIAL_HOURS;
+    const trialHoursLeft = isInTrial ? Math.ceil(TRIAL_HOURS - hoursOnPlatform) : 0;
+    const trialDaysLeft = isInTrial ? Math.max(1, Math.ceil(trialHoursLeft / 24)) : 0;
+
+    const plan = isInTrial ? "trial" : dbPlan;
+    const limits = PLANS[plan] ?? PLANS.free;
+
+    const isFreeTier = plan === "free";
+    const isOnTrial = plan === "trial";
+    const isPaidPlan = !isFreeTier && !isOnTrial;
+
 
 
     const value = {
-        // Auth & data
         supabase,
         user,
         profile,
         hotel,
+
         plan,
+        dbPlan,
         limits,
         menuItemCount,
 
-        // State flags
         loading,
         error,
+
         isFreeTier,
-        isInGracePeriod,
-        hoursLeftInGrace,
+        isOnTrial,
+        isPaidPlan,
+        isInTrial,
+        trialHoursLeft,
         trialDaysLeft,
 
-        // Mutators
         refreshMenuCount,
         refreshHotel,
         updateProfileLocally,
@@ -160,7 +185,6 @@ export function AppProvider({ children }) {
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
-
 
 export function useApp() {
     const ctx = useContext(AppContext);
