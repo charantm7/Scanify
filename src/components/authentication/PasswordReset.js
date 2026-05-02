@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
 import { getSupabaseClient } from '@/lib/supabase/client';
 import AuthNavbar from './Navbar';
-import { cookies } from 'next/headers';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
