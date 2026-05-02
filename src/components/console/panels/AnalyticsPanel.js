@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { BarChart2, Eye, TrendingUp, Clock, Zap, Lock, Loader2, Calendar } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
 import { StatCard, Card, Alert, Badge, Skeleton } from '../../shared/ui';
+import { useApp } from '@/context/AppContext';
 
 function BarChart({ data, label }) {
   const max = Math.max(...data.map((d) => d.value), 1);
@@ -86,7 +87,9 @@ function TopItemsList({ items }) {
 }
 
 export default function AnalyticsPanel() {
-  const { hotel, plan, isFreeTier } = useApp();
+  const { hotel, isFreeTier, isOnTrial, limits } = useApp();
+  const canViewAnalytics = !isFreeTier || isOnTrial;
+
   const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -124,7 +127,7 @@ export default function AnalyticsPanel() {
 
       // Top items (only for paid plans — but fetch structure for teaser)
       let topItems = [];
-      if (!isFreeTier) {
+      if (canViewAnalytics) {
         const { data: scanData } = await supabase
           .from('menu_scans')
           .select('item_id, menu_items(name)')
@@ -162,7 +165,7 @@ export default function AnalyticsPanel() {
     } finally {
       setLoading(false);
     }
-  }, [hotel?.id, supabase, isFreeTier]);
+  }, [hotel?.id, supabase, canViewAnalytics ]);
 
   useEffect(() => { loadAnalytics(); }, [loadAnalytics]);
 

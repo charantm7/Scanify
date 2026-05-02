@@ -296,3 +296,29 @@ body {
     letter-spacing: -0.01em;
   }
 }
+
+
+
+
+
+
+@keyframes arrowFlow {
+  0% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateX(6px);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+}
+
+.arrow-loop {
+  animation: arrowFlow 1s ease-in-out infinite;
+}

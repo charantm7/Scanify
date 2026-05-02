@@ -84,10 +84,11 @@ function Panel({ id, onNavigate }) {
 
 
 export default function ConsoleShell() {
-    <AppProvider>
-        <ConsoleShellInner />
-    </AppProvider>
-
+    return (
+        <AppProvider>
+            <ConsoleShellInner />
+        </AppProvider>
+    );
 }
 
 

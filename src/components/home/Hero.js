@@ -1,7 +1,10 @@
 'use client'
 import Link from 'next/link'
+import { useApp } from '@/context/AppContext'
 
 export default function Hero() {
+
+  const { user } = useApp();
   return (
 
     <section id="home" className="relative min-h-screen pt-28 md:pt-34 pb-20 grid-bg overflow-x-hidden">
@@ -50,21 +53,34 @@ export default function Hero() {
             Replace printed menus with a smart digital experience. Scan a QR code and browse instantly.
           </p>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-5">
             <Link
-              href="#pricing"
-              className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-semibold text-theme no-underline transition-all duration-200 hover:-translate-y-px z-20"
+              href="/login"
+              className="btn-primary inline-flex items-center gap-3 pl-2 pr-5 py-2.5 rounded-[10px] text-sm font-semibold text-white border hover:bg-[var(--accent2)] transition border-theme2 bg-submit no-underline"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="13 17 18 12 13 7" />
-                <polyline points="6 17 11 12 6 7" />
-              </svg>
-              Start for Free
+              <span className="flex items-center relative">
+
+                <svg
+                  className="arrow-loop arrow1"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <polyline points="6 17 11 12 6 7" />
+                  <polyline points="13 17 18 12 13 7" />
+                </svg>
+
+              </span>
+
+              {user ? "Dashboard" : "Start for Free"}
             </Link>
 
             <Link
               href="#how"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-semibold text-theme border border-theme2 no-underline hover:bg-theme3 transition-all duration-200 z-20"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-semibold text-theme border border-theme2 no-underline hover:bg-[var(--bg3)] transition-all duration-200 z-20"
             >
               See How It Works
             </Link>
@@ -130,8 +146,8 @@ export default function Hero() {
 
                 <div className='flex items-center gap-3'>
                   <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                    style={{ background: 'rgba(29,185,84,0.10)' }}
+                    className="w-11 h-11 rounded-xl flex bg-accentlt items-center justify-center mb-4"
+
                   >
                     {icon}
                   </div>
@@ -145,8 +161,8 @@ export default function Hero() {
                 <p className="text-[13px] leading-relaxed text-theme3">{desc}</p>
 
                 <div
-                  className="inline-flex items-center gap-1.5 mt-4 rounded-full px-2.5 py-1 text-[11px] font-semibold"
-                  style={{ background: 'rgba(29,185,84,0.08)', color: 'var(--accent-dark)' }}
+                  className="inline-flex bg-theme3 items-center gap-1.5 mt-4 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                  style={{ color: 'var(--accent-dark)' }}
                 >
                   <span
                     className="w-1.5 h-1.5 rounded-full"

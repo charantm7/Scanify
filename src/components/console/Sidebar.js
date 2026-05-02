@@ -9,20 +9,21 @@ import { getSupabaseClient } from '@/lib/supabase/client';
 import { Badge } from '../shared/ui';
 import toast from 'react-hot-toast';
 import { useApp } from '@/context/AppContext';
+import Image from 'next/image';
 
 function Logo() {
   return (
     <div className="flex items-center gap-2.5">
       <div
         className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center flex-shrink-0"
-        style={{ background: 'var(--accent)' }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="3" width="7" height="7" rx="1" />
-          <rect x="14" y="3" width="7" height="7" rx="1" />
-          <rect x="3" y="14" width="7" height="7" rx="1" />
-          <path d="M14 14h3v3m0 4h4v-4m-4 0h-3v4" />
-        </svg>
+        <Image
+          loading="eager"
+          src="/scanify_logo.png"
+          alt="Logo"
+          width={40}
+          height={40}
+        />
       </div>
       <span className="font-syne font-bold text-theme text-lg">Scanify</span>
     </div>
@@ -51,12 +52,12 @@ export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
   const supabase = getSupabaseClient();
 
   async function handleSignOut() {
-    setLoading(true)
+    setSigningOut(true)
     const { error } = await supabase.auth.signOut();
 
     if (error) {
       toast.error("Logout failed");
-      setLoading(false);
+      setSigningOut(false);
     } else {
       toast.success("Logged out");
       window.location.href = "/login";
