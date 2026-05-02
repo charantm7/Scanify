@@ -1,4 +1,5 @@
 import AuthPage from "@/components/authentication/AuthPage";
+import { Suspense } from "react";
 
 export const metadata = {
     title: "Login | Scanify",
@@ -7,6 +8,8 @@ export const metadata = {
 
 export default function Authentication() {
     return (
-        <AuthPage />
-    )
+        <Suspense fallback={<div>Loading...</div>}>
+            <AuthPage />
+        </Suspense>
+    );
 }
