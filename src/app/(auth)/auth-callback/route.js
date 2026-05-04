@@ -35,14 +35,6 @@ export async function GET(request) {
     return response;
   }
 
-  if (type === 'signup') {
-    await supabase.from('users').upsert(
-      { id: user.id, onboarding_complete: false, email: user.email, is_verified: true },
-      { onConflict: 'id', ignoreDuplicates: true }
-    );
-    return NextResponse.redirect(`${origin}/onboarding`);
-  }
-
   const { data: profile } = await supabase
     .from('users')
     .select('onboarding_complete')
@@ -50,7 +42,13 @@ export async function GET(request) {
     .maybeSingle();
 
   if (!profile) {
-    await supabase.from('users').insert({ id: user.id, onboarding_complete: false });
+    await supabase.from('users').insert({
+      id: user.id,
+      onboarding_complete: false,
+      email: user.email,
+      is_verified: true,
+    });
+
     return NextResponse.redirect(`${origin}/onboarding`);
   }
 
