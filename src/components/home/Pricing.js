@@ -7,6 +7,25 @@ import Link from 'next/link'
 
 const annual = [
   {
+    name: 'Free',
+    tagline: 'Perfect for getting started',
+    price: '4,999',
+    save: "Save ₹989",
+    period: 'per year',
+    featured: false,
+    features: [
+      'QR code generation',
+      'Menu with names & pricing',
+      'Clean, simple layout',
+      'Restaurant Logo Integration',
+      'Unlimited scans',
+      'Quick Setup & Go Live'
+    ],
+    cta: 'Start Free Trial',
+    ctaFilled: false,
+    href: '#',
+  },
+  {
     name: 'Basic',
     tagline: 'Perfect for getting started',
     price: '4,999',
@@ -67,18 +86,37 @@ const annual = [
 
 const plans = [
   {
-    name: 'Basic',
+    name: 'Free',
     tagline: 'Perfect for getting started',
+    price: '0',
+    period: 'forever',
+    featured: false,
+    features: [
+      'QR Code Menu',
+      'Up to 5 menu items',
+      'Text-only menu (no images)',
+      'Basic layout',
+      'Scanify branding',
+      'Unlimited scans',
+      'Quick Setup & Go Live'
+    ],
+    cta: 'Get Started',
+    ctaFilled: false,
+    href: '#',
+  },
+  {
+    name: 'Basic',
+    tagline: 'Upgrade your menu experience',
     price: '499',
     period: 'per month',
     featured: false,
     features: [
-      'QR code generation',
-      'Menu with names & pricing',
-      'Clean, simple layout',
-      'Restaurant Logo Integration',
-      'Unlimited scans',
-      'Quick Setup & Go Live'
+      'Everything in Free +',
+      'Up to 40 menu items',
+      'Add images (up to 15 items)',
+      'Basic customization (colors & logo)',
+      'Remove Scanify branding',
+      'Simple menu editor'
     ],
     cta: 'Start Free Trial',
     ctaFilled: false,
@@ -91,6 +129,9 @@ const plans = [
     period: 'per month',
     featured: true,
     features: [
+      'Everything in Basic +',
+      'Unlimited Items',
+      'Unlimited Images',
       'Ratings per Food',
       'Google Review Integration',
       'Full category organisation',
@@ -168,7 +209,7 @@ export default function Pricing() {
         </div>
 
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
           {(isAnnual ? annual : plans).map((plan, i) => (
             <div
               key={plan.name}

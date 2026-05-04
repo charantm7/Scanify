@@ -175,7 +175,7 @@ export default function QRPanel() {
         <p className="text-sm font-semibold text-theme mb-3">Generate New QR Code</p>
         {menuUrl ? (
           <>
-            <div className="flex gap-2 mb-3">
+            <div className="flex flex-col md:flex-row gap-2 mb-3">
               <input
                 placeholder="Label (e.g. Table 4, Takeaway)"
                 value={label}
