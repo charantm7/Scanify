@@ -589,7 +589,10 @@ export default function MenuPanel() {
           className="flex-1 px-4 py-2.5 rounded-xl border bg-card text-theme text-sm placeholder:text-theme2 outline-none focus:ring-2 focus:ring-[var(--accent)]/30 transition"
           style={{ borderColor: 'var(--border)' }}
         />
-        <Button variant="primary" loading={addingCategory} onClick={addCategory}>
+        <Button className='md:hidden' variant="primary" loading={addingCategory} onClick={addCategory}>
+          <Plus size={15} /> Add
+        </Button>
+        <Button className='hidden md:flex' variant="primary" loading={addingCategory} onClick={addCategory}>
           <Plus size={15} /> Add Category
         </Button>
       </div>

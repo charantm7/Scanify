@@ -92,31 +92,33 @@ function ProfileTab() {
 
     function FieldRow({ label, value, editing, editValue, onChange, onEdit, onSave, onCancel, saving, inputType }) {
         return (
-            <div className="flex items-center gap-4 px-6 py-4 border-b last:border-b-0" style={{ borderColor: 'var(--border)' }}>
-                <span className="w-28 flex-shrink-0 text-sm text-theme2">{label}</span>
-                <div className="flex-1 min-w-0">
-                    {editing ? (
-                        <input
-                            type={inputType || 'text'}
-                            value={editValue}
-                            onChange={(e) => onChange(e.target.value)}
-                            autoFocus
-                            className="w-full max-w-xs px-3 py-2 rounded-xl border bg-card text-theme text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
-                            style={{ borderColor: 'var(--border)' }}
-                        />
-                    ) : (
-                        <span className="text-sm text-theme font-medium">{value || <span className="text-theme2 italic">Not set</span>}</span>
-                    )}
-                </div>
-                <div className="flex items-center gap-2">
-                    {editing ? (
-                        <>
-                            <Button size="sm" variant="primary" loading={saving} onClick={onSave}>Save</Button>
-                            <Button size="sm" variant="secondary" onClick={onCancel}>Cancel</Button>
-                        </>
-                    ) : (
-                        <Button size="sm" variant="ghost" onClick={onEdit}>Edit</Button>
-                    )}
+            <div className="flex md:flex-row flex-col sm:flex-row md:items-center sm:items-center gap-2 px-6 py-4 border-b last:border-b-0" style={{ borderColor: 'var(--border)' }}>
+                <span className="md:w-28 flex-shrink-0 text-sm text-theme2">{label}</span>
+                <div className={`flex md:flex-row sm:flex-row gap-2 ${editing ? 'flex-col' : 'flex-row'}`}>
+                    <div className="flex-1 min-w-0">
+                        {editing ? (
+                            <input
+                                type={inputType || 'text'}
+                                value={editValue}
+                                onChange={(e) => onChange(e.target.value)}
+                                autoFocus
+                                className="w-full max-w-xs px-3 py-2 rounded-xl border bg-card text-theme text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
+                                style={{ borderColor: 'var(--border)' }}
+                            />
+                        ) : (
+                            <span className="text-sm text-theme font-medium">{value || <span className="text-theme2 italic">Not set</span>}</span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {editing ? (
+                            <>
+                                <Button size="sm" variant="primary" loading={saving} onClick={onSave}>Save</Button>
+                                <Button size="sm" variant="secondary" onClick={onCancel}>Cancel</Button>
+                            </>
+                        ) : (
+                            <Button size="sm" variant="ghost" onClick={onEdit}>Edit</Button>
+                        )}
+                    </div>
                 </div>
             </div>
         );
@@ -146,8 +148,8 @@ function ProfileTab() {
             <Section title="Password">
                 {['current', 'next', 'confirm'].map((key) => (
                     <div key={key}>
-                        <div className="flex items-center gap-4 px-6 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border)' }}>
-                            <span className="w-40 flex-shrink-0 text-sm text-theme2">
+                        <div className="flex md:flex-row sm:flex-row  flex-col md:items-center sm:items-center gap-2 px-6 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border)' }}>
+                            <span className="md:w-40 flex-shrink-0 text-sm text-theme2">
                                 {{ current: 'Current', next: 'New Password', confirm: 'Confirm' }[key]}
                             </span>
                             <div className="flex-1 max-w-xs relative">
@@ -168,11 +170,11 @@ function ProfileTab() {
                         {pwErrors[key] && <p className="text-red-500 text-xs px-6 pb-2">{pwErrors[key]}</p>}
                     </div>
                 ))}
-                <div className="px-6 py-4 flex items-center justify-between border-t" style={{ borderColor: 'var(--border)' }}>
+                <div className="px-6 py-4 flex md:flex-row flex-col gap-2 md:items-center sm:items-center justify-between border-t" style={{ borderColor: 'var(--border)' }}>
                     <p className="text-xs text-theme2 flex items-center gap-1.5">
                         <AlertCircle size={12} /> Minimum 8 characters
                     </p>
-                    <Button variant="secondary" loading={savingPw} onClick={savePassword}>
+                    <Button className='bg-submit' loading={savingPw} onClick={savePassword}>
                         Update Password
                     </Button>
                 </div>
@@ -338,7 +340,7 @@ export default function SettingsPanel() {
     const tabs = [
         { id: 'profile', label: 'Profile', icon: User },
         { id: 'restaurant', label: 'Restaurant', icon: Building2 },
-        { id: 'plan', label: 'Plan & Billing', icon: Zap },
+        { id: 'plan', label: 'Billing', icon: Zap },
     ];
 
     return (
