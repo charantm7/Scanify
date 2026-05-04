@@ -4,10 +4,12 @@
 import { useEffect, useState } from 'react';
 import {
   QrCode, ChefHat, BarChart2, Building2,
-  ExternalLink, ArrowRight, Clock, Zap,
+  ExternalLink, ArrowRight, Clock, Zap, BlocksIcon,
+  Blocks
 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
 import { StatCard, Card, Alert } from '../../shared/ui';
+import Link from 'next/link';
 
 function QuickAction({ icon: Icon, label, desc, onClick }) {
   return (
@@ -33,8 +35,8 @@ function QuickAction({ icon: Icon, label, desc, onClick }) {
 export default function DashboardPanel({ onNavigate }) {
   const {
     profile, hotel, supabase,
-    menuItemCount, plan, limits,
-    isFreeTier, isOnTrial, isInTrial,
+    menuItemCount, plan, limits, isOnTrial, isInTrial,
+    isTrialExpired,
     trialHoursLeft, trialDaysLeft,
   } = useApp();
 
@@ -82,12 +84,11 @@ export default function DashboardPanel({ onNavigate }) {
         />
       )}
 
-      {/* ── Trial-expired nudge ───────────────────────────────────────────── */}
-      {isFreeTier && (
+      {isTrialExpired && (
         <Alert
-          type="warning"
-          title="Free trial ended"
-          message="You're now on the free plan — 5 menu items and 1 QR code. Upgrade to Starter to get back full access."
+          type="info"
+          title={`Free Trial Ended`}
+          message="Your trial has ended. Upgrade to continue managing your menu and unlock all features."
           action={
             <button
               onClick={() => onNavigate('billing')}
@@ -98,7 +99,10 @@ export default function DashboardPanel({ onNavigate }) {
             </button>
           }
         />
+
       )}
+
+
 
       {/* ── Welcome banner ───────────────────────────────────────────────── */}
       <div
@@ -116,15 +120,12 @@ export default function DashboardPanel({ onNavigate }) {
             </p>
           )}
         </div>
-        <div className="hidden sm:flex flex-col items-end gap-1.5">
+        <div className="hidden sm:flex flex-col items-center gap-1.5">
           <div
             className="px-3 py-1 rounded-full text-xs font-bold"
             style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}
           >
-            {plan === 'pro' ? 'Pro'
-              : plan === 'starter' ? 'Starter'
-                : plan === 'trial' ? 'Trial'
-                  : 'Free'}
+            {limits?.label}
           </div>
           <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
             <QrCode size={24} color="white" />
@@ -140,15 +141,25 @@ export default function DashboardPanel({ onNavigate }) {
           </p>
           <div className="flex items-center justify-between gap-3">
             <code className="text-sm font-bold text-theme break-all">{menuUrl}</code>
-            <a
+            <Link
               href={menuUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-80"
-              style={{ background: 'var(--accent)' }}
             >
-              Open <ExternalLink size={11} />
-            </a>
+              <button className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-80"
+                style={{ background: 'var(--accent)' }} disabled={isTrialExpired}>
+                {isTrialExpired ? (
+                  <>
+                    Disabled
+                  </>
+                ) : (
+                  <>
+                    Open <ExternalLink size={11} />
+                  </>
+                )}
+
+              </button>
+            </Link>
           </div>
         </Card>
       )}
@@ -174,7 +185,7 @@ export default function DashboardPanel({ onNavigate }) {
       </div>
 
       {/* ── Usage meter (free + trial) ────────────────────────────────────── */}
-      {(isFreeTier || isOnTrial) && limits.maxMenuItems !== Infinity && (
+      {isOnTrial && limits.maxMenuItems !== Infinity && (
         <Card>
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-semibold text-theme">Menu Item Usage</p>
