@@ -5,19 +5,21 @@ const PROTECTED_ROUTES = ['/console', '/onboarding'];
 const AUTH_ROUTES = ['/login', '/forget-password', '/check-mail'];
 const PUBLIC_ROUTES = ['/menu'];
 
-export async function proxy(request) {
+export async function middleware(request) {
     const url = request.nextUrl
     const pathname = url.pathname
+
+    const isPublic = pathname.startsWith('/menu')
+
+    if (isPublic) {
+        return NextResponse.next();
+    }
 
     let response = NextResponse.next({
         request: { headers: request.headers },
     });
 
-    const isPublic = pathname.startsWith('/menu')
 
-    if (isPublic) {
-        return response
-    }
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
