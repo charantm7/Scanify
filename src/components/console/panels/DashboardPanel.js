@@ -44,7 +44,7 @@ export default function DashboardPanel({ onNavigate }) {
   const [scanCount, setScanCount] = useState(0);
 
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'scanify.co.in';
-  const menuUrl = hotel?.slug ? `${appDomain}/${hotel.slug}` : null;
+  const menuUrl = hotel?.slug ? `${appDomain}/menu/${hotel.slug}` : null;
 
   useEffect(() => {
     if (!hotel?.id) return;

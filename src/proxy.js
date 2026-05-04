@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 const PROTECTED_ROUTES = ['/console', '/onboarding'];
 const AUTH_ROUTES = ['/login', '/forget-password', '/check-mail'];
+const PUBLIC_ROUTES = ['/menu'];
 
 export async function proxy(request) {
     const url = request.nextUrl
@@ -11,6 +12,12 @@ export async function proxy(request) {
     let response = NextResponse.next({
         request: { headers: request.headers },
     });
+
+    const isPublic = pathname.startsWith('/menu')
+
+    if (isPublic) {
+        return response
+    }
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
