@@ -7,160 +7,165 @@ import Link from 'next/link'
 
 const annual = [
   {
-    name: 'Free',
-    tagline: 'Perfect for getting started',
-    price: '4,999',
-    save: "Save ₹989",
-    period: 'per year',
-    featured: false,
-    features: [
-      'QR code generation',
-      'Menu with names & pricing',
-      'Clean, simple layout',
-      'Restaurant Logo Integration',
-      'Unlimited scans',
-      'Quick Setup & Go Live'
-    ],
-    cta: 'Start Free Trial',
-    ctaFilled: false,
-    href: '#',
-  },
-  {
     name: 'Basic',
-    tagline: 'Perfect for getting started',
-    price: '4,999',
-    save: "Save ₹989",
+    tagline: 'Ideal for cafés & small menus',
+    price: '2,499',
+    save: 'Save ₹489',
     period: 'per year',
     featured: false,
     features: [
-      'QR code generation',
-      'Menu with names & pricing',
-      'Clean, simple layout',
-      'Restaurant Logo Integration',
-      'Unlimited scans',
-      'Quick Setup & Go Live'
-    ],
-    cta: 'Start Free Trial',
-    ctaFilled: false,
-    href: '#',
-  },
-  {
-    name: 'Standard',
-    tagline: 'For growing restaurants',
-    price: '9,999',
-    save: "Save ₹1,989",
-    period: 'per year',
-    featured: true,
-    features: [
-      'Ratings per Food',
-      'Google Review Integration',
-      'Full category organisation',
-      'Item availability toggle',
-      'Professional presentation',
-      'Priority support',
-    ],
-    cta: 'Get Standard',
-    ctaFilled: true,
-    href: '#',
-  },
-  {
-    name: 'Premium',
-    tagline: 'Full visual experience',
-    price: '14,999',
-    save: "Save ₹2,989",
-    period: 'per year',
-    featured: false,
-    features: [
-      'Premium UI Design',
-      'High-quality dish images',
-      'Custom branding & logo',
-      'Analytics dashboard',
-      'Dedicated support',
-      'Performance Hosting'
-    ],
-    cta: 'Get Premium',
-    ctaFilled: false,
-    href: '#',
-  },
-]
-
-const plans = [
-  {
-    name: 'Free',
-    tagline: 'Perfect for getting started',
-    price: '0',
-    period: 'forever',
-    featured: false,
-    features: [
+      'Up to 20 menu items',
+      'Add images (up to 10 items)',
+      'Basic customization (colors)',
       'QR Code Menu',
-      'Up to 5 menu items',
-      'Text-only menu (no images)',
-      'Basic layout',
-      'Scanify branding',
       'Unlimited scans',
       'Quick Setup & Go Live'
     ],
-    cta: 'Get Started',
+    cta: 'Start 4-Day Free Trial',
     ctaFilled: false,
-    href: '#',
+    href: '/login',
   },
   {
-    name: 'Basic',
-    tagline: 'Upgrade your menu experience',
-    price: '499',
-    period: 'per month',
+    name: 'Starter',
+    tagline: 'Get your digital menu live in minutes',
+    price: '4,999',
+    save: 'Save ₹988',
+    period: 'per year',
     featured: false,
     features: [
-      'Everything in Free +',
+      'Everything in Basic +',
       'Up to 40 menu items',
       'Add images (up to 15 items)',
       'Basic customization (colors & logo)',
       'Remove Scanify branding',
-      'Simple menu editor'
+      'Simple menu editor',
     ],
-    cta: 'Start Free Trial',
+    cta: 'Start 4-Day Free Trial',
     ctaFilled: false,
-    href: '#',
+    href: '/login',
   },
   {
-    name: 'Standard',
-    tagline: 'For growing restaurants',
-    price: '999',
-    period: 'per month',
+    name: 'Growth',
+    tagline: 'Boost engagement & grow your sales',
+    price: '9,999',
+    save: 'Save ₹1,988',
+    period: 'per year',
     featured: true,
     features: [
-      'Everything in Basic +',
-      'Unlimited Items',
-      'Unlimited Images',
-      'Ratings per Food',
-      'Google Review Integration',
-      'Full category organisation',
-      'Item availability toggle',
-      'Professional presentation',
-      'Priority support',
+      'Everything in Starter +',
+      'Unlimited menu items',
+      'Unlimited images',
+      'Item availability toggle (mark sold out)',
+      'Ratings & feedback per item',
+      'Google Reviews integration',
+      'Basic analytics (views & popular items)',
+      'Advanced category management'
     ],
-    cta: 'GetStandard',
+    cta: 'Get Started',
     ctaFilled: true,
     href: '#',
   },
   {
-    name: 'Premium',
-    tagline: 'Full visual experience',
+    name: 'Pro',
+    tagline: 'Scale your restaurant with advanced insights',
+    price: '14,999',
+    save: 'Save ₹2,988',
+    period: 'per year',
+    featured: false,
+    features: [
+      'Everything in Growth +',
+      'Advanced analytics (peak hours, customer behavior)',
+      'Multi-branch management',
+      'Staff accounts (multiple logins)',
+      'Custom subdomain (restaurant.scanify.co.in)',
+      'Full customization (themes, fonts, layout)',
+      'Priority performance & faster loading',
+      'Dedicated priority support'
+    ],
+    cta: 'Get Pro',
+    ctaFilled: false,
+    href: '#',
+  }
+]
+
+const plans = [
+  {
+    name: 'Basic',
+    tagline: 'Ideal for cafés & small menus',
+    price: '249',
+    period: 'per month',
+    featured: false,
+    features: [
+      'Up to 20 menu items',
+      'Add images (up to 10 items)',
+      'Basic customization (colors)',
+      'QR Code Menu',
+      'Unlimited scans',
+      'Quick Setup & Go Live'
+    ],
+    cta: 'Start 4-Day Free Trial',
+    ctaFilled: false,
+    href: '/login',
+  },
+  {
+    name: 'Starter',
+    tagline: 'Get your digital menu live in minutes',
+    price: '499',
+    period: 'per month',
+    featured: false,
+    features: [
+      'Everything in Basic +',
+      'Up to 40 menu items',
+      'Add images (up to 20 items)',
+      'Basic customization (colors & logo)',
+      'Remove Scanify branding',
+      'Simple menu editor',
+
+    ],
+    cta: 'Start 4-Day Free Trial',
+    ctaFilled: false,
+    href: '/login',
+  },
+  {
+    name: 'Growth',
+    tagline: 'Boost engagement & grow your sales',
+    price: '999',
+    period: 'per month',
+    featured: true,
+    features: [
+      'Everything in Starter +',
+      'Unlimited menu items',
+      'Unlimited images',
+      'Item availability toggle (mark sold out)',
+      'Ratings & feedback per item',
+      'Google Reviews integration',
+      'Basic analytics (views & popular items)',
+      'Advanced category management'
+    ],
+    cta: 'Get Started',
+    ctaFilled: true,
+    href: '#',
+  },
+  {
+    name: 'Pro',
+    tagline: 'Scale your restaurant with advanced insights',
     price: '1,499',
     period: 'per month',
     featured: false,
     features: [
-      'Premium UI Design',
-      'High-quality dish images',
-      'Custom branding & logo',
-      'Analytics dashboard',
-      'Dedicated support',
-      'Performance Hosting'
+      'Everything in Growth +',
+      'Advanced analytics (peak hours, customer behavior)',
+      'Multi-branch management',
+      'Staff accounts (multiple logins)',
+      'Custom subdomain (restaurant.scanify.co.in)',
+      'Full customization (themes, fonts, layout)',
+      'Priority performance & faster loading',
+      'Dedicated priority support'
     ],
-    cta: 'Get Premium',
+    cta: 'Get Pro',
     ctaFilled: false,
     href: '#',
-  },
+  }
 ]
 
 export default function Pricing() {
@@ -179,7 +184,7 @@ export default function Pricing() {
 
   return (
     <section id="pricing" className="py-24 px-7 bg-theme2">
-      <div className="max-w-[1360px] mx-auto">
+      <div className="max-w-[1560px] mx-auto">
         <div className="text-xs font-semibold tracking-[1.2px] uppercase text-accent-t mb-3">Pricing</div>
         <h2 className="font-syne font-extrabold text-theme mb-4 tracking-tight" style={{ fontSize: 'clamp(30px, 3.5vw, 44px)' }}>
           Simple, honest pricing.

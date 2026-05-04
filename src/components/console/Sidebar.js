@@ -42,8 +42,10 @@ const COMING_SOON = new Set(['orders']);
 
 function PlanBadge({ plan }) {
   if (plan === 'pro') return <Badge variant="success">Pro</Badge>;
+  if (plan === 'growth') return <Badge variant="success">Growth</Badge>;
   if (plan === 'starter') return <Badge>Starter</Badge>;
-  return <Badge variant="warning">Free</Badge>;
+  if (plan === 'basic') return <Badge>Basic</Badge>;
+  return <Badge variant="warning">Trial</Badge>;
 }
 
 export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {

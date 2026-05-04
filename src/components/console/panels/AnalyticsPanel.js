@@ -33,7 +33,7 @@ function BarChart({ data, label }) {
 
 function UpgradeGate({ children }) {
   return (
-    <div className="relative rounded-2xl overflow-hidden">
+    <div className="relative rounded-2xl overflow-hidden py-5">
       <div className="blur-sm pointer-events-none select-none" aria-hidden>
         {children}
       </div>
@@ -44,7 +44,7 @@ function UpgradeGate({ children }) {
         <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3" style={{ background: 'var(--accentlt)' }}>
           <Lock size={22} style={{ color: 'var(--accent)' }} />
         </div>
-        <p className="font-syne font-bold text-theme text-base mb-1">Analytics on Starter+</p>
+        <p className="font-syne font-bold text-theme text-base mb-1">Analytics on Growth+</p>
         <p className="text-xs text-theme2 text-center max-w-xs mb-4">
           Upgrade to see scan trends, top items, peak hours, and more.
         </p>
@@ -52,7 +52,7 @@ function UpgradeGate({ children }) {
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition"
           style={{ background: 'var(--accent)' }}
         >
-          <Zap size={14} /> Upgrade to Starter
+          <Zap size={14} /> Upgrade to Growth
         </button>
       </div>
     </div>
@@ -87,8 +87,8 @@ function TopItemsList({ items }) {
 }
 
 export default function AnalyticsPanel() {
-  const { hotel, isFreeTier, isOnTrial, limits } = useApp();
-  const canViewAnalytics = !isFreeTier || isOnTrial;
+  const { hotel, isOnTrial, isTrailEnded, limits, isAnalyticActionBlock, isTrialExpired } = useApp();
+  const canViewAnalytics = !isAnalyticActionBlock
 
   const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(true);
@@ -165,7 +165,7 @@ export default function AnalyticsPanel() {
     } finally {
       setLoading(false);
     }
-  }, [hotel?.id, supabase, canViewAnalytics ]);
+  }, [hotel?.id, supabase, canViewAnalytics]);
 
   useEffect(() => { loadAnalytics(); }, [loadAnalytics]);
 
@@ -209,21 +209,31 @@ export default function AnalyticsPanel() {
           <h1 className="font-syne font-bold text-2xl text-theme">Analytics</h1>
           <p className="text-sm text-theme2 mt-0.5">How your menu performs</p>
         </div>
-        {isFreeTier && (
-          <div
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
-            style={{ background: 'var(--accentlt)', color: 'var(--accent)' }}
-          >
-            <Lock size={12} /> Limited on Free
-          </div>
-        )}
       </div>
 
-      {/* Top stats always visible (teaser for free) */}
-      {statCards}
+      {isTrialExpired && (
+        <Alert
+          type="info"
+          title={`Free Trial Ended`}
+          message="Your trial has ended. Upgrade to continue managing your menu and unlock all features."
+          action={
+            <button
+              onClick={() => onNavigate('billing')}
+              className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-bold"
+              style={{ background: 'var(--accent)' }}
+            >
+              <Zap size={12} /> Upgrade
+            </button>
+          }
+        />
+      )}
 
-      {/* Charts — gated for free tier */}
-      {isFreeTier ? (
+      {canViewAnalytics && (
+        statCards
+      )}
+
+
+      {!canViewAnalytics ? (
         <UpgradeGate>
           {charts}
         </UpgradeGate>
@@ -231,8 +241,7 @@ export default function AnalyticsPanel() {
         charts
       )}
 
-      {/* Upgrade CTA for free */}
-      {isFreeTier && (
+      {!canViewAnalytics && (
         <Card>
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--accentlt)' }}>

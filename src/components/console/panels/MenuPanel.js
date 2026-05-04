@@ -352,7 +352,7 @@ function CategoryBlock({ category, onRename, onDelete, onAddItem, onEditItem, on
 
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 export default function MenuPanel() {
-  const { hotel, menuItemCount, refreshMenuCount, isFreeTier, isOnTrial, limits } = useApp();
+  const { hotel, menuItemCount, refreshMenuCount, plan, isTrialExpired, isOnTrial, limits, isActionBlocked } = useApp();
   const isAtMenuLimit = menuItemCount >= limits.maxMenuItems;
   const supabase = getSupabaseClient();
   const [state, dispatch] = useReducer(reducer, INITIAL);
@@ -557,13 +557,31 @@ export default function MenuPanel() {
           <h1 className="font-syne font-bold text-2xl text-theme">Menu Builder</h1>
           <p className="text-sm text-theme2 mt-0.5">
             {totalItems} item{totalItems !== 1 ? 's' : ''}
-            {(isFreeTier || isOnTrial) && ` · ${isOnTrial ? "Trial" : "Free"} plan: ${totalItems}/${limits.maxMenuItems}`}
+            {` · ${limits.label} plan: ${totalItems} / ${limits.maxMenuItems == 'Infinity' ? '∞' : limits.maxMenuItems}`}
           </p>
         </div>
       </div>
 
       {/* Free tier cap nudge */}
-      {isFreeTier && isAtMenuLimit && (
+
+      {isTrialExpired && (
+        <Alert
+          type="info"
+          title={`Free Trial Ended`}
+          message="Your trial has ended. Upgrade to continue managing your menu and unlock all features."
+          action={
+            <button
+              onClick={() => onNavigate('billing')}
+              className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-bold"
+              style={{ background: 'var(--accent)' }}
+            >
+              <Zap size={12} /> Upgrade
+            </button>
+          }
+        />
+      )}
+      {isAtMenuLimit && (
+
         <Alert
           type="warning"
           title={`Item limit reached (${limits.maxMenuItems}/${limits.maxMenuItems} on ${isOnTrial ? "Trial" : "Free"} plan)`}
@@ -588,11 +606,12 @@ export default function MenuPanel() {
           onKeyDown={(e) => e.key === 'Enter' && addCategory()}
           className="flex-1 px-4 py-2.5 rounded-xl border bg-card text-theme text-sm placeholder:text-theme2 outline-none focus:ring-2 focus:ring-[var(--accent)]/30 transition"
           style={{ borderColor: 'var(--border)' }}
+          disabled={isActionBlocked}
         />
-        <Button className='md:hidden' variant="primary" loading={addingCategory} onClick={addCategory}>
+        <Button className='md:hidden' variant="primary" disabled={isActionBlocked} loading={addingCategory} onClick={addCategory}>
           <Plus size={15} /> Add
         </Button>
-        <Button className='hidden md:flex' variant="primary" loading={addingCategory} onClick={addCategory}>
+        <Button className='hidden md:flex' variant="primary" disabled={isActionBlocked} loading={addingCategory} onClick={addCategory}>
           <Plus size={15} /> Add Category
         </Button>
       </div>
@@ -614,7 +633,7 @@ export default function MenuPanel() {
           <CategoryBlock
             key={cat.id}
             category={cat}
-            isAtCap={isFreeTier && isAtMenuLimit}
+            isAtCap={isActionBlocked}
             onRename={renameCategory}
             onDelete={deleteCategory}
             onAddItem={(catId) => setItemModal({ open: true, item: null, categoryId: catId })}
@@ -625,10 +644,6 @@ export default function MenuPanel() {
         ))
       )}
 
-
-      {isFreeTier && !isAtMenuLimit && totalItems > 10 && (
-        <UpgradeNudge message={`${limits.maxMenuItems - totalItems} item slot${limits.maxMenuItems - totalItems !== 1 ? 's' : ''} left on Free plan — upgrade for unlimited`} />
-      )}
 
       {/* Item modal */}
       <Modal

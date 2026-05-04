@@ -92,7 +92,7 @@ function QRCard({ qr, onDelete }) {
 }
 
 export default function QRPanel() {
-  const { hotel, plan, limits, isFreeTier } = useApp();
+  const { hotel, plan, limits, isTrialExpired, isActionBlocked } = useApp();
   const supabase = getSupabaseClient();
   const [qrCodes, setQrCodes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -183,13 +183,13 @@ export default function QRPanel() {
                 onKeyDown={(e) => e.key === 'Enter' && generate()}
                 className="flex-1 px-4 py-2.5 rounded-xl border bg-card text-theme text-sm placeholder:text-theme2 outline-none focus:ring-2 focus:ring-[var(--accent)]/30 transition"
                 style={{ borderColor: 'var(--border)' }}
-                disabled={isAtLimit}
+                disabled={isActionBlocked}
               />
               <Button
                 variant="primary"
                 loading={generating}
                 onClick={generate}
-                disabled={isAtLimit}
+                disabled={isActionBlocked}
               >
                 <Plus size={15} /> Generate
               </Button>
@@ -203,8 +203,25 @@ export default function QRPanel() {
         )}
       </Card>
 
+      {isTrialExpired && (
+        <Alert
+          type="info"
+          title={`Free Trial Ended`}
+          message="Your trial has ended. Upgrade to continue managing your menu and unlock all features."
+          action={
+            <button
+              onClick={() => onNavigate('billing')}
+              className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-bold"
+              style={{ background: 'var(--accent)' }}
+            >
+              <Zap size={12} /> Upgrade
+            </button>
+          }
+        />
+      )}
+
       {/* Limit warning */}
-      {isAtLimit && isFreeTier && (
+      {isAtLimit && (
         <Alert
           type="info"
           title="QR code limit reached on Free plan"

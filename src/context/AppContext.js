@@ -8,32 +8,32 @@ import { getSupabaseClient } from "@/lib/supabase/client";
 export const TRIAL_HOURS = 48;
 
 export const PLANS = {
-    free: {
-        label: "Free",
-        maxMenuItems: 5,
-        qrCodes: 1,
-        analytics: false,
-    },
     trial: {
         label: "Free Trial",
-        maxMenuItems: 50,
+        maxMenuItems: 40,
         qrCodes: 10,
         analytics: true,
+    },
+    basic: {
+        label: "Basic",
+        maxMenuItems: 20,
+        qrCodes: 10,
+        analytics: false,
     },
     starter: {
         label: "Starter",
         maxMenuItems: 50,
         qrCodes: 10,
-        analytics: true,
+        analytics: false,
     },
     pro: {
         label: "Pro",
-        maxMenuItems: 200,
+        maxMenuItems: Infinity,
         qrCodes: Infinity,
         analytics: true,
     },
-    enterprise: {
-        label: "Enterprise",
+    growth: {
+        label: "Growth",
         maxMenuItems: Infinity,
         qrCodes: Infinity,
         analytics: true,
@@ -138,22 +138,27 @@ export function AppProvider({ children }) {
     }, []);
 
 
-    const dbPlan = profile?.plan ?? "free";
+    const dbPlan = profile?.plan ?? "trial";
     const createdAt = profile?.created_at ? new Date(profile.created_at) : null;
     const hoursOnPlatform = createdAt
         ? (Date.now() - createdAt.getTime()) / 3_600_000
         : Infinity;
 
-    const isInTrial = dbPlan === "free" && hoursOnPlatform < TRIAL_HOURS;
+    const isInTrial = dbPlan === "trial" && hoursOnPlatform < TRIAL_HOURS;
     const trialHoursLeft = isInTrial ? Math.ceil(TRIAL_HOURS - hoursOnPlatform) : 0;
     const trialDaysLeft = isInTrial ? Math.max(1, Math.ceil(trialHoursLeft / 24)) : 0;
 
     const plan = isInTrial ? "trial" : dbPlan;
-    const limits = PLANS[plan] ?? PLANS.free;
-
-    const isFreeTier = plan === "free";
+    const limits = PLANS[plan];
+    const isAtLimit = limits?.maxMenuItems !== Infinity && menuItemCount >= limits.maxMenuItems;
+    const isAnalyticLimit = limits?.analytics !== true;
     const isOnTrial = plan === "trial";
-    const isPaidPlan = !isFreeTier && !isOnTrial;
+    const isTrailEnded = trialHoursLeft === 0;
+    const isPaidPlan = !isOnTrial;
+    const isTrialExpired = isOnTrial && isTrailEnded;
+    const isActionBlocked = isTrialExpired || isAtLimit;
+    const isAnalyticActionBlock = isTrialExpired || isAnalyticLimit
+
 
 
 
@@ -171,12 +176,15 @@ export function AppProvider({ children }) {
         loading,
         error,
 
-        isFreeTier,
         isOnTrial,
         isPaidPlan,
         isInTrial,
         trialHoursLeft,
         trialDaysLeft,
+        isTrailEnded,
+        isTrialExpired,
+        isActionBlocked,
+        isAnalyticActionBlock,
 
         refreshMenuCount,
         refreshHotel,
