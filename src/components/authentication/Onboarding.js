@@ -153,7 +153,6 @@ export default function OnboardingPage() {
   }, []);
 
 
-
   function set(field) {
     return (e) => {
       setForm((f) => ({ ...f, [field]: e.target.value }));
