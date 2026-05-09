@@ -154,7 +154,7 @@ export function AppProvider({ children }) {
 
     // Analytics
     const analyticsLevel = planLimits?.analytics_level ?? "none";
-    const hasBasicAnalytics = analyticsLevel === "basic" || analyticsLevel === "advanced";
+    const hasBasicAnalytics = analyticsLevel === "basic" || analyticsLevel === "advanced" || isTrialing;
     const hasAdvancedAnalytics = analyticsLevel === "advanced";
 
     // Engagement
@@ -175,10 +175,12 @@ export function AppProvider({ children }) {
     // ── Composite action guards ──────────────────────────────────────────────────
     // Use these in UI — don't re-derive in each component
     const isActionBlocked = !isSubscriptionOk || isTrialExpired;
+
     const canAddMenuItem = !isActionBlocked && !isAtMenuLimit;
     const canUseOrdering = !isActionBlocked && orderingEnabled;
     const canUseKitchenDisplay = !isActionBlocked && realtimeKitchen;
     const canViewBasicAnalytics = !isActionBlocked && hasBasicAnalytics;
+
     const canViewAdvancedAnalytics = !isActionBlocked && hasAdvancedAnalytics;
     const canUseRatings = !isActionBlocked && ratingsEnabled;
     const canUseGoogleReviews = !isActionBlocked && googleReviews;

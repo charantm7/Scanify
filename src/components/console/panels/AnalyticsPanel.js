@@ -87,7 +87,7 @@ function TopItemsList({ items }) {
 }
 
 export default function AnalyticsPanel() {
-  const { hotel, isTrialing, isAnalyticActionBlock, canViewBasicAnalytics, canViewAdvancedAnalytics, isTrialExpired } = useApp();
+  const { hotel, isTrialing, canViewBasicAnalytics, canViewAdvancedAnalytics, isTrialExpired } = useApp();
 
   const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(true);
@@ -227,7 +227,7 @@ export default function AnalyticsPanel() {
         />
       )}
 
-      {canViewAdvancedAnalytics && (
+      {canViewBasicAnalytics && (
         statCards
       )}
 

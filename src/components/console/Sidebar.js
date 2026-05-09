@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, MenuIcon, QrCode, BarChart2,
-  Settings, X, LogOut, Loader2, Zap, ChefHat,
+  Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
 import { Badge } from '../shared/ui';
@@ -36,7 +36,7 @@ export const NAV_ITEMS = [
   { id: 'qr-codes', label: 'QR Codes', icon: QrCode },
   { id: 'analytics', label: 'Analytics', icon: BarChart2 },
   { id: 'settings', label: 'Settings', icon: Settings },
-  { id: 'billing', label: 'Billing', icon: Settings },
+  { id: 'billing', label: 'Subscription', icon: Receipt },
 
 ];
 
@@ -145,10 +145,10 @@ export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
               <Zap size={15} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 1 }} />
               <div>
                 <p className="text-xs font-bold mb-0.5" style={{ color: 'var(--accent)' }}>
-                  You're on Free
+                  You're on Trial
                 </p>
                 <p className="text-xs text-theme2 leading-snug">
-                  Upgrade to add more items & unlock analytics.
+                  Upgrade to Starter or Growth to unlock featured items.
                 </p>
                 <button
                   className="mt-2 text-xs font-bold underline"

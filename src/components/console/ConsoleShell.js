@@ -13,6 +13,7 @@ import { getSupabaseClient } from '@/lib/supabase/client';
 import { AppProvider } from '@/context/AppContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useApp } from '@/context/AppContext';
+import BillingPanel from './panels/BillingPanel';
 
 function ThemeIcon({ dark }) {
     return dark ? (
@@ -73,6 +74,7 @@ function Panel({ id, onNavigate }) {
         case 'qr-codes': return <QRPanel />;
         case 'analytics': return <AnalyticsPanel />;
         case 'settings': return <SettingsPanel />;
+        case 'billing': return <BillingPanel />;
         default: return (
             <div className="text-center py-20 text-theme2">
                 <p className="font-syne font-bold text-xl text-theme mb-2">Coming Soon</p>

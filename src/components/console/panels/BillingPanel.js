@@ -1,7 +1,7 @@
 'use client';
 
 import { Check, Zap, Crown, Building2, Clock, ArrowRight, Star } from 'lucide-react';
-import { useApp, PLANS } from '../../../context/AppContext';
+import { useApp } from '@/context/AppContext';
 
 const PLAN_CARDS = [
   {
@@ -95,7 +95,7 @@ export default function BillingPanel() {
       </div>
 
       {/* Trial active banner */}
-      {isOnTrial && (
+      {isTrialing && (
         <div
           className="rounded-2xl p-4 flex items-start gap-3"
           style={{ background: 'var(--accentlt)', border: '1px solid var(--accent)' }}
@@ -129,7 +129,7 @@ export default function BillingPanel() {
         {PLAN_CARDS.map((p) => {
           // During trial, effective plan is "trial" (not "starter") so match on dbPlan for "active" badge
           const isCurrentPlan = p.key === dbPlan;
-          const isTrialPlan = p.key === 'starter' && isOnTrial; // trial mirrors starter
+          const isTrialPlan = p.key === 'starter' && isTrialing; // trial mirrors starter
           const Icon = p.icon;
 
           return (
@@ -143,7 +143,7 @@ export default function BillingPanel() {
             >
               {p.featured && (
                 <div className="text-center py-1.5 text-xs font-bold text-white" style={{ background: 'var(--accent)' }}>
-                  {isOnTrial ? 'YOUR TRIAL PLAN' : 'MOST POPULAR'}
+                  {isTrialing ? 'YOUR TRIAL PLAN' : 'MOST POPULAR'}
                 </div>
               )}
 
@@ -154,7 +154,7 @@ export default function BillingPanel() {
                     <Icon size={15} style={{ color: 'var(--accent)' }} />
                   </div>
                   <span className="font-bold text-theme text-sm">{p.name}</span>
-                  {isCurrentPlan && !isOnTrial && (
+                  {isCurrentPlan && !isTrialPlan && (
                     <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full text-white font-semibold" style={{ background: 'var(--accent)' }}>
                       Active
                     </span>
