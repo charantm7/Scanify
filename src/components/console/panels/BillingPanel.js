@@ -73,11 +73,11 @@ const PLAN_CARDS = [
 ];
 
 export default function BillingPanel() {
-  const { plan, dbPlan, isOnTrial, isFreeTier, trialHoursLeft, trialDaysLeft } = useApp();
+  const { plan, dbPlan, isTrialing, isFreeTier, trialHoursLeft, trialDaysLeft } = useApp();
 
   // Subtitle logic
   let subtitle;
-  if (isOnTrial) {
+  if (isTrialing) {
     subtitle = `Free Trial — ${trialHoursLeft}h remaining (${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''})`;
   } else if (isFreeTier) {
     subtitle = 'Free trial ended. Choose a plan to unlock more features.';

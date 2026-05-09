@@ -36,6 +36,8 @@ export const NAV_ITEMS = [
   { id: 'qr-codes', label: 'QR Codes', icon: QrCode },
   { id: 'analytics', label: 'Analytics', icon: BarChart2 },
   { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'billing', label: 'Billing', icon: Settings },
+
 ];
 
 const COMING_SOON = new Set(['orders']);
@@ -50,7 +52,7 @@ function PlanBadge({ plan }) {
 
 export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
   const [signingOut, setSigningOut] = useState(false);
-  const { user, plan, profile } = useApp()
+  const { user, plan, profile, isTrialing } = useApp()
   const supabase = getSupabaseClient();
 
   async function handleSignOut() {
@@ -134,7 +136,7 @@ export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
         </nav>
 
         {/* Upgrade nudge for free users */}
-        {plan === 'free' && (
+        {isTrialing && (
           <div className="px-3 mb-2">
             <div
               className="rounded-xl p-3 flex items-start gap-2.5"

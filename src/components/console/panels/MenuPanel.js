@@ -352,8 +352,7 @@ function CategoryBlock({ category, onRename, onDelete, onAddItem, onEditItem, on
 
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 export default function MenuPanel() {
-  const { hotel, menuItemCount, refreshMenuCount, plan, isTrialExpired, isOnTrial, limits, isActionBlocked } = useApp();
-  const isAtMenuLimit = menuItemCount >= limits.maxMenuItems;
+  const { hotel, isAtMenuLimit, menuItemCount, refreshMenuCount, isTrialExpired, isTrialing, planLabel, maxMenuItems, isActionBlocked } = useApp();
   const supabase = getSupabaseClient();
   const [state, dispatch] = useReducer(reducer, INITIAL);
 
@@ -557,7 +556,7 @@ export default function MenuPanel() {
           <h1 className="font-syne font-bold text-2xl text-theme">Menu Builder</h1>
           <p className="text-sm text-theme2 mt-0.5">
             {totalItems} item{totalItems !== 1 ? 's' : ''}
-            {` · ${limits.label} plan: ${totalItems} / ${limits.maxMenuItems == 'Infinity' ? '∞' : limits.maxMenuItems}`}
+            {` · ${planLabel} plan: ${totalItems} / ${maxMenuItems == -1 ? '∞' : maxMenuItems}`}
           </p>
         </div>
       </div>
@@ -584,7 +583,7 @@ export default function MenuPanel() {
 
         <Alert
           type="warning"
-          title={`Item limit reached (${limits.maxMenuItems}/${limits.maxMenuItems} on ${isOnTrial ? "Trial" : "Free"} plan)`}
+          title={`Item limit reached (${maxMenuItems}/${maxMenuItems} on ${isTrialing ? "Trial" : "Free"} plan)`}
           message="Upgrade to Starter or Pro to add unlimited items."
           action={
             <button

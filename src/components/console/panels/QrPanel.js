@@ -92,7 +92,7 @@ function QRCard({ qr, onDelete }) {
 }
 
 export default function QRPanel() {
-  const { hotel, plan, limits, isTrialExpired, isActionBlocked } = useApp();
+  const { hotel, plan, maxQrCodes, isTrialExpired, isActionBlocked } = useApp();
   const supabase = getSupabaseClient();
   const [qrCodes, setQrCodes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +103,9 @@ export default function QRPanel() {
   const menuUrl = hotel?.slug ? `${appDomain}/menu/${hotel.slug}` : null;
 
 
-  const isAtLimit = qrCodes.length >= (limits.qrCodes ?? 1);
+  const isAtLimit =
+    maxQrCodes !== -1 &&
+    qrCodes.length >= (maxQrCodes ?? 1);
 
   const loadQRs = useCallback(async () => {
     if (!hotel?.id) return;
@@ -166,7 +168,7 @@ export default function QRPanel() {
       <div>
         <h1 className="font-syne font-bold text-2xl text-theme">QR Codes</h1>
         <p className="text-sm text-theme2 mt-0.5">
-          {qrCodes.length} / {limits.qrCodes === Infinity ? '∞' : limits.qrCodes} generated
+          {qrCodes.length} / {maxQrCodes === -1 ? '∞' : maxQrCodes} generated
         </p>
       </div>
 
@@ -220,7 +222,6 @@ export default function QRPanel() {
         />
       )}
 
-      {/* Limit warning */}
       {isAtLimit && (
         <Alert
           type="info"

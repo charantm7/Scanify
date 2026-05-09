@@ -87,8 +87,7 @@ function TopItemsList({ items }) {
 }
 
 export default function AnalyticsPanel() {
-  const { hotel, isOnTrial, isTrailEnded, limits, isAnalyticActionBlock, isTrialExpired } = useApp();
-  const canViewAnalytics = !isAnalyticActionBlock
+  const { hotel, isTrialing, isAnalyticActionBlock, canViewBasicAnalytics, canViewAdvancedAnalytics, isTrialExpired } = useApp();
 
   const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(true);
@@ -127,7 +126,7 @@ export default function AnalyticsPanel() {
 
       // Top items (only for paid plans — but fetch structure for teaser)
       let topItems = [];
-      if (canViewAnalytics) {
+      if (canViewBasicAnalytics) {
         const { data: scanData } = await supabase
           .from('menu_scans')
           .select('item_id, menu_items(name)')
@@ -165,7 +164,7 @@ export default function AnalyticsPanel() {
     } finally {
       setLoading(false);
     }
-  }, [hotel?.id, supabase, canViewAnalytics]);
+  }, [hotel?.id, supabase, canViewBasicAnalytics]);
 
   useEffect(() => { loadAnalytics(); }, [loadAnalytics]);
 
@@ -228,12 +227,12 @@ export default function AnalyticsPanel() {
         />
       )}
 
-      {canViewAnalytics && (
+      {canViewAdvancedAnalytics && (
         statCards
       )}
 
 
-      {!canViewAnalytics ? (
+      {!canViewBasicAnalytics ? (
         <UpgradeGate>
           {charts}
         </UpgradeGate>
@@ -241,7 +240,7 @@ export default function AnalyticsPanel() {
         charts
       )}
 
-      {!canViewAnalytics && (
+      {!canViewBasicAnalytics && (
         <Card>
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--accentlt)' }}>

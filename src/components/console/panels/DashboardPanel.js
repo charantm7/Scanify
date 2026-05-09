@@ -35,7 +35,7 @@ function QuickAction({ icon: Icon, label, desc, onClick }) {
 export default function DashboardPanel({ onNavigate }) {
   const {
     profile, hotel, supabase,
-    menuItemCount, plan, limits, isOnTrial, isInTrial,
+    menuItemCount, plan, maxMenuItems, isTrialing, planLabel,
     isTrialExpired,
     trialHoursLeft, trialDaysLeft,
   } = useApp();
@@ -67,7 +67,7 @@ export default function DashboardPanel({ onNavigate }) {
   return (
     <div className="space-y-6">
 
-      {isOnTrial && (
+      {isTrialing && (
         <Alert
           type="info"
           title={`Free Trial · ${trialHoursLeft}h left`}
@@ -125,7 +125,7 @@ export default function DashboardPanel({ onNavigate }) {
             className="px-3 py-1 rounded-full text-xs font-bold"
             style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}
           >
-            {limits?.label}
+            {planLabel}
           </div>
           <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
             <QrCode size={24} color="white" />
@@ -170,7 +170,7 @@ export default function DashboardPanel({ onNavigate }) {
           icon={ChefHat}
           label="Menu Items"
           value={menuItemCount}
-          sub={`${menuItemCount} / ${limits.maxMenuItems === Infinity ? '∞' : limits.maxMenuItems}`}
+          sub={`${menuItemCount} / ${maxMenuItems === -1 ? '∞' : maxMenuItems}`}
         />
         <StatCard icon={QrCode} label="QR Codes" value={qrCount} sub="Generated" />
         <StatCard icon={BarChart2} label="Total Scans" value={scanCount} sub="All time" />
@@ -184,30 +184,29 @@ export default function DashboardPanel({ onNavigate }) {
         />
       </div>
 
-      {/* ── Usage meter (free + trial) ────────────────────────────────────── */}
-      {isOnTrial && limits.maxMenuItems !== Infinity && (
+      {isTrialing && maxMenuItems !== Infinity && (
         <Card>
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-semibold text-theme">Menu Item Usage</p>
             <span
               className="text-xs font-bold"
-              style={{ color: menuItemCount >= limits.maxMenuItems ? '#dc2626' : 'var(--accent)' }}
+              style={{ color: menuItemCount >= maxMenuItems ? '#dc2626' : 'var(--accent)' }}
             >
-              {menuItemCount} / {limits.maxMenuItems}
+              {menuItemCount} / {maxMenuItems}
             </span>
           </div>
           <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
-                width: `${Math.min((menuItemCount / limits.maxMenuItems) * 100, 100)}%`,
-                background: menuItemCount >= limits.maxMenuItems ? '#dc2626' : 'var(--accent)',
+                width: `${Math.min((menuItemCount / maxMenuItems) * 100, 100)}%`,
+                background: menuItemCount >= maxMenuItems ? '#dc2626' : 'var(--accent)',
               }}
             />
           </div>
           <p className="text-xs text-theme2 mt-1.5">
-            {limits.maxMenuItems - menuItemCount > 0
-              ? `${limits.maxMenuItems - menuItemCount} slots remaining on ${plan === 'trial' ? 'trial' : 'Free'} plan`
+            {maxMenuItems - menuItemCount > 0
+              ? `${maxMenuItems - menuItemCount} slots remaining on ${plan === 'trial' ? 'trial' : 'Free'} plan`
               : 'Limit reached — upgrade to add more items'}
           </p>
         </Card>
