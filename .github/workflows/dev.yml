@@ -3,7 +3,8 @@ name: CI
 on:
   pull_request:
     branches:
-      - de
+      - dev
+
   push:
     branches:
       - dev
@@ -11,6 +12,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
     steps:
       - name: Checkout Repo
