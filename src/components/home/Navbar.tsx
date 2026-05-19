@@ -30,7 +30,7 @@ export default function Navbar({ user: initialUser }) {
     );
 
     return () => data.subscription.unsubscribe();
-  }, []);
+  }, [supabase.auth]);
 
 
 

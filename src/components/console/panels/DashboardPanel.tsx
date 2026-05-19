@@ -1,7 +1,7 @@
 'use client';
 
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   QrCode, ChefHat, BarChart2, Building2,
   ExternalLink, ArrowRight, Clock, Zap, BlocksIcon,
@@ -42,9 +42,16 @@ export default function DashboardPanel({ onNavigate }) {
 
   const [qrCount, setQrCount] = useState(0);
   const [scanCount, setScanCount] = useState(0);
+  const [now] = useState(() => Date.now());
 
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'scanify.co.in';
   const menuUrl = hotel?.slug ? `${appDomain}/menu/${hotel.slug}` : null;
+
+  const accountAge = profile?.created_at
+    ? `${Math.floor(
+      (now - new Date(profile.created_at).getTime()) / 86_400_000
+    )}d`
+    : "—";
 
   useEffect(() => {
     if (!hotel?.id) return;
@@ -177,9 +184,7 @@ export default function DashboardPanel({ onNavigate }) {
         <StatCard
           icon={Clock}
           label="Account Age"
-          value={profile?.created_at
-            ? `${Math.floor((Date.now() - new Date(profile.created_at).getTime()) / 86_400_000)}d`
-            : '—'}
+          value={accountAge}
           sub="Since joining"
         />
       </div>

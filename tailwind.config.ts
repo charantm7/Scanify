@@ -3,7 +3,9 @@
 module.exports = {
   darkMode: ['selector', '[data-theme="dark"]'],
   content: [
-    './src/**/*.{js,jsx}',
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -24,7 +26,7 @@ module.exports = {
           'hover-dark': '#74c69d',
           lt: '#d8f3dc',
           'lt-dark': '#1b3a2d',
-        },
+        }, 
       },
       animation: {
         pulse2: 'pulse2 2s infinite',

@@ -2,13 +2,20 @@
 
 
 import { useCallback, useEffect, useState } from 'react';
+
 import {
   QrCode, Download, Trash2, Plus, Loader2,
   ExternalLink, Copy, Check, Zap,
 } from 'lucide-react';
+
+import Image from 'next/image';
+
 import toast from 'react-hot-toast';
+
 import { getSupabaseClient } from '../../../lib/supabase/client';
+
 import { useApp } from '../../../context/AppContext';
+
 import { Card, Button, EmptyState, Alert, Badge, Select } from '../../shared/ui';
 
 function qrUrl(text, size = 256) {
@@ -67,7 +74,7 @@ function QRCard({ qr, onDelete }) {
         </button>
       </div>
 
-      <img
+      <Image
         src={qrUrl(qr.target_url)}
         alt="QR Code"
         className="w-40 h-40 rounded-xl border"
@@ -107,24 +114,24 @@ export default function QRPanel({ onNavigate }) {
     maxQrCodes !== -1 &&
     qrCodes.length >= (maxQrCodes ?? 1);
 
-  const loadQRs = useCallback(async () => {
-    if (!hotel?.id) return;
-    try {
-      const { data, error } = await supabase
-        .from('qr_codes')
-        .select('id, label, target_url, created_at')
-        .eq('hotel_id', hotel.id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setQrCodes(data ?? []);
-    } catch (err) {
-      toast.error('Failed to load QR codes');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const loadQRs = async () => {
+      if (!hotel?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from('qr_codes')
+          .select('id, label, target_url, created_at')
+          .eq('hotel_id', hotel.id)
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        setQrCodes(data ?? []);
+      } catch (err) {
+        toast.error('Failed to load QR codes');
+      } finally {
+        setLoading(false);
+      }
+    }; loadQRs();
   }, [hotel?.id, supabase]);
-
-  useEffect(() => { loadQRs(); }, [loadQRs]);
 
   async function generate() {
     if (!menuUrl) { toast.error('No menu URL found — complete onboarding first'); return; }

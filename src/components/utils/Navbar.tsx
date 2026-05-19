@@ -25,8 +25,7 @@ export default function UtilsNavbar() {
 
             <div className="max-w-[1100px] mx-auto px-8 h-[60px] flex items-center justify-between">
 
-                {/* Logo */}
-                <a href="/" className="flex items-center gap-3 font-syne text-base sm:text-lg font-extrabold utils-text-theme tracking-tight shrink-0">
+                <Link href={"/"} className="flex items-center gap-3 font-syne text-base sm:text-lg font-extrabold utils-text-theme tracking-tight shrink-0">
                     <Image
                         src={theme === "dark" ? "/scanify_logo_dark.png" : "/scanify_logo_light.png"}
                         alt="Logo"
@@ -34,7 +33,7 @@ export default function UtilsNavbar() {
                         height={40}
                     />
                     Scanify
-                </a>
+                </Link>
 
                 <div className="hidden md:flex items-center gap-7 text-sm">
                     {navLinks.map((a) => {

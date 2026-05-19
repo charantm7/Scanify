@@ -106,73 +106,108 @@ export default function AnalyticsPanel({ onNavigate }) {
     hourlyData: [],
   });
 
-  const loadAnalytics = useCallback(async () => {
-    if (!hotel?.id) { setLoading(false); return; }
-
-    try {
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-      const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-      const [totalRes, todayRes, weekRes] = await Promise.all([
-        supabase.from('menu_scans').select('id', { count: 'exact', head: true }).eq('hotel_id', hotel.id),
-        supabase.from('menu_scans').select('id', { count: 'exact', head: true }).eq('hotel_id', hotel.id).gte('scanned_at', todayStart),
-        supabase.from('menu_scans').select('id', { count: 'exact', head: true }).eq('hotel_id', hotel.id).gte('scanned_at', weekStart),
-      ]);
-
-      // Build 7-day trend
-      const days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000);
-        return {
-          label: d.toLocaleDateString('en', { weekday: 'short' }),
-          date: d.toISOString().split('T')[0],
-          value: 0,
-        };
-      });
-
-      // Top items (only for paid plans — but fetch structure for teaser)
-      let topItems = [];
-      if (canViewBasicAnalytics) {
-        const { data: scanData } = await supabase
-          .from('menu_scans')
-          .select('item_id, menu_items(name)')
-          .eq('hotel_id', hotel.id)
-          .not('item_id', 'is', null)
-          .limit(200);
-
-        if (scanData) {
-          const counts: Record<string, CountItem> = {};
-          scanData.forEach((s) => {
-            if (!s.item_id) return;
-            counts[s.item_id] = counts[s.item_id] || { scans: 0, name: s.menu_items?.name || 'Unknown' };
-            counts[s.item_id].scans++;
-          });
-          topItems = Object.entries(counts)
-            .map(([id, v]) => ({ id, ...v }))
-            .sort((a, b) => b.scans - a.scans)
-            .slice(0, 5);
-        }
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      if (!hotel?.id) {
+        setLoading(false);
+        return;
       }
 
-      setStats({
-        totalScans: totalRes.count ?? 0,
-        todayScans: todayRes.count ?? 0,
-        weekScans: weekRes.count ?? 0,
-        topItems,
-        dailyTrend: days,
-        hourlyData: Array.from({ length: 12 }, (_, i) => ({
-          label: `${i * 2}h`,
-          value: Math.floor(Math.random() * 10), // placeholder until real data
-        })),
-      });
-    } catch (err) {
-      console.error('[AnalyticsPanel]', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [hotel?.id, supabase, canViewBasicAnalytics]);
+      try {
+        const now = new Date();
 
-  useEffect(() => { loadAnalytics(); }, [loadAnalytics]);
+        const todayStart = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        ).toISOString();
+
+        const weekStart = new Date(
+          now.getTime() - 7 * 24 * 60 * 60 * 1000
+        ).toISOString();
+
+        const [totalRes, todayRes, weekRes] = await Promise.all([
+          supabase
+            .from("menu_scans")
+            .select("id", { count: "exact", head: true })
+            .eq("hotel_id", hotel.id),
+
+          supabase
+            .from("menu_scans")
+            .select("id", { count: "exact", head: true })
+            .eq("hotel_id", hotel.id)
+            .gte("scanned_at", todayStart),
+
+          supabase
+            .from("menu_scans")
+            .select("id", { count: "exact", head: true })
+            .eq("hotel_id", hotel.id)
+            .gte("scanned_at", weekStart),
+        ]);
+
+        const days = Array.from({ length: 7 }, (_, i) => {
+          const d = new Date(
+            now.getTime() - (6 - i) * 24 * 60 * 60 * 1000
+          );
+
+          return {
+            label: d.toLocaleDateString("en", { weekday: "short" }),
+            date: d.toISOString().split("T")[0],
+            value: 0,
+          };
+        });
+
+        let topItems = [];
+
+        if (canViewBasicAnalytics) {
+          const { data: scanData } = await supabase
+            .from("menu_scans")
+            .select("item_id, menu_items(name)")
+            .eq("hotel_id", hotel.id)
+            .not("item_id", "is", null)
+            .limit(200);
+
+          if (scanData) {
+            const counts: Record<string, CountItem> = {};
+
+            scanData.forEach((s) => {
+              if (!s.item_id) return;
+
+              counts[s.item_id] = counts[s.item_id] || {
+                scans: 0,
+                name: s.menu_items?.name || "Unknown",
+              };
+
+              counts[s.item_id].scans++;
+            });
+
+            topItems = Object.entries(counts)
+              .map(([id, v]) => ({ id, ...v }))
+              .sort((a, b) => b.scans - a.scans)
+              .slice(0, 5);
+          }
+        }
+
+        setStats({
+          totalScans: totalRes.count ?? 0,
+          todayScans: todayRes.count ?? 0,
+          weekScans: weekRes.count ?? 0,
+          topItems,
+          dailyTrend: days,
+          hourlyData: Array.from({ length: 12 }, (_, i) => ({
+            label: `${i * 2}h`,
+            value: Math.floor(Math.random() * 10),
+          })),
+        });
+      } catch (err) {
+        console.error("[AnalyticsPanel]", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAnalytics();
+  }, [hotel?.id, canViewBasicAnalytics, supabase]);
 
   if (loading) {
     return (

@@ -145,7 +145,7 @@ export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
               <Zap size={15} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 1 }} />
               <div>
                 <p className="text-xs font-bold mb-0.5" style={{ color: 'var(--accent)' }}>
-                  You're on Trial
+                  You&apos;re on Trial
                 </p>
                 <p className="text-xs text-theme2 leading-snug">
                   Upgrade to Starter or Growth to unlock featured items.

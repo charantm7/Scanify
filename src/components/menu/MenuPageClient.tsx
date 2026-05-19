@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Search, X, MapPin, UtensilsCrossed, ChevronRight, Star } from "lucide-react";
+import Image from "next/image";
 
 // ─── Scanify wordmark badge ────────────────────────────────────────────────────
 function ScanifyBadge() {
@@ -62,7 +63,7 @@ function ItemCard({ item }) {
             <div className="flex-shrink-0 w-[78px] h-[78px] rounded-xl overflow-hidden relative"
                 style={{ background: "var(--bg3)" }}>
                 {item.image_url && !imgError ? (
-                    <img
+                    <Image
                         src={item.image_url}
                         alt={item.name}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -174,7 +175,7 @@ function HotelLogo({ hotel }) {
         <div className="flex-shrink-0 w-[60px] h-[60px] sm:w-[68px] sm:h-[68px] rounded-2xl overflow-hidden flex items-center justify-center border"
             style={{ background: "var(--accentlt)", borderColor: "var(--border2)" }}>
             {hotel.logo_url && !imgError ? (
-                <img src={hotel.logo_url} alt={hotel.name}
+                <Image src={hotel.logo_url} alt={hotel.name}
                     className="w-full h-full object-cover"
                     onError={() => setImgError(true)} />
             ) : (

@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
-  }, []);
+  }, [supabase.auth]);
 
 
 

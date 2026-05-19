@@ -112,7 +112,7 @@ export default function BlogPage() {
                         </h1>
 
                         <p className="text-base text-neutral-500 dark:text-neutral-400 mt-3 leading-relaxed">
-                            Product updates, restaurant insights, and things we've learned along the way.
+                            Product updates, restaurant insights, and things we&apos;ve learned along the way.
                         </p>
                     </div>
 

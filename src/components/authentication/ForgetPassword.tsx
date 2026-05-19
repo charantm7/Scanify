@@ -86,7 +86,7 @@ export default function ForgetPassword() {
             <div className="bg-theme3 backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-theme">
               <div className="mb-8">
                 <h2 className="text-4xl text-theme font-syne font-bold mb-2">Reset Password</h2>
-                <p className="text-theme2 font-light">We'll send a secure reset link to your inbox.</p>
+                <p className="text-theme2 font-light">We&apos;ll send a secure reset link to your inbox.</p>
               </div>
 
               <div className="space-y-5">

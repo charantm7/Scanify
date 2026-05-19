@@ -1,22 +1,36 @@
 'use client';
 
-
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+
 import {
-  Plus, Pencil, Trash2, Loader2, ChefHat, Tag,
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  ChefHat,
+  Tag,
   Image as ImageIcon, DollarSign, GripVertical,
-  Eye, EyeOff, AlertTriangle, Zap, ChevronDown, ChevronRight,
+  Eye,
+  EyeOff,
+  Zap,
+  ChevronDown,
+  ChevronRight,
   Check, X as XIcon,
 } from 'lucide-react';
+
+import Image from 'next/image';
+
 import toast from 'react-hot-toast';
+
 import { getSupabaseClient } from '../../../lib/supabase/client';
+
 import { useApp } from '../../../context/AppContext';
+
 import {
   Button, Input, Textarea, Select, EmptyState,
   Modal, Alert, Badge, UpgradeNudge, Toggle,
 } from '../../shared/ui';
 
-// ─── State / Reducer ──────────────────────────────────────────────────────────
 const INITIAL = { categories: [], loading: true, error: null };
 
 interface MenuItem {
@@ -251,8 +265,9 @@ function ItemRow({ item, onEdit, onDelete, onToggle }) {
         className="w-10 h-10 rounded-lg flex-shrink-0 overflow-hidden flex items-center justify-center"
         style={{ background: 'var(--accentlt)' }}
       >
+
         {item.image_url ? (
-          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
+          <Image src={item.image_url} alt={item.name} className="w-full h-full object-cover" onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
         ) : (
           <ChefHat size={16} style={{ color: 'var(--accent)' }} />
         )}
@@ -402,25 +417,32 @@ export default function MenuPanel({ onNavigate }) {
   const [newCatName, setNewCatName] = useState('');
 
   // ── Load data ───────────────────────────────────────────────────────────────
-  const loadMenu = useCallback(async () => {
-    if (!hotel?.id) return;
+
+
+  const loadMenu = useCallback(async (hotelId?: string) => {
+    if (!hotelId) return;
 
     try {
       const { data: cats, error: catErr } = await supabase
-        .from('categories')
-        .select('id, name, sort_order')
-        .eq('hotel_id', hotel.id)
-        .order('sort_order', { ascending: true });
+        .from("categories")
+        .select("id, name, sort_order")
+        .eq("hotel_id", hotelId)
+        .order("sort_order", { ascending: true });
 
       if (catErr) throw catErr;
 
-      if (!cats?.length) { dispatch({ type: 'LOADED', payload: [] }); return; }
+      if (!cats?.length) {
+        dispatch({ type: "LOADED", payload: [] });
+        return;
+      }
 
       const { data: items, error: itemErr } = await supabase
-        .from('menu_items')
-        .select('id, name, description, price, image_url, is_available, sort_order, category_id')
-        .eq('hotel_id', hotel.id)
-        .order('sort_order', { ascending: true });
+        .from("menu_items")
+        .select(
+          "id, name, description, price, image_url, is_available, sort_order, category_id"
+        )
+        .eq("hotel_id", hotelId)
+        .order("sort_order", { ascending: true });
 
       if (itemErr) throw itemErr;
 
@@ -429,15 +451,22 @@ export default function MenuPanel({ onNavigate }) {
         items: (items || []).filter((i) => i.category_id === c.id),
       }));
 
-      dispatch({ type: 'LOADED', payload: categoryMap });
+      dispatch({ type: "LOADED", payload: categoryMap });
     } catch (err) {
-      console.error('[MenuPanel] loadMenu:', err);
-      dispatch({ type: 'ERROR', payload: err.message });
-      toast.error('Failed to load menu');
-    }
-  }, [hotel?.id, supabase]);
+      console.error("[MenuPanel] loadMenu:", err);
 
-  useEffect(() => { loadMenu(); }, [loadMenu]);
+      dispatch({
+        type: "ERROR",
+        payload: err instanceof Error ? err.message : "Unknown error",
+      });
+
+      toast.error("Failed to load menu");
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    loadMenu(hotel?.id);
+  }, [hotel?.id, loadMenu]);
 
   // ── Category actions ─────────────────────────────────────────────────────────
   async function addCategory() {
@@ -580,7 +609,11 @@ export default function MenuPanel({ onNavigate }) {
         type="error"
         title="Failed to load menu"
         message={state.error}
-        action={<Button size="sm" onClick={loadMenu}>Retry</Button>}
+        action={<Button size="sm" onClick={() => {
+          if (hotel?.id) {
+            loadMenu(hotel.id);
+          }
+        }}>Retry</Button>}
       />
     );
   }

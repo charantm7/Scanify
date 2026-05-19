@@ -95,7 +95,7 @@ function SuccessScreen({ url, restaurantName, onGoToConsole }) {
       >
         <Sparkles size={36} style={{ color: 'var(--accent)' }} />
       </div>
-      <h2 className="font-syne font-bold text-3xl text-theme mb-2">You're all set! 🎉</h2>
+      <h2 className="font-syne font-bold text-3xl text-theme mb-2">You&apos;re all set! 🎉</h2>
       <p className="text-theme2 text-sm mb-8 max-w-sm">
         Your restaurant profile has been created. Your menu is live at:
       </p>
@@ -158,12 +158,20 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) { router.push('/login'); return; }
+      if (!session) {
+        router.push("/login");
+        return;
+      }
+
       setUserId(session.user.id);
+
       const meta = session.user.user_metadata;
-      if (meta?.full_name) setForm((f) => ({ ...f, name: meta.full_name }));
+
+      if (meta?.full_name) {
+        setForm((f) => ({ ...f, name: meta.full_name }));
+      }
     });
-  }, []);
+  }, [router, supabase.auth]);
 
 
   function set(field) {

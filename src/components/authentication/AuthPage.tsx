@@ -27,28 +27,23 @@ export default function AuthPage() {
   const [mode, setMode] = useState('signup');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("remember_me"));
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<FormData>({ email: '', password: '' });
+  const [formData, setFormData] = useState<FormData>(
+    () => ({
+      email: localStorage.getItem("remember_email") || "",
+      password: ''
+    })
+  );
   const [authError, setAuthError] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  useEffect(() => {
-    const err = searchParams.get('error');
-    if (err === 'auth_callback_failed') {
-      setAuthError('Email verification link expired or invalid. Please try again.');
-    }
+  const urlAuthError =
+    searchParams.get("error") === "auth_callback_failed"
+      ? "Email verification link expired or invalid. Please try again."
+      : null;
 
-
-    if (localStorage.getItem('remember_me')) {
-      const savedEmail = localStorage.getItem('remember_email');
-      if (savedEmail) {
-        setFormData((prev) => ({ ...prev, email: savedEmail }));
-        setRememberMe(true);
-      }
-    }
-  }, []);
-
+  const displayError = authError || urlAuthError;
 
 
   function switchMode(newMode) {
@@ -228,10 +223,10 @@ export default function AuthPage() {
               </div>
 
               {/* Auth Error Banner */}
-              {authError && (
+              {displayError && (
                 <div className="flex items-start gap-2 rounded-xl px-4 py-3 mb-4 bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800">
                   <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-red-600 dark:text-red-400">{authError}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{displayError}</p>
                 </div>
               )}
 

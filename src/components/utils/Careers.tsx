@@ -105,7 +105,7 @@ export default function CareersPage() {
                 <div className="flex items-center gap-1.5 mb-6">
                     <span className="w-[6px] h-[6px] rounded-full bg-green-500 inline-block"></span>
                     <span className="text-[13px] text-neutral-500 tracking-[0.06em] uppercase">
-                        We're hiring
+                        We&apos;re hiring
                     </span>
                 </div>
 
@@ -115,7 +115,7 @@ export default function CareersPage() {
                 </h1>
 
                 <p className="font-inter text-[17px] text-neutral-500 max-w-[520px] leading-[1.7] mb-10">
-                    We're a small, focused team building software that helps thousands of restaurants across India serve their customers better.
+                    We&apos;re a small, focused team building software that helps thousands of restaurants across India serve their customers better.
                 </p>
 
                 <div className="flex gap-8">

@@ -88,20 +88,14 @@ const allArticles = categories.flatMap((c) => c.articles.map((a) => ({ ...a, cat
 
 export default function HelpCenterPage() {
     const [query, setQuery] = useState("");
-    const [popular, setPopular] = useState([]);
+    const [popular, setPopular] = useState(() => [...allArticles]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 5));
     const [activeCategory, setActiveCategory] = useState(null);
 
     const filtered = query.trim().length > 1
         ? allArticles.filter((a) => a.title.toLowerCase().includes(query.toLowerCase()) || a.category.toLowerCase().includes(query.toLowerCase()))
         : [];
-
-    useEffect(() => {
-        const shuffled = [...allArticles]
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 5);
-
-        setPopular(shuffled);
-    }, []);
 
     const displayCategories = activeCategory ? categories.filter((c) => c.id === activeCategory) : categories;
 

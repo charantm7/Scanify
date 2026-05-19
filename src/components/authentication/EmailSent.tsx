@@ -86,7 +86,7 @@ export default function EmailSent() {
 
             <h1 className="text-3xl font-syne font-bold text-theme mb-2">Check your inbox</h1>
             <p className="text-theme2 text-sm font-light leading-relaxed mb-6">
-              We've sent a verification link to your email address. Click it to activate your account and get started.
+              We&apos;ve sent a verification link to your email address. Click it to activate your account and get started.
             </p>
 
             {/* Checklist */}
@@ -110,7 +110,7 @@ export default function EmailSent() {
             {/* Resend section */}
             <div className="border-t pt-5" style={{ borderColor: 'var(--border)' }}>
               <p className="text-xs text-theme2 mb-3">
-                Didn't receive the email?
+                Didn&apos;t receive the email?
                 {resendCount > 0 && <span className="text-[#74c69d] font-semibold"> Sent {resendCount} time{resendCount > 1 ? 's' : ''}</span>}
               </p>
               <button

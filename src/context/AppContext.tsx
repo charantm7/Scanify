@@ -26,6 +26,7 @@ export function AppProvider({ children }) {
     const [menuItemCount, setMenuItemCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [now] = useState(() => Date.now());
 
     useEffect(() => {
         let mounted = true;
@@ -93,23 +94,23 @@ export function AppProvider({ children }) {
         });
 
         return () => { mounted = false; authSub.unsubscribe(); };
-    }, []);
+    }, [supabase]);
 
-    const refreshMenuCount = useCallback(async () => {
+    const refreshMenuCount = async () => {
         if (!hotel?.id) return;
         const { count } = await supabase
             .from("menu_items")
             .select("id", { count: "exact", head: true })
             .eq("hotel_id", hotel.id);
         setMenuItemCount(count ?? 0);
-    }, [hotel?.id, supabase]);
+    };
 
-    const refreshHotel = useCallback(async () => {
+    const refreshHotel = async () => {
         if (!user?.id) return;
         const { data } = await supabase
             .from("hotels").select("*").eq("owner_id", user.id).maybeSingle();
         setHotel(data);
-    }, [user?.id, supabase]);
+    };
 
     const updateProfileLocally = useCallback((patch) => {
         setProfile((prev) => (prev ? { ...prev, ...patch } : patch));
@@ -127,7 +128,7 @@ export function AppProvider({ children }) {
     const isSubscriptionOk = isTrialing || isActive;
 
     const trialEndsAt = subscription?.trial_ends_at ? new Date(subscription.trial_ends_at) : null;
-    const trialMsLeft = isTrialing && trialEndsAt ? Math.max(0, trialEndsAt.getTime() - Date.now()) : 0;
+    const trialMsLeft = isTrialing && trialEndsAt ? Math.max(0, trialEndsAt.getTime() - now) : 0;
     const trialHoursLeft = Math.ceil(trialMsLeft / 3_600_000);
     const trialDaysLeft = Math.max(isTrialing ? 1 : 0, Math.ceil(trialMsLeft / 86_400_000));
     const isTrialExpired = isTrialing && trialMsLeft === 0;
