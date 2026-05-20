@@ -1,128 +1,80 @@
-import { Database } from "./database.types";
+import type { Database } from "./database.types";
+import { SupabaseClient } from "@supabase/supabase-js";
+
+// Typed Supabase Client
+// It give auto complete on tabels and typed response
+export type TypedSupabaseClient = SupabaseClient<Database>;
+
+// Row Level helpers 
+// Derive the Row, Insert, Update shapes directly from the generated types
+type Tables = Database['public']['Tables'];
+
+export type Row<T extends keyof Tables> = Tables[T]['Row'];
+export type Insert<T extends keyof Tables> = Tables[T]['Insert'];
+export type Update<T extends keyof Tables> = Tables[T]['Update']
+
+// Named Row Types
+// Its a base type for rows and reusable in anywhere in the app
+
+export type UserRow = Row<'users'>;
+export type HotelRow = Row<'hotels'>;
+
+export type OrderRow = Row<'orders'>;
+export type HotelTabelRow = Row<'hotel_tables'>;
+export type MenuItemRow = Row<'menu_items'>;
+export type OrderItemsRow = Row<'order_items'>
+export type CategoryRow = Row<'categories'>;
+export type MenuScanRow = Row<'menu_scans'>;
+export type QrCodeRow = Row<'qr_codes'>;
+
+export type OrderPaymentRow = Row<'order_payments'>;
+export type SubscriptionRow = Row<'subscriptions'>;
+export type PlanLimitsRow = Row<'plan_limits'>;
 
 
-export type User =
-    Database["public"]["Tables"]["users"]["Row"];
+// Named Update Row Types
 
-export type UserInsert =
-    Database["public"]["Tables"]["users"]["Insert"];
+export type UserUpdate = Update<'users'>;
+export type HotelUpdate = Update<'hotels'>;
 
-export type UserUpdate =
-    Database["public"]["Tables"]["users"]["Update"];
+export type OrderUpdate = Update<'orders'>;
+export type HotelTabelUpdate = Update<'hotel_tables'>;
+export type MenuItemUpdate = Update<'menu_items'>;
+export type OrderItemsUpdate = Update<'order_items'>
+export type CategoryUpdate = Update<'categories'>;
+export type MenuScanUpdate = Update<'menu_scans'>;
+export type QrCodeUpdate = Update<'qr_codes'>;
 
-export type Hotel =
-    Database["public"]["Tables"]["hotels"]["Row"];
-
-export type HotelInsert =
-    Database["public"]["Tables"]["hotels"]["Insert"];
-
-export type HotelUpdate =
-    Database["public"]["Tables"]["hotels"]["Update"];
-
-export type Category =
-    Database["public"]["Tables"]["categories"]["Row"];
-
-export type CategoryInsert =
-    Database["public"]["Tables"]["categories"]["Insert"];
-
-export type CategoryUpdate =
-    Database["public"]["Tables"]["categories"]["Update"];
-
-export type MenuItem =
-    Database["public"]["Tables"]["menu_items"]["Row"];
-
-export type MenuItemInsert =
-    Database["public"]["Tables"]["menu_items"]["Insert"];
-
-export type MenuItemUpdate =
-    Database["public"]["Tables"]["menu_items"]["Update"];
-
-export type MenuScan =
-    Database["public"]["Tables"]["menu_scans"]["Row"];
-
-export type MenuScanInsert =
-    Database["public"]["Tables"]["menu_scans"]["Insert"];
-
-export type MenuScanUpdate =
-    Database["public"]["Tables"]["menu_scans"]["Update"];
-
-export type QRCode =
-    Database["public"]["Tables"]["qr_codes"]["Row"];
-
-export type QRCodeInsert =
-    Database["public"]["Tables"]["qr_codes"]["Insert"];
-
-export type QRCodeUpdate =
-    Database["public"]["Tables"]["qr_codes"]["Update"];
-
-export type HotelTable =
-    Database["public"]["Tables"]["hotel_tables"]["Row"];
-
-export type HotelTableInsert =
-    Database["public"]["Tables"]["hotel_tables"]["Insert"];
-
-export type HotelTableUpdate =
-    Database["public"]["Tables"]["hotel_tables"]["Update"];
-
-export type Order =
-    Database["public"]["Tables"]["orders"]["Row"];
-
-export type OrderInsert =
-    Database["public"]["Tables"]["orders"]["Insert"];
-
-export type OrderUpdate =
-    Database["public"]["Tables"]["orders"]["Update"];
-
-export type OrderItem =
-    Database["public"]["Tables"]["order_items"]["Row"];
-
-export type OrderItemInsert =
-    Database["public"]["Tables"]["order_items"]["Insert"];
-
-export type OrderItemUpdate =
-    Database["public"]["Tables"]["order_items"]["Update"];
-
-export type OrderPayment =
-    Database["public"]["Tables"]["order_payments"]["Row"];
-
-export type OrderPaymentInsert =
-    Database["public"]["Tables"]["order_payments"]["Insert"];
-
-export type OrderPaymentUpdate =
-    Database["public"]["Tables"]["order_payments"]["Update"];
-
-export type Subscription =
-    Database["public"]["Tables"]["subscriptions"]["Row"];
-
-export type SubscriptionInsert =
-    Database["public"]["Tables"]["subscriptions"]["Insert"];
-
-export type SubscriptionUpdate =
-    Database["public"]["Tables"]["subscriptions"]["Update"];
-
-export type PlanLimit =
-    Database["public"]["Tables"]["plan_limits"]["Row"];
-
-export type PlanLimitInsert =
-    Database["public"]["Tables"]["plan_limits"]["Insert"];
-
-export type PlanLimitUpdate =
-    Database["public"]["Tables"]["plan_limits"]["Update"];
+export type OrderPaymentUpdate = Update<'order_payments'>;
+export type SubscriptionUpdate = Update<'subscriptions'>;
+export type PlanLimitsUpdate = Update<'plan_limits'>;
 
 
-// ENUMS
+// Named Insert Row Types
 
-export type PlanType =
-    Database["public"]["Enums"]["plan_type"];
+export type UserInsert = Insert<'users'>;
+export type HotelInsert = Insert<'hotels'>;
 
-export type SubscriptionStatus =
-    Database["public"]["Enums"]["subscription_status"];
+export type OrderInsert = Insert<'orders'>;
+export type HotelTabelInsert = Insert<'hotel_tables'>;
+export type MenuItemInsert = Insert<'menu_items'>;
+export type OrderItemsInsert = Insert<'order_items'>
+export type CategoryInsert = Insert<'categories'>;
+export type MenuScanInsert = Insert<'menu_scans'>;
+export type QrCodeInsert = Insert<'qr_codes'>;
 
-export type PaymentStatus =
-    Database["public"]["Enums"]["payment_status"];
+export type OrderPaymentInsert = Insert<'order_payments'>;
+export type SubscriptionInsert = Insert<'subscriptions'>;
+export type PlanLimitsInsert = Insert<'plan_limits'>;
 
-export type OrderStatus =
-    Database["public"]["Enums"]["order_status"];
 
-export type AnalyticsLevel =
-    Database["public"]["Enums"]["analytics_level_type"];
+// ENUMS Types
+
+type Enum = Database['public']['Enums']
+
+
+export type PlanType = Enum['plan_type']
+export type SubscriptionStatus = Enum['subscription_status']
+export type PaymentStatus = Enum['order_status']
+export type OrderStatus = Enum['order_status']
+export type AnalyticsLevel = Enum['analytics_level_type']

@@ -10,6 +10,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { getSupabaseClient } from '../../lib/supabase/client';
 import { subdomainUrlBuilderWithWindow } from '../../context/Service';
 import AuthNavbar from './Navbar';
+import type { HotelInsert } from '../../types/supabase';
 
 const STEPS = [
   {
@@ -235,16 +236,23 @@ export default function OnboardingPage() {
       const slug = form.restaurant_name.trim().toLowerCase()
         .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-      const { error: hotelErr } = await supabase.from('hotels').insert({
+      const payload: HotelInsert = {
         owner_id: userId,
         name: form.restaurant_name.trim(),
         description: form.description.trim(),
         logo_url: form.logo_url.trim() || null,
         address: `${form.address.trim()}, ${form.city.trim()}`,
-        pincode: parseInt(form.pincode, 10),
-        slug: slug,
-      });
-      if (hotelErr) throw hotelErr;
+        pincode: form.pincode.trim(),
+        slug,
+      };
+
+      const { error } = await supabase
+        .from("hotels")
+        .insert(payload);
+
+      if (error) {
+        throw error;
+      }
 
       const { error: userErr } = await supabase.from('users').update({
         name: form.name.trim(),
