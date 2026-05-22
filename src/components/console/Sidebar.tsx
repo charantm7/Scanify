@@ -26,6 +26,7 @@ function Logo() {
         />
       </div>
       <span className="font-syne font-bold text-theme text-lg">Scanify</span>
+      <span className='font-blog text-[12px] ml-1 border border-orange-200 text-orange-700 bg-orange-100 px-2 rounded-full'>Beta</span>
     </div>
   );
 }
@@ -35,9 +36,8 @@ export const NAV_ITEMS = [
   { id: 'menu', label: 'Menu Builder', icon: ChefHat },
   { id: 'qr-codes', label: 'QR Codes', icon: QrCode },
   { id: 'analytics', label: 'Analytics', icon: BarChart2 },
-  { id: 'settings', label: 'Settings', icon: Settings },
   { id: 'billing', label: 'Subscription', icon: Receipt },
-
+  { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 const COMING_SOON = new Set(['orders']);

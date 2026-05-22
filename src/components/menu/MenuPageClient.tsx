@@ -66,6 +66,8 @@ function ItemCard({ item }) {
                     <Image
                         src={item.image_url}
                         alt={item.name}
+                        width={30}
+                        height={30}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         onError={() => setImgError(true)}
                     />
@@ -175,7 +177,7 @@ function HotelLogo({ hotel }) {
         <div className="flex-shrink-0 w-[60px] h-[60px] sm:w-[68px] sm:h-[68px] rounded-2xl overflow-hidden flex items-center justify-center border"
             style={{ background: "var(--accentlt)", borderColor: "var(--border2)" }}>
             {hotel.logo_url && !imgError ? (
-                <Image src={hotel.logo_url} alt={hotel.name}
+                <Image width={30} height={30} src={hotel.logo_url} alt={hotel.name}
                     className="w-full h-full object-cover"
                     onError={() => setImgError(true)} />
             ) : (

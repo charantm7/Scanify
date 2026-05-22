@@ -27,8 +27,12 @@ export async function generateMetadata({ params }) {
     };
 }
 
-export default async function MenuPage({ params }) {
-    const { slug } = await params;
+export default async function MenuPage({ params, searchParams, }) {
+    const { slug, } = await params;
+    const resolvedSearchParams = await searchParams;
+
+    const qrId = resolvedSearchParams?.qr;
+    console.log("hello", qrId)
     const supabase = await createClient();
 
     // Fetch hotel
@@ -56,11 +60,32 @@ export default async function MenuPage({ params }) {
         .eq("is_available", true)
         .order("sort_order", { ascending: true });
 
+    const { data: qrcode } = await supabase
+        .from('qr_codes')
+        .select('*')
+        .eq('id', qrId)
+        .maybeSingle()
     // Log scan (fire-and-forget — don't block render)
-    supabase
-        .from("menu_scans")
-        .insert({ hotel_id: hotel.id, scanned_at: new Date().toISOString() })
-        .then(() => { });
+    if (qrId) {
+        supabase
+            .from("menu_scans")
+            .insert({
+                hotel_id: hotel.id,
+                qr_code_id: qrId || null,
+                metadata: { 'label': qrcode.label, 'scan_count': qrcode.scan_count }
+            })
+            .then(() => { });
+    } else {
+        supabase
+            .from("menu_scans")
+            .insert({
+                hotel_id: hotel.id,
+                qr_code_id: qrId || null,
+                event_type: 'menu_view',
+            })
+            .then(() => { });
+    }
+
 
     // Group items by category
     const menuData = (categories ?? []).map((cat) => ({
@@ -68,5 +93,5 @@ export default async function MenuPage({ params }) {
         items: (items ?? []).filter((item) => item.category_id === cat.id),
     })).filter((cat) => cat.items.length > 0);
 
-    return <MenuPageClient hotel={ hotel } menuData = { menuData } />;
+    return <MenuPageClient hotel={hotel} menuData={menuData} />;
 }

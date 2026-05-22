@@ -5,13 +5,24 @@ import HowItWorks from "../../components/home/HowItWorks";
 import Pricing from "../../components/home/Pricing";
 import WhySwitch from "../../components/home/WhySwitch";
 import { AppProvider } from "../../context/AppContext";
+import { createClient } from "../../lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Scanify",
   description: "Replace printed menus with a smart digital solution. Customers scan a QR code and instantly browse your full menu — contactless, fast, and always up to date.",
 };
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+
+  const { data: { session }, } = await supabase.auth.getSession();
+
+  if (session) {
+    redirect('/console')
+  }
+
+
   return (
     <AppProvider>
       <HomeInner />

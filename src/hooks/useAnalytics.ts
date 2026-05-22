@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import type { MenuScanRow, OrderRow, OrderItemsRow } from '../types/supabase';
+import { getMenuScans, getPrevMenuScan } from '../lib/queries/menu';
+import { getOrderItems, getOrders } from '../lib/queries/orders';
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // useAnalytics — Advanced analytics hook for Scanify
@@ -30,9 +33,17 @@ import type { MenuScanRow, OrderRow, OrderItemsRow } from '../types/supabase';
 // AnalyticsPanel receives clean, typed data — no Supabase in sight.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Shared primitives ─────────────────────────────────────────────────────────
+
+
+
+
+
+
+// Shared Interface
 
 export type AnalyticsPeriod = '7d' | '30d' | '90d';
+
+export type AnalyticsLevel = 'basic' | 'advance';
 
 export interface DayStat {
     label: string;   // "14 Apr"
@@ -54,21 +65,21 @@ export interface TopItem {
     item_id: string;
     item_name: string;
     views: number;
-    orders: number;      // advanced only, else 0
-    convRate: number;      // views → orders %, advanced only
+    orders: number;
+    convRate: number;
 }
 
 export interface QrStat {
     qr_id: string;
     label: string;
     scans: number;
-    pct: number;         // share of total scans
+    pct: number;
 }
 
 export interface FunnelStep {
     label: string;
     value: number;
-    dropPct: number;         // % drop from previous step
+    dropPct: number;
 }
 
 export interface OrderStat {
@@ -93,8 +104,9 @@ export interface PeriodComparison {
     itemViews: { current: number; previous: number; changePct: number };
 }
 
-// ── Stats shapes ──────────────────────────────────────────────────────────────
 
+
+// Stats Shape for basic and Advance
 export interface BasicAnalyticsStats {
     totalScans: number;
     totalMenuViews: number;
@@ -117,13 +129,14 @@ export interface AdvancedAnalyticsStats extends BasicAnalyticsStats {
 
 export type AnalyticsStats = BasicAnalyticsStats | AdvancedAnalyticsStats;
 
-// ── Type guard ────────────────────────────────────────────────────────────────
+
+// check the stats is advance
 
 export function isAdvancedStats(s: AnalyticsStats): s is AdvancedAnalyticsStats {
     return 'peakHours' in s;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// helpers
 
 function periodToDays(period: AnalyticsPeriod): number {
     return period === '7d' ? 7 : period === '30d' ? 30 : 90;
@@ -136,6 +149,7 @@ function sinceDate(days: number): Date {
 }
 
 function dayKey(iso: string): string {
+
     return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
 }
 
@@ -162,13 +176,16 @@ function buildDayStats(scans: MenuScanRow[], days: number): DayStat[] {
         d.setDate(d.getDate() - i);
         buckets.set(dayKey(d.toISOString()), 0);
     }
+
     for (const s of scans) {
         if (s.event_type !== 'qr_scan') continue;
         const k = dayKey(s.scanned_at);
+
         if (buckets.has(k)) buckets.set(k, (buckets.get(k) ?? 0) + 1);
     }
     return Array.from(buckets.entries()).map(([label, value]) => ({ label, value }));
 }
+
 
 function buildTopItems(scans: MenuScanRow[], orderItems: OrderItemsRow[] = []): TopItem[] {
     const views = new Map<string, { name: string; count: number }>();
@@ -229,9 +246,10 @@ function buildQrBreakdown(scans: MenuScanRow[]): QrStat[] {
     const qrScans = scans.filter(s => s.event_type === 'qr_scan' && s.qr_code_id);
     const total = qrScans.length || 1;
 
+
     for (const s of qrScans) {
         const id = s.qr_code_id!;
-        const label = (s.metadata as Record<string, string>)?.qr_label ?? 'Unknown QR';
+        const label = (s.metadata as Record<string, string>)?.label ?? 'Unknown QR';
         const e = counts.get(id);
         if (e) e.scans++;
         else counts.set(id, { label, scans: 1 });
@@ -349,14 +367,8 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
 
         try {
             // ── Current period scans (always) ──────────────────────────────────────
-            const { data: scans, error: scanErr } = await supabase
-                .from('menu_scans')
-                .select('*')
-                .eq('hotel_id', hotel.id)
-                .gte('scanned_at', since.toISOString())
-                .order('scanned_at', { ascending: false });
+            const scans = await getMenuScans(supabase, hotel.id, since);
 
-            if (scanErr) throw new Error(scanErr.message);
             const currentScans: MenuScanRow[] = scans ?? [];
 
             // ── Basic stats ────────────────────────────────────────────────────────
@@ -376,32 +388,20 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
 
             // ── Advanced: previous period scans + orders in parallel ───────────────
             const [prevRes, ordersRes] = await Promise.all([
-                supabase
-                    .from('menu_scans')
-                    .select('event_type, scanned_at')
-                    .eq('hotel_id', hotel.id)
-                    .gte('scanned_at', prevSince.toISOString())
-                    .lt('scanned_at', since.toISOString()),
+                getPrevMenuScan(supabase, hotel.id, prevSince, since),
 
                 canUseOrdering
-                    ? supabase
-                        .from('orders')
-                        .select('*')
-                        .eq('hotel_id', hotel.id)
-                        .gte('created_at', since.toISOString())
+                    ? getOrders(supabase, hotel.id, since)
                     : Promise.resolve({ data: [], error: null }),
             ]);
 
-            const previousScans: MenuScanRow[] = (prevRes.data ?? []) as MenuScanRow[];
-            const orders: OrderRow[] = (ordersRes.data ?? []) as OrderRow[];
+            const previousScans: MenuScanRow[] = prevRes as MenuScanRow[];
+            const orders: OrderRow[] = ordersRes as OrderRow[];
 
             // Fetch order_items for conversion rate only when we have orders
             let orderItems: OrderItemsRow[] = [];
             if (canUseOrdering && orders.length > 0) {
-                const { data: oi } = await supabase
-                    .from('order_items')
-                    .select('menu_item_id, quantity, order_id')
-                    .in('order_id', orders.map(o => o.id));
+                const oi = await getOrderItems(supabase, orders);
                 orderItems = (oi ?? []) as OrderItemsRow[];
             }
 

@@ -19,6 +19,7 @@ import {
   type FunnelStep,
   type OrderStat,
   type PeriodComparison,
+  AnalyticsLevel,
 } from '../../../hooks/useAnalytics';
 import { useApp } from '../../../context/AppContext';
 
@@ -179,6 +180,11 @@ const PERIODS: { value: AnalyticsPeriod; label: string }[] = [
   { value: '90d', label: '90 days' },
 ];
 
+const LEVELS: { value: AnalyticsLevel; label: string }[] = [
+  { value: 'basic', label: 'Basic' },
+  { value: 'advance', label: 'Advance' }
+]
+
 function PeriodSelector({
   value,
   onChange,
@@ -207,6 +213,36 @@ function PeriodSelector({
       ))}
     </div>
   );
+}
+
+function LevelSelector({
+  value,
+  onChange
+}: {
+  value: AnalyticsLevel,
+  onChange: (p: AnalyticsLevel) => void
+}) {
+  return (
+    <div
+      className="inline-flex w-fit items-center rounded-xl p-1 gap-1"
+      style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+    >
+      {LEVELS.map(p => (
+        <button
+          key={p.value}
+          onClick={() => onChange(p.value)}
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+          style={
+            value === p.value
+              ? { background: 'var(--accent)', color: '#fff' }
+              : { color: 'var(--muted-foreground)' }
+          }
+        >
+          {p.label}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 // ── Bar chart (generic) ───────────────────────────────────────────────────────
@@ -345,7 +381,7 @@ function Funnel({ steps }: { steps: FunnelStep[] }) {
   const max = steps[0]?.value || 1;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-8">
       {steps.map((step, i) => (
         <div key={step.label}>
           <div className="flex items-center justify-between mb-1">
@@ -653,48 +689,111 @@ function ComparisonRow({ data }: { data: PeriodComparison }) {
 // ── Upgrade gate ──────────────────────────────────────────────────────────────
 
 function UpgradeGate({
-  children,
   onUpgrade,
 }: {
-  children: React.ReactNode;
   onUpgrade?: () => void;
 }) {
   return (
-    <div className="relative rounded-2xl overflow-hidden">
-      <div className="blur-sm pointer-events-none select-none opacity-50" aria-hidden>
-        {children}
-      </div>
+    <div
+      className="relative overflow-hidden rounded-3xl border p-1"
+      style={{
+        borderColor: 'var(--border)',
+        background:
+          'linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent)',
+      }}
+    >
       <div
-        className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl p-6 text-center"
-        style={{ background: 'color-mix(in srgb, var(--card) 90%, transparent)', backdropFilter: 'blur(4px)' }}
+        className="flex flex-col gap-6 rounded-[22px] p-6 md:flex-row md:items-center md:justify-between"
+        style={{
+          background:
+            'color-mix(in srgb, var(--card) 94%, transparent)',
+          backdropFilter: 'blur(12px)',
+        }}
       >
-        <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-          style={{ background: 'var(--accentlt)' }}
-        >
-          <Lock size={20} style={{ color: 'var(--accent)' }} />
+        {/* Left Section */}
+        <div className="flex items-start gap-4">
+          {/* Icon */}
+          <div
+            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl shadow-sm"
+            style={{
+              background:
+                'linear-gradient(135deg, var(--accentlt), color-mix(in srgb, var(--accent) 14%, white))',
+            }}
+          >
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl"
+              style={{
+                background:
+                  'color-mix(in srgb, var(--accent) 12%, transparent)',
+              }}
+            >
+              <Lock
+                width={18}
+                height={18}
+                style={{ color: 'var(--accent)' }}
+              />
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex flex-col">
+            {/* Badge */}
+            <div
+              className="mb-2 inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide"
+              style={{
+                background:
+                  'color-mix(in srgb, var(--accent) 10%, transparent)',
+                color: 'var(--accent)',
+                border:
+                  '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
+              }}
+            >
+              <Zap size={10} />
+              Pro Analytics
+            </div>
+
+            {/* Heading */}
+            <h3
+              className="text-lg font-bold leading-tight"
+              style={{
+                color: 'var(--foreground)',
+                fontFamily: 'var(--font-syne, sans-serif)',
+              }}
+            >
+              Unlock Advanced Analytics
+            </h3>
+
+            {/* Description */}
+            <p
+              className="mt-1 max-w-xl text-sm leading-6"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              Track QR performance, peak hours, revenue trends,
+              customer funnels, scan comparisons, and detailed
+              engagement analytics with the Pro plan.
+            </p>
+          </div>
         </div>
-        <p
-          className="font-bold text-base mb-1"
-          style={{ color: 'var(--foreground)', fontFamily: 'var(--font-syne, sans-serif)' }}
-        >
-          Pro Analytics
-        </p>
-        <p className="text-xs mb-4 max-w-xs" style={{ color: 'var(--muted-foreground)' }}>
-          Peak hours heatmap, funnel analysis, QR performance, order revenue, and period comparisons — all on the Pro plan.
-        </p>
+
+        {/* CTA */}
         <button
           onClick={onUpgrade}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
-          style={{ background: 'var(--accent)' }}
+          className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] hover:opacity-95 active:scale-[0.98]"
+          style={{
+            background:
+              'linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 72%, black))',
+          }}
         >
-          <Zap size={14} /> Upgrade to Pro
+          <Zap
+            size={15}
+            className="transition-transform duration-200 group-hover:rotate-12"
+          />
+          Upgrade to Pro
         </button>
       </div>
     </div>
   );
 }
-
 // ── Empty / loading states ────────────────────────────────────────────────────
 
 function SkeletonBlock({ h = 'h-40' }: { h?: string }) {
@@ -737,6 +836,7 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => voi
 export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const { isTrialExpired, canUseOrdering } = useApp();
   const [period, setPeriod] = useState<AnalyticsPeriod>('7d');
+  const [level, setLevel] = useState<AnalyticsLevel>('basic');
 
   const { stats, loading, error, canViewBasicAnalytics, canViewAdvancedAnalytics, refetch } =
     useAnalytics(period);
@@ -763,7 +863,7 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
   if (error) {
     return (
       <div className="space-y-5">
-        <PageHeader period={period} onPeriodChange={setPeriod} onRefetch={refetch} />
+        <PageHeader period={period} onPeriodChange={setPeriod} onRefetch={refetch} level={level} onLevelChange={setLevel} />
         <ErrorBanner message={error} onRetry={refetch} />
       </div>
     );
@@ -773,18 +873,9 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
   if (!canViewBasicAnalytics || !stats) {
     return (
       <div className="space-y-5">
-        <PageHeader period={period} onPeriodChange={setPeriod} onRefetch={refetch} />
-        <UpgradeGate onUpgrade={() => onNavigate?.('billing')}>
-          {/* placeholder blurred content */}
-          <div className="space-y-4 pointer-events-none">
-            <div className="grid sm:grid-cols-3 gap-4">
-              {[0, 1, 2].map(i => (
-                <div key={i} className="h-28 rounded-2xl" style={{ background: 'var(--border)' }} />
-              ))}
-            </div>
-            <div className="h-48 rounded-2xl" style={{ background: 'var(--border)' }} />
-          </div>
-        </UpgradeGate>
+        <PageHeader period={period} onPeriodChange={setPeriod} onRefetch={refetch} level={level} onLevelChange={setLevel} />
+        <UpgradeGate onUpgrade={() => onNavigate?.('billing')} />
+
       </div>
     );
   }
@@ -795,7 +886,7 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
   return (
     <div className="space-y-5">
       {/* Header */}
-      <PageHeader period={period} onPeriodChange={setPeriod} onRefetch={refetch} />
+      <PageHeader period={period} onPeriodChange={setPeriod} onRefetch={refetch} level={level} onLevelChange={setLevel} />
 
       {/* Trial expired banner */}
       {isTrialExpired && (
@@ -820,157 +911,144 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
         </div>
       )}
 
-      {/* ── Basic stat cards ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard
-          icon={QrCode}
-          label="QR Scans"
-          value={stats.totalScans.toLocaleString()}
-          sub="All QR scan events"
-          change={comparison?.scans.changePct}
-        />
-        <StatCard
-          icon={Eye}
-          label="Menu Views"
-          value={stats.totalMenuViews.toLocaleString()}
-          sub="Menu opened events"
-          change={comparison?.menuViews.changePct}
-        />
-        <StatCard
-          icon={TrendingUp}
-          label="Item Views"
-          value={stats.totalItemViews.toLocaleString()}
-          sub="Individual item taps"
-          change={comparison?.itemViews.changePct}
-        />
-        <StatCard
-          icon={Calendar}
-          label="Active Days"
-          value={stats.uniqueDays}
-          sub="Days with ≥1 scan"
-        />
-      </div>
+      {level === 'basic' ? (
+        <>
+          {/* ── Basic stat cards ─────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard
+              icon={QrCode}
+              label="QR Scans"
+              value={stats.totalScans.toLocaleString()}
+              sub="All QR scan events"
+              change={comparison?.scans.changePct}
+            />
+            <StatCard
+              icon={Eye}
+              label="Menu Views"
+              value={stats.totalMenuViews.toLocaleString()}
+              sub="Menu opened events"
+              change={comparison?.menuViews.changePct}
+            />
+            <StatCard
+              icon={TrendingUp}
+              label="Item Views"
+              value={stats.totalItemViews.toLocaleString()}
+              sub="Individual item taps"
+              change={comparison?.itemViews.changePct}
+            />
+            <StatCard
+              icon={Calendar}
+              label="Active Days"
+              value={stats.uniqueDays}
+              sub="Days with ≥1 scan"
+            />
+          </div>
 
-      {/* ── Advanced: session depth + repeat days ──────────────────────────── */}
-      {advanced && (
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard
-            icon={Users}
-            label="Avg Session Depth"
-            value={advanced.avgSessionDepth}
-            sub="Item views per QR scan"
-          />
-          <StatCard
-            icon={Clock}
-            label="Repeat Days"
-            value={advanced.repeatDays}
-            sub="Days with ≥2 sessions"
-          />
-        </div>
-      )}
-
-      {/* ── Scans by day ─────────────────────────────────────────────────────── */}
-      <Section title="Scans over time" subtitle={`QR scan events — last ${period}`} icon={BarChart2}>
-        {stats.scansByDay.every(d => d.value === 0) ? (
-          <p className="text-sm text-center py-6" style={{ color: 'var(--muted-foreground)' }}>
-            No scan data for this period.
-          </p>
-        ) : (
-          <BarChart
-            data={stats.scansByDay}
-            height={96}
-            showEveryNth={Math.ceil(stats.scansByDay.length / 10)}
-          />
-        )}
-      </Section>
-
-      {/* ── Scan funnel — advanced ─────────────────────────────────────────── */}
-      {advanced ? (
-        <Section title="Engagement funnel" subtitle="Scan → browse → explore" icon={ArrowRight}>
-          <Funnel steps={advanced.funnel} />
-        </Section>
+          {/* ── Scans by day ─────────────────────────────────────────────────────── */}
+          <Section title="Scans over time" subtitle={`QR scan events — last ${period}`} icon={BarChart2}>
+            {stats.scansByDay.every(d => d.value === 0) ? (
+              <p className="text-sm text-center py-6" style={{ color: 'var(--muted-foreground)' }}>
+                No scan data for this period.
+              </p>
+            ) : (
+              <BarChart
+                data={stats.scansByDay}
+                height={96}
+                showEveryNth={Math.ceil(stats.scansByDay.length / 10)}
+              />
+            )}
+          </Section>
+          {/* ── Top items ────────────────────────────────────────────────────────── */}
+          <Section
+            title="Top items"
+            subtitle={advanced ? 'Views + order conversion' : 'Most viewed menu items'}
+            icon={TrendingUp}
+          >
+            <TopItemsTable items={stats.topItems} showConversion={!!advanced} />
+          </Section>
+        </>
       ) : (
-        <UpgradeGate onUpgrade={() => onNavigate?.('billing')}>
-          <Section title="Engagement funnel" subtitle="Scan → browse → explore" icon={ArrowRight}>
-            <div className="h-28 rounded-xl" style={{ background: 'var(--border)' }} />
-          </Section>
-        </UpgradeGate>
-      )}
-
-      {/* ── Peak hours — advanced ─────────────────────────────────────────── */}
-      {advanced ? (
-        <Section title="Peak hours" subtitle="All events by hour of day" icon={Clock}>
-          <HeatmapHours data={advanced.peakHours} />
-        </Section>
-      ) : (
-        <UpgradeGate onUpgrade={() => onNavigate?.('billing')}>
-          <Section title="Peak hours" icon={Clock}>
-            <div className="h-40 rounded-xl" style={{ background: 'var(--border)' }} />
-          </Section>
-        </UpgradeGate>
-      )}
-
-      {/* ── Day-of-week — advanced ─────────────────────────────────────────── */}
-      {advanced && (
-        <Section title="Busiest days" subtitle="Scan activity by day of week" icon={Calendar}>
-          <BarChart data={advanced.peakDays} height={72} />
-        </Section>
-      )}
-
-      {/* ── Top items ────────────────────────────────────────────────────────── */}
-      <Section
-        title="Top items"
-        subtitle={advanced ? 'Views + order conversion' : 'Most viewed menu items'}
-        icon={TrendingUp}
-      >
-        <TopItemsTable items={stats.topItems} showConversion={!!advanced} />
-      </Section>
-
-      {/* ── QR breakdown — advanced ───────────────────────────────────────── */}
-      {advanced ? (
-        <Section title="QR code performance" subtitle="Scans per QR code" icon={QrCode}>
-          <QrBreakdown data={advanced.qrBreakdown} />
-        </Section>
-      ) : (
-        <UpgradeGate onUpgrade={() => onNavigate?.('billing')}>
-          <Section title="QR code performance" icon={QrCode}>
-            <div className="h-24 rounded-xl" style={{ background: 'var(--border)' }} />
-          </Section>
-        </UpgradeGate>
-      )}
-
-      {/* ── Orders — advanced + ordering enabled ──────────────────────────── */}
-      {advanced && (
-        canUseOrdering && advanced.orders ? (
-          <Section title="Order analytics" subtitle="Revenue & order breakdown" icon={ShoppingBag}>
-            <OrderStats data={advanced.orders} />
-          </Section>
-        ) : (
-          !canUseOrdering && (
-            <Section title="Order analytics" icon={ShoppingBag}>
-              <div
-                className="flex flex-col items-center justify-center py-6 gap-2 text-center"
-              >
-                <ShoppingBag size={28} style={{ color: 'var(--muted-foreground)', opacity: 0.4 }} />
-                <p className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
-                  Ordering is not enabled on your plan.
-                </p>
+        <>
+          {/* ── Advanced: session depth + repeat days ──────────────────────────── */}
+          {advanced ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard
+                  icon={Users}
+                  label="Avg Session Depth"
+                  value={advanced.avgSessionDepth}
+                  sub="Item views per QR scan"
+                />
+                <StatCard
+                  icon={Clock}
+                  label="Repeat Days"
+                  value={advanced.repeatDays}
+                  sub="Days with ≥2 sessions"
+                />
               </div>
-            </Section>
-          )
-        )
+
+
+              <Section title="Engagement funnel" subtitle="Scan → browse → explore" icon={ArrowRight}>
+                <Funnel steps={advanced.funnel} />
+              </Section>
+
+
+              <Section title="Peak hours" subtitle="All events by hour of day" icon={Clock}>
+                <HeatmapHours data={advanced.peakHours} />
+              </Section>
+
+
+              <Section title="Busiest days" subtitle="Scan activity by day of week" icon={Calendar}>
+                <BarChart data={advanced.peakDays} height={72} />
+              </Section>
+
+
+              <Section title="QR code performance" subtitle="Scans per QR code" icon={QrCode}>
+                <QrBreakdown data={advanced.qrBreakdown} />
+              </Section>
+
+
+              {
+                canUseOrdering && advanced.orders ? (
+                  <Section title="Order analytics" subtitle="Revenue & order breakdown" icon={ShoppingBag}>
+                    <OrderStats data={advanced.orders} />
+                  </Section>
+                ) : (
+                  !canUseOrdering && (
+                    <Section title="Order analytics" icon={ShoppingBag}>
+                      <div
+                        className="flex flex-col items-center justify-center py-6 gap-2 text-center"
+                      >
+                        <ShoppingBag size={28} style={{ color: 'var(--muted-foreground)', opacity: 0.4 }} />
+                        <p className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
+                          Ordering is not enabled on your plan.
+                        </p>
+                      </div>
+                    </Section>
+                  )
+                )
+              }
+
+
+              {comparison && (
+                <Section
+                  title="Period comparison"
+                  subtitle={`This ${period} vs previous ${period}`}
+                  icon={TrendingUp}
+                >
+                  <ComparisonRow data={comparison} />
+                </Section>
+              )}
+            </>
+          ) : (
+            <UpgradeGate onUpgrade={() => onNavigate('billing')} />
+
+
+          )}
+
+        </>
       )}
 
-      {/* ── Period comparison — advanced ──────────────────────────────────── */}
-      {advanced && comparison && (
-        <Section
-          title="Period comparison"
-          subtitle={`This ${period} vs previous ${period}`}
-          icon={TrendingUp}
-        >
-          <ComparisonRow data={comparison} />
-        </Section>
-      )}
     </div>
   );
 }
@@ -981,10 +1059,15 @@ function PageHeader({
   period,
   onPeriodChange,
   onRefetch,
+  level,
+  onLevelChange
+
 }: {
   period: AnalyticsPeriod;
   onPeriodChange: (p: AnalyticsPeriod) => void;
   onRefetch: () => void;
+  level: AnalyticsLevel;
+  onLevelChange: (p: AnalyticsLevel) => void;
 }) {
   return (
     <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -999,17 +1082,22 @@ function PageHeader({
           How your menu performs
         </p>
       </div>
-      <div className="flex items-center gap-2">
-        <PeriodSelector value={period} onChange={onPeriodChange} />
-        <button
-          onClick={onRefetch}
-          className="w-9 h-9 rounded-xl flex items-center justify-center transition hover:opacity-80"
-          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
-          title="Refresh"
-        >
-          <RefreshCw size={14} style={{ color: 'var(--muted-foreground)' }} />
-        </button>
-      </div>
-    </div>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <LevelSelector value={level} onChange={onLevelChange} />
+
+        <div className='flex gap-2'>
+          <PeriodSelector value={period} onChange={onPeriodChange} />
+          <button
+            onClick={onRefetch}
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition hover:opacity-80"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+            title="Refresh"
+          >
+            <RefreshCw size={14} style={{ color: 'var(--muted-foreground)' }} />
+          </button>
+        </div>
+
+      </div >
+    </div >
   );
 }
