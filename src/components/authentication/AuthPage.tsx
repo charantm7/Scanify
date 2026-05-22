@@ -27,14 +27,12 @@ export default function AuthPage() {
   const [mode, setMode] = useState('signup');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem("remember_me"));
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<FormData>(
-    () => ({
-      email: localStorage.getItem("remember_email") || "",
-      password: ''
-    })
-  );
+  const [formData, setFormData] = useState<FormData>({
+    email: "",
+    password: "",
+  });
   const [authError, setAuthError] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
@@ -44,6 +42,20 @@ export default function AuthPage() {
       : null;
 
   const displayError = authError || urlAuthError;
+
+  useEffect(() => {
+    const storedRememberMe = localStorage.getItem("remember_me");
+    setRememberMe(!!storedRememberMe);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setFormData((prev) => ({
+        ...prev,
+        email: localStorage.getItem("remember_email") || "",
+      }));
+    }
+  }, []);
 
 
   function switchMode(newMode) {
