@@ -132,8 +132,10 @@ export type AnalyticsStats = BasicAnalyticsStats | AdvancedAnalyticsStats;
 
 // check the stats is advance
 
-export function isAdvancedStats(s: AnalyticsStats): s is AdvancedAnalyticsStats {
-    return 'peakHours' in s;
+export function isAdvancedStats(
+    s: AnalyticsStats | null
+): s is AdvancedAnalyticsStats {
+    return !!s && 'peakHours' in s;
 }
 
 // helpers
@@ -352,6 +354,7 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+
     const fetchAll = useCallback(async () => {
         if (!hotel?.id || !canViewBasicAnalytics) {
             setLoading(false);
@@ -380,6 +383,7 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
                 scansByDay: buildDayStats(currentScans, days),
                 topItems: buildTopItems(currentScans),
             };
+
 
             if (!canViewAdvancedAnalytics) {
                 setStats(basicStats);

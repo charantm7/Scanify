@@ -7,7 +7,7 @@ import Sidebar, { NAV_ITEMS } from './Sidebar';
 import DashboardPanel from './panels/DashboardPanel';
 import MenuPanel from './panels/MenuPanel';
 import QRPanel from './panels/QrPanel';
-import AnalyticsPanel from './panels/AnalyticsPanel';
+import AnalyticsPanel from '../../features/analytics/components/AnalyticsPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import { getSupabaseClient } from '../../lib/supabase/client';
 import { AppProvider } from '../../context/AppContext';
