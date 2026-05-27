@@ -2,7 +2,7 @@ import { useState } from "react";
 
 export default function BarChart({
     data,
-    height = 80,
+    height = 200,
     color = 'var(--accent)',
     formatLabel,
     formatValue,
@@ -22,9 +22,9 @@ export default function BarChart({
         <div className="relative">
             {hovered !== null && data[hovered] && (
                 <div
-                    className="absolute -top-8 text-xs font-semibold px-2 py-1 rounded-lg pointer-events-none z-10 whitespace-nowrap"
+                    className="absolute -top-8 ml-5 text-xs font-semibold px-2 py-1 rounded-lg pointer-events-none z-10 whitespace-nowrap"
                     style={{
-                        left: `${(hovered / data.length) * 100}%`,
+                        left: `${((hovered + 0.5) / data.length) * 100}%`,
                         transform: 'translateX(-50%)',
                         background: 'var(--foreground)',
                         color: 'var(--background)',
@@ -33,11 +33,11 @@ export default function BarChart({
                     {formatValue ? formatValue(data[hovered].value) : data[hovered].value}
                 </div>
             )}
-            <div className="flex items-end gap-px" style={{ height }}>
+            <div className="flex items-end gap-2" style={{ height }}>
                 {data.map((d, i) => (
                     <div
                         key={i}
-                        className="flex-1 flex flex-col items-center gap-1 cursor-default"
+                        className="flex-1 flex flex-col justify-end items-center gap-1 cursor-default"
                         onMouseEnter={() => setHovered(i)}
                         onMouseLeave={() => setHovered(null)}
                     >

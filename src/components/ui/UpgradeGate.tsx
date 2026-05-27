@@ -19,9 +19,9 @@ export function UpgradeGate({
     onUpgrade,
 }: UpgradeGateProps) {
     return (
-        <div className="flex flex-col items-center text-center rounded-2xl border border-border bg-card px-7 py-8">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 bg-violet-100 dark:bg-violet-900/30">
-                <Lock size={18} className="text-violet-600 dark:text-violet-400" aria-hidden />
+        <div className="flex flex-col items-center text-center rounded-2xl border border-theme bg-card px-7 py-8">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 bg-[var(--accentlt)] dark:bg-[var(--accentlt)]">
+                <Lock size={18} className="text-[var(--accent)] dark:text-[var(--accent)]" aria-hidden />
             </div>
 
             <p className="text-[15px] font-medium text-foreground mb-1.5">{title}</p>
@@ -34,7 +34,7 @@ export function UpgradeGate({
                     <span
                         key={label}
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs
-                       bg-muted border border-border text-muted-foreground"
+                       bg-muted border border-theme text-muted-foreground"
                     >
                         <Icon size={12} aria-hidden />
                         {label}
@@ -46,7 +46,7 @@ export function UpgradeGate({
                 onClick={onUpgrade}
                 className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl
                    text-sm font-medium text-white
-                   bg-violet-600 hover:bg-violet-500 active:scale-[0.97]
+                   bg-[var(--accent)] hover:bg-[var(--accent2)] active:scale-[0.97]
                    transition-all duration-150"
             >
                 <Zap size={14} aria-hidden />

@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import {
-  BarChart2, Eye, QrCode, ShoppingBag, TrendingUp, TrendingDown,
-  Minus, Lock, Zap, Loader2, RefreshCw, ArrowRight, Users,
-  Clock, Calendar, CreditCard, AlertCircle, ChevronDown,
+  QrCode, ShoppingBag, TrendingUp,
+  ArrowRight, Users, Clock, Calendar
 } from 'lucide-react';
 
 import BarChart from './charts/BarChart';
@@ -16,41 +15,22 @@ import QrBreakdown from './QrBreakdown';
 import OrderStats from './OrderStats';
 import ComparisonRow from './ComparisonRow';
 import { StatCard } from './StatCardsGrid';
-import ErrorBanner from './ErrorBanner';
+import { ErrorBanner } from '../../../components/ui/ErrorBanner';
 import AnalyticsSkeletonBlock from './SkeletonBlock';
 import { buildBasicStats } from '../utils/build-basic-stats';
 import PageHeader from './AnalyticsHeader';
+import type { AnalyticsPeriod, AnalyticsLevel } from '../constants';
+import { isAdvancedStats } from '../services/analytics.service';
 
 import {
   useAnalytics,
-  isAdvancedStats,
-  type AnalyticsPeriod,
-  AnalyticsLevel,
-} from '../../../hooks/useAnalytics';
+} from '../hooks/useAnalytics';
+
 import { useApp } from '../../../context/AppContext';
 import ScanTrenchChart from './ScanTrenchChart';
 import { AnalyticsLockedNotice } from '../../../components/ui/Consolenotices';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AnalyticsPanel
-//
-// Consumes useAnalytics() exclusively — no Supabase calls here.
-// Layout:
-//   • Period selector
-//   • Stat cards row  (basic)
-//   • UpgradeGate wraps advanced sections for non-pro plans
-//   • Scan funnel
-//   • Scans-by-day bar chart
-//   • Peak hours heatmap (24-slot)
-//   • Day-of-week bar chart
-//   • Top items table  (with conversion rate on pro)
-//   • QR code breakdown
-//   • Order stats section (if ordering enabled)
-//   • Period comparison row
-// ─────────────────────────────────────────────────────────────────────────────
 
-
-// ── Section wrapper ───────────────────────────────────────────────────────────
 
 function Section({
   title,
@@ -99,24 +79,23 @@ function Section({
 }
 
 
-
-
-
-
-// ── Main panel ────────────────────────────────────────────────────────────────
+// Main panel
 
 export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: string) => void }) {
-  const { isTrialExpired, canUseOrdering } = useApp();
+  const { canUseOrdering } = useApp();
   const [period, setPeriod] = useState<AnalyticsPeriod>('7d');
   const [level, setLevel] = useState<AnalyticsLevel>('basic');
 
-
-  const { stats, loading, error, canViewBasicAnalytics, canViewAdvancedAnalytics, refetch } =
+  const { stats, loading, error, canViewBasicAnalytics, refetch } =
     useAnalytics(period);
 
-  // ── No access ───────────────────────────────────────────────────────────────
   if (!canViewBasicAnalytics || !stats) {
-    return <AnalyticsLockedNotice level={'basic'} onNavigate={onNavigate} />
+    return (
+      <div className="space-y-5">
+        <PageHeader period={period} onPeriodChange={setPeriod} onRefetch={refetch} level={level} onLevelChange={setLevel} />
+        <AnalyticsLockedNotice level={'basic'} onNavigate={onNavigate} />
+      </div>
+    )
 
   }
 
@@ -124,62 +103,34 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
   const comparison = advanced?.comparison;
 
   const cards = buildBasicStats(stats, comparison);
-  // ── Loading ─────────────────────────────────────────────────────────────────
+
   if (loading) {
     return <AnalyticsSkeletonBlock />
   }
 
-  // ── Error ───────────────────────────────────────────────────────────────────
   if (error) {
     return (
       <div className="space-y-5">
         <PageHeader period={period} onPeriodChange={setPeriod} onRefetch={refetch} level={level} onLevelChange={setLevel} />
-        <ErrorBanner message={error} onRetry={refetch} />
+        <ErrorBanner variant={'error'} title={'Failed to load Analytics'} message={error} onRetry={refetch} />
       </div>
     );
   }
 
 
-
-
-
   return (
     <div className="space-y-5">
-      {/* Header */}
+
       <PageHeader period={period} onPeriodChange={setPeriod} onRefetch={refetch} level={level} onLevelChange={setLevel} />
 
-      {/* Trial expired banner */}
-      {isTrialExpired && (
-        <div
-          className="flex items-center gap-3 p-4 rounded-2xl"
-          style={{
-            background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
-            border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)',
-          }}
-        >
-          <AlertCircle size={16} style={{ color: 'var(--accent)' }} />
-          <p className="text-sm flex-1" style={{ color: 'var(--foreground)' }}>
-            Your trial has ended — upgrade to continue.
-          </p>
-          <button
-            onClick={() => onNavigate?.('billing')}
-            className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg text-white flex-shrink-0"
-            style={{ background: 'var(--accent)' }}
-          >
-            <Zap size={11} /> Upgrade
-          </button>
-        </div>
-      )}
 
       {level === 'basic' ? (
         <>
 
           <StatCardsGrid cards={cards} />
 
-          {/* ── Scans by day ─────────────────────────────────────────────────────── */}
           <ScanTrenchChart stats={stats} period={period} />
 
-          {/* ── Top items ────────────────────────────────────────────────────────── */}
           <Section
             title="Top items"
             subtitle={advanced ? 'Views + order conversion' : 'Most viewed menu items'}
@@ -187,6 +138,7 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
           >
             <TopItemsTable items={stats.topItems} showConversion={!!advanced} />
           </Section>
+
         </>
       ) : (
         <>
@@ -221,7 +173,7 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
 
 
               <Section title="Busiest days" subtitle="Scan activity by day of week" icon={Calendar}>
-                <BarChart data={advanced.peakDays} height={72} />
+                <BarChart data={advanced.peakDays} />
               </Section>
 
 

@@ -2,6 +2,8 @@ export type AnalyticsPeriod = '7d' | '30d' | '90d';
 
 export type AnalyticsLevel = 'basic' | 'advance';
 
+export const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 export const ORDER_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     pending: { label: 'Pending', color: '#f59e0b' },
     accepted: { label: 'Accepted', color: '#3b82f6' },

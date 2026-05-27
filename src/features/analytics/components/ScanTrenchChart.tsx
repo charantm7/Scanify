@@ -15,7 +15,6 @@ export default function ScanTrenchChart({ stats, period }: { stats: AnalyticsSta
             ) : (
                 <BarChart
                     data={stats.scansByDay}
-                    height={96}
                     showEveryNth={Math.ceil(stats.scansByDay.length / 10)}
                 />
             )}

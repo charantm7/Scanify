@@ -1,5 +1,4 @@
-import { AnalyticsStatCard } from "../types";
-import { AnalyticsStats, PeriodComparison } from "../../../hooks/useAnalytics";
+import { AnalyticsStatCard, AnalyticsStats, PeriodComparison } from "../types";
 
 import {
     QrCode,

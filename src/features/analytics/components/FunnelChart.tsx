@@ -7,7 +7,7 @@ export default function Funnel({ steps }: { steps: FunnelStep[] }) {
         <div className="space-y-8">
             {steps.map((step, i) => (
                 <div key={step.label}>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                             <span
                                 className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
@@ -31,7 +31,7 @@ export default function Funnel({ steps }: { steps: FunnelStep[] }) {
                         </div>
                     </div>
                     <div
-                        className="h-2 rounded-full overflow-hidden"
+                        className="h-2 rounded-full mb-6 overflow-hidden"
                         style={{ background: 'var(--border)' }}
                     >
                         <div

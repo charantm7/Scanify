@@ -9,7 +9,7 @@ import {
     X,
     ArrowRight,
     ChefHat,
-    BarChart2, ViewIcon, PanelTop, ScanBarcode,
+    BarChart2, PanelTop, ScanBarcode,
     DollarSign,
     Funnel,
     FireExtinguisher
