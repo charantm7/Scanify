@@ -3,9 +3,8 @@ import { NextResponse } from 'next/server';
 
 const PROTECTED_ROUTES = ['/console', '/onboarding'];
 const AUTH_ROUTES = ['/login', '/forget-password', '/check-mail'];
-const PUBLIC_ROUTES = ['/menu'];
 
-export async function middleware(request) {
+export async function proxy(request) {
     const url = request.nextUrl
     const pathname = url.pathname
 

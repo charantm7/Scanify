@@ -9,11 +9,6 @@ import {
     Loader2,
 } from 'lucide-react';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Custom toast renderer
-// Matches your existing design system: var(--card), var(--border),
-// var(--accent), font-syne, rounded-2xl
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface ToastConfig {
     icon: React.ElementType;
@@ -70,10 +65,7 @@ function ToastContent({
     const Icon = cfg.icon;
 
     return (
-        <div
-            className={`flex items-start gap-3 w-full transition-all duration-300 ${t.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
-                }`}
-        >
+        <div className="flex items-center gap-3 w-full">
             <div
                 className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center mt-0.5"
                 style={{ background: cfg.iconBg }}
@@ -102,11 +94,9 @@ function ToastContent({
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Base renderer — used by all variants
-// ─────────────────────────────────────────────────────────────────────────────
 
-interface ShowToastOptions {
+export interface ShowToastOptions {
     message: string;
     description?: string;
     type: 'success' | 'error' | 'warning' | 'info' | 'loading';
@@ -120,7 +110,13 @@ function showToast({ message, description, type, duration, id }: ShowToastOption
     return toast.custom(
         (t) => (
             <div
-                className="w-full max-w-sm rounded-2xl border shadow-lg px-4 py-3 pointer-events-auto"
+                className={`
+                    w-full max-w-sm rounded-2xl border shadow-lg px-4 py-3 pointer-events-auto
+                    transition-all duration-300
+                    ${t.visible
+                        ? 'opacity-100 translate-y-0 scale-100'
+                        : 'opacity-0 translate-y-2 scale-95'
+                    }`}
                 style={{
                     background: 'var(--card)',
                     borderColor: cfg.borderColor,
@@ -137,9 +133,8 @@ function showToast({ message, description, type, duration, id }: ShowToastOption
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // useToast hook — this is what components import
-// ─────────────────────────────────────────────────────────────────────────────
+export type ToastMethods = ReturnType<typeof useToast>;
 
 export function useToast() {
     return {
@@ -170,15 +165,12 @@ export function useToast() {
         /** Manually dismiss by ID. */
         dismiss: toast.dismiss,
 
-        /**
-         * Wraps a promise. Shows loading → success/error automatically.
-         *
-         * example
-         * await toast.promise(
-         *   deleteMenuItem(id),
-         *   { loading: 'Deleting...', success: 'Item deleted', error: 'Failed to delete' }
-         * );
-         */
+        /*
+        await toast.promise(
+            addItem(payload),
+            { loading: 'Adding item...', success: 'Item added!', error: 'Failed to add item' }
+            );
+        */
         async promise<T>(
             fn: Promise<T>,
             messages: { loading: string; success: string; error: string },

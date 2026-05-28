@@ -1,4 +1,4 @@
-import AuthPage from "../../../components/authentication/AuthPage";
+import AuthPanelPage from "../../../features/authentication/pages/AuthPanelPage";
 import { Suspense } from "react";
 
 export const metadata = {
@@ -9,7 +9,7 @@ export const metadata = {
 export default function Authentication() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <AuthPage />
+            <AuthPanelPage />
         </Suspense>
     );
 }

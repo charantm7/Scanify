@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { Menu, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
-import { Toaster } from 'react-hot-toast';
 import Sidebar, { NAV_ITEMS } from './Sidebar';
 import DashboardPanel from './panels/DashboardPanel';
 import MenuPanel from './panels/MenuPanel';
@@ -112,13 +111,6 @@ function ConsoleShellInner() {
 
     return (
         <div className="min-h-screen grid-bg flex">
-            <Toaster
-                position="top-right"
-                toastOptions={{
-                    duration: 3500,
-                    style: { background: 'var(--card)', color: 'var(--text)', border: '1px solid var(--border)' },
-                }}
-            />
 
             <Sidebar
                 activeTab={activeTab}

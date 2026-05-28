@@ -11,7 +11,7 @@ import { Toaster } from 'react-hot-toast';
 export function ToasterConfig() {
     return (
         <Toaster
-            position="bottom-right"
+            position="top-right"
             gutter={10}
             containerStyle={{ zIndex: 9999 }}
             toastOptions={{
