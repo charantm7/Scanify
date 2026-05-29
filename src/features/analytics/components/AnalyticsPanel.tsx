@@ -19,7 +19,7 @@ import { ErrorBanner } from '../../../components/ui/ErrorBanner';
 import AnalyticsSkeletonBlock from './SkeletonBlock';
 import { buildBasicStats } from '../utils/build-basic-stats';
 import PageHeader from './AnalyticsHeader';
-import type { AnalyticsPeriod, AnalyticsLevel } from '../constants';
+import type { AnalyticsPeriod, AnalyticsLevel, AdvanceAnalytics } from '../constants';
 import { isAdvancedStats } from '../services/analytics.service';
 
 import {
@@ -29,6 +29,7 @@ import {
 import { useApp } from '../../../context/AppContext';
 import ScanTrenchChart from './ScanTrenchChart';
 import { AnalyticsLockedNotice } from '../../../components/ui/Consolenotices';
+import AdvanceAnalyticsSelector from './selectors/AdvanceAnalyticsSelector';
 
 
 
@@ -85,6 +86,7 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
   const { canUseOrdering } = useApp();
   const [period, setPeriod] = useState<AnalyticsPeriod>('7d');
   const [level, setLevel] = useState<AnalyticsLevel>('basic');
+  const [analyticType, setAnalyticType] = useState<AdvanceAnalytics>('funnel');
 
   const { stats, loading, error, canViewBasicAnalytics, refetch } =
     useAnalytics(period);
@@ -161,28 +163,22 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
                 />
               </div>
 
+              <AdvanceAnalyticsSelector value={analyticType} onChange={setAnalyticType} />
 
-              <Section title="Engagement funnel" subtitle="Scan → browse → explore" icon={ArrowRight}>
-                <Funnel steps={advanced.funnel} />
-              </Section>
+              {analyticType === 'funnel' ? (
+                <Section title="Engagement funnel" subtitle="Scan → browse → explore" icon={ArrowRight}>
+                  <Funnel steps={advanced.funnel} />
+                </Section>
+              ) : analyticType === 'busiestday' ? (
+                <Section title="Busiest days" subtitle="Scan activity by day of week" icon={Calendar}>
+                  <BarChart data={advanced.peakDays} />
+                </Section>
+              ) : analyticType === 'peakhour' ? (
+                <Section title="Peak hours" subtitle="All events by hour of day" icon={Clock}>
+                  <HeatmapHours data={advanced.peakHours} />
+                </Section>
+              ) : analyticType === 'orderanalytics' ? (
 
-
-              <Section title="Peak hours" subtitle="All events by hour of day" icon={Clock}>
-                <HeatmapHours data={advanced.peakHours} />
-              </Section>
-
-
-              <Section title="Busiest days" subtitle="Scan activity by day of week" icon={Calendar}>
-                <BarChart data={advanced.peakDays} />
-              </Section>
-
-
-              <Section title="QR code performance" subtitle="Scans per QR code" icon={QrCode}>
-                <QrBreakdown data={advanced.qrBreakdown} />
-              </Section>
-
-
-              {
                 canUseOrdering && advanced.orders ? (
                   <Section title="Order analytics" subtitle="Revenue & order breakdown" icon={ShoppingBag}>
                     <OrderStats data={advanced.orders} />
@@ -201,18 +197,23 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
                     </Section>
                   )
                 )
-              }
 
-
-              {comparison && (
-                <Section
-                  title="Period comparison"
-                  subtitle={`This ${period} vs previous ${period}`}
-                  icon={TrendingUp}
-                >
-                  <ComparisonRow data={comparison} />
+              ) : analyticType === 'qrperformance' ? (
+                <Section title="QR code performance" subtitle="Scans per QR code" icon={QrCode}>
+                  <QrBreakdown data={advanced.qrBreakdown} />
                 </Section>
+              ) : (
+                comparison && (
+                  <Section
+                    title="Period comparison"
+                    subtitle={`This ${period} vs previous ${period}`}
+                    icon={TrendingUp}
+                  >
+                    <ComparisonRow data={comparison} />
+                  </Section>
+                )
               )}
+
             </>
           )}
 

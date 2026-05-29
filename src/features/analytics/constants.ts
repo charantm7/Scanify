@@ -2,6 +2,8 @@ export type AnalyticsPeriod = '7d' | '30d' | '90d';
 
 export type AnalyticsLevel = 'basic' | 'advance';
 
+export type AdvanceAnalytics = 'funnel' | 'peakhour' | 'busiestday' | 'qrperformance' | 'orderanalytics' | 'periodcomparison'
+
 export const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export const ORDER_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -22,4 +24,14 @@ export const PERIODS: { value: AnalyticsPeriod; label: string }[] = [
 export const LEVELS: { value: AnalyticsLevel; label: string }[] = [
     { value: 'basic', label: 'Basic' },
     { value: 'advance', label: 'Advance' }
+]
+
+export const AnaltyicsType: { value: AdvanceAnalytics; label: string }[] = [
+    { value: 'funnel', label: 'Engagement Funnel' },
+    { value: 'peakhour', label: 'Peak Hours' },
+    { value: 'busiestday', label: 'Busiest Day' },
+    { value: 'orderanalytics', label: 'Order Analytics' },
+    { value: 'periodcomparison', label: 'Period Comparison' },
+    { value: 'qrperformance', label: 'Qr Code Performance' }
+
 ]

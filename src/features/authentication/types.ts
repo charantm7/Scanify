@@ -46,9 +46,10 @@ export interface UseAuthReturn {
     signIn: (payload: SignInPayload) => Promise<void>;
     signInWithGoogle: () => Promise<void>;
     signOut: () => Promise<void>;
-    sendPasswordReset: (email: string) => Promise<void>;
+    sendPasswordReset: (email: string, setSent: Dispatch<SetStateAction<boolean>>, setCooldown: Dispatch<SetStateAction<number>>) => Promise<void>;
     updatePassword: (payload: PasswordResetPayload) => Promise<void>;
     updateEmail: (newEmail: string) => Promise<void>;
+    resendEmail: (setResendCount: Dispatch<SetStateAction<number>>, setCooldown: Dispatch<SetStateAction<number>>) => Promise<void>;
 
     clearError: () => void;
 

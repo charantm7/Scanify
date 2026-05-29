@@ -1,4 +1,4 @@
-import ForgetPassword from "../../../components/authentication/ForgetPassword";
+import ForgetPasswordPage from "../../../features/authentication/pages/ForgetPasswordPage";
 
 export const metadata = {
   title: "Forget Password | Scanify",
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function ForgotPasswordPage() {
-  return <ForgetPassword />;
+  return <ForgetPasswordPage />;
 }

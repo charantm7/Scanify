@@ -19,9 +19,9 @@ export default function AnalyticsSkeletonBlock() {
 
 
             <div className="grid gap-4 sm:grid-cols-3">
-                <SkeletonBlock h="h-28" />
-                <SkeletonBlock h="h-28" />
-                <SkeletonBlock h="h-64" />
+                <SkeletonBlock h="h-24" />
+                <SkeletonBlock h="h-24" />
+                <SkeletonBlock h="h-14" />
             </div>
 
 

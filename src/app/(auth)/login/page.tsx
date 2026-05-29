@@ -8,8 +8,7 @@ export const metadata = {
 
 export default function Authentication() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        
             <AuthPanelPage />
-        </Suspense>
     );
 }

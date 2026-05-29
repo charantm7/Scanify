@@ -33,6 +33,7 @@
   --radial: rgba(0, 0, 0, 0.04);
   --input: #ffffff79;
   --hover: rgba(0, 0, 0, 0.057);
+  --muted: 240 4.8% 95.9%;
 
   /* utils theme */
   --utils-text: #000000;
@@ -70,6 +71,7 @@
   --radial: rgba(255, 255, 255, 0.03);
   --input: #ffffff33;
   --hover: #ffffff1c;
+  --muted: 240 4.8% 95.9%;
 
   /* utils theme */
   --utils-text: #ffffff;
@@ -160,6 +162,10 @@ body {
 
 .bg-pricing-off {
   background: var(--bg1);
+}
+
+.bg-muted {
+  background-color: hsl(var(--muted));
 }
 
 .bg-theme2 {

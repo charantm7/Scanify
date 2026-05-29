@@ -1,8 +1,9 @@
 import { FormData, SignUpPayload, SignInPayload, PasswordResetPayload } from "../types";
 import { TypedSupabaseClient } from "../../../types/supabase";
-import { signInWithPassword, getUserProfile, signUp, signOut, resetPassword, updatePassword } from "../query/auth.query";
+import { signInWithPassword, getUserProfile, signUp, signOut, resetPassword, updatePassword, resendEmailVerification } from "../query/auth.query";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { ToastMethods } from "../../../hooks/useToast";
+import { Dispatch, SetStateAction } from "react";
 
 
 export interface FormErrors {
@@ -113,11 +114,22 @@ export async function AuthSignOut(
 export async function AuthResetPassword(
     supabase: TypedSupabaseClient,
     email: string,
-    toast: ToastMethods
+    toast: ToastMethods,
+    setError: (errors: FormErrors) => void,
+    setSent: Dispatch<SetStateAction<boolean>>,
+    setCooldown: Dispatch<SetStateAction<number>>
 ) {
-    if (!email.trim()) throw new Error('Email is required.');
-    if (!/\S+@\S+\.\S+/.test(email)) throw new Error('Invalid email format.');
+    if (!email.trim()) {
+        setError({ email: 'Email is required.' });
+        return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+        setError({ email: 'Invalid email format.' });
+        return;
+    }
     await resetPassword(supabase, email);
+    setSent(true);
+    setCooldown(60);
     toast.success('Password Reset Link Sent!')
 }
 
@@ -154,4 +166,24 @@ export async function AuthUpdateEmail(
     const { error: err } = await supabase.auth.updateUser({ email: newEmail });
     if (err) throw new Error(`Update Email error: ${err.message}`);
     toast.success('Email Updated')
+}
+
+export async function AuthResendEmail(
+    supabase: TypedSupabaseClient,
+    toast: ToastMethods,
+    setResendCount: Dispatch<SetStateAction<number>>,
+    setCooldown: Dispatch<SetStateAction<number>>
+) {
+
+    const savedEmail = localStorage.getItem('signup_email');
+    if (!savedEmail) {
+        toast.warning("Email not found. Please signup again.");
+        return;
+    }
+
+    await resendEmailVerification(supabase, savedEmail)
+
+    setResendCount((c) => c + 1);
+    setCooldown(Number(process.env.COOLDOWN_SECONDS) ?? 60);
+
 }

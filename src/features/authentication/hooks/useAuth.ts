@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, Dispatch, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '../../../lib/supabase/client';
 import { useApp } from '../../../context/AppContext';
 
 import { SignInPayload, SignUpPayload, PasswordResetPayload, UseAuthReturn, FormErrors } from '../types';
-import { AuthResetPassword, AuthSignIn, AuthSignOut, AuthSignUp, AuthUpdateEmail, AuthUpdatePassword } from '../services/login.services';
+import { AuthResendEmail, AuthResetPassword, AuthSignIn, AuthSignOut, AuthSignUp, AuthUpdateEmail, AuthUpdatePassword } from '../services/login.services';
 import { oauthSignIn } from '../query/auth.query';
 import { useToast } from '../../../hooks/useToast';
 
@@ -67,9 +67,15 @@ export function useAuth(): UseAuthReturn {
     }, [supabase, router]);
 
 
-    const sendPasswordReset = useCallback(async (email: string) => {
+    const sendPasswordReset = useCallback(async (email: string, setSent: Dispatch<SetStateAction<boolean>>, setCooldown: Dispatch<SetStateAction<number>>) => {
         await run(async () => {
-            await AuthResetPassword(supabase, email, toast)
+            await AuthResetPassword(supabase, email, toast, setError, setSent, setCooldown)
+        });
+    }, [supabase]);
+
+    const resendEmail = useCallback(async (setResendCount: Dispatch<SetStateAction<number>>, setCooldown: Dispatch<SetStateAction<number>>) => {
+        await run(async () => {
+            await AuthResendEmail(supabase, toast, setResendCount, setCooldown)
         });
     }, [supabase]);
 
@@ -104,6 +110,7 @@ export function useAuth(): UseAuthReturn {
         updatePassword,
         updateEmail,
         clearError,
-        setError
+        setError,
+        resendEmail
     };
 }

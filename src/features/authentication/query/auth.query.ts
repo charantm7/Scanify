@@ -84,7 +84,23 @@ export async function resetPassword(
 
         throw new Error(`Reset Password error: ${error.message}`)
     }
+}
 
+export async function resendEmailVerification(
+    supabase: TypedSupabaseClient,
+    email: string
+) {
+    const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+            emailRedirectTo: `${window.location.origin}/${process.env.SIGNUP_EMAIL_REDIRECT_TO}`
+        }
+    })
+    if (error) {
+
+        throw new Error(`Resend Email Verification error: ${error.message}`)
+    }
 }
 
 export async function updatePassword(

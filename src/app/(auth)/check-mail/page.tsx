@@ -1,4 +1,4 @@
-import EmailSent from "../../../components/authentication/EmailSent";
+import EmailSentPage from "../../../features/authentication/pages/EmailSentPage";
 
 export const dynamic = "force-dynamic";
 
@@ -8,5 +8,5 @@ export const metadata = {
 };
 
 export default function CheckMail() {
-  return <EmailSent />;
+  return <EmailSentPage />;
 }
