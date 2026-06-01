@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '../../../lib/supabase/client';
 import { useApp } from '../../../context/AppContext';
 
-import { SignInPayload, SignUpPayload, PasswordResetPayload, UseAuthReturn, FormErrors } from '../types';
+import { SignInPayload, SignUpPayload, PasswordResetPayload, UseAuthReturn, FormErrors, UpdatePasswordError } from '../types';
 import { AuthResendEmail, AuthResetPassword, AuthSignIn, AuthSignOut, AuthSignUp, AuthUpdateEmail, AuthUpdatePassword } from '../services/login.services';
 import { oauthSignIn } from '../query/auth.query';
 import { useToast } from '../../../hooks/useToast';
@@ -20,8 +20,9 @@ export function useAuth(): UseAuthReturn {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<FormErrors | null>(null);
+    const [updatePasswordError, setUpdatePasswordError] = useState<UpdatePasswordError | null>(null);
 
-    const clearError = useCallback(() => setError(null), []);
+    const clearError = useCallback(() => { setError(null); setUpdatePasswordError(null) }, []);
 
     // wraps all async function inside this and run
     async function run(action: () => Promise<void>): Promise<void> {
@@ -82,7 +83,7 @@ export function useAuth(): UseAuthReturn {
     // Handels from link and settings panel
     const updatePassword = useCallback(async (payload: PasswordResetPayload) => {
         await run(async () => {
-            await AuthUpdatePassword(supabase, payload, user?.email, toast)
+            await AuthUpdatePassword(supabase, payload, user?.email, toast, setUpdatePasswordError)
         });
     }, [supabase, user?.email]);
 
@@ -102,6 +103,7 @@ export function useAuth(): UseAuthReturn {
         onboardingComplete: profile?.onboarding_complete ?? false,
         loading,
         error,
+        updatePasswordError,
         signUp,
         signIn,
         signInWithGoogle,
@@ -111,6 +113,6 @@ export function useAuth(): UseAuthReturn {
         updateEmail,
         clearError,
         setError,
-        resendEmail
+        resendEmail,
     };
 }

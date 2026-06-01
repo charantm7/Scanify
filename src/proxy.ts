@@ -46,14 +46,14 @@ export async function proxy(request) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    if (pathname.startsWith('/reset-password')) {
-        const hasRecoveryCookie = request.cookies.get('recovery_flow')
+    // if (pathname.startsWith('/reset-password')) {
+    //     const hasRecoveryCookie = request.cookies.get('recovery_flow')
 
-        if (!user || !hasRecoveryCookie) {
-            return NextResponse.redirect(new URL('/login', request.url))
-        }
-        return NextResponse.next()
-    }
+    //     if (!user || !hasRecoveryCookie) {
+    //         return NextResponse.redirect(new URL('/login', request.url))
+    //     }
+    //     return NextResponse.next()
+    // }
 
 
     const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r));

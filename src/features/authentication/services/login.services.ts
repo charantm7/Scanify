@@ -1,4 +1,4 @@
-import { FormData, SignUpPayload, SignInPayload, PasswordResetPayload } from "../types";
+import { FormData, SignUpPayload, SignInPayload, PasswordResetPayload, UpdatePasswordError } from "../types";
 import { TypedSupabaseClient } from "../../../types/supabase";
 import { signInWithPassword, getUserProfile, signUp, signOut, resetPassword, updatePassword, resendEmailVerification } from "../query/auth.query";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -46,6 +46,27 @@ export function validate(formData: FormData) {
     return newErrors
 }
 
+export function validateNewPassword(formData: UpdatePasswordError) {
+    const newErrors: UpdatePasswordError = {};
+    if (!formData.password) newErrors.password = 'Password is required';
+    else if (formData.password.length < 6) newErrors.password = 'Minimum 6 characters required';
+    if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
+    else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    return newErrors
+}
+
+export function getPasswordStrength(pwd: string) {
+    if (!pwd) return { level: 0, label: '', color: '' };
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    if (score <= 1) return { level: 1, label: 'Weak', color: '#ef4444' };
+    if (score === 2) return { level: 2, label: 'Fair', color: '#f97316' };
+    if (score === 3) return { level: 3, label: 'Good', color: '#eab308' };
+    return { level: 4, label: 'Strong', color: '#74c69d' };
+}
 
 export async function AuthSignUp(
     supabase: TypedSupabaseClient,
@@ -137,10 +158,16 @@ export async function AuthUpdatePassword(
     supabase: TypedSupabaseClient,
     payload: PasswordResetPayload,
     userEmail: string,
-    toast: ToastMethods
+    toast: ToastMethods,
+    setUpdatePasswordError: (error: UpdatePasswordError) => void,
 ) {
-    if (payload.next.length < 8) throw new Error('New password must be at least 8 characters.');
-    if (payload.next !== payload.confirm) throw new Error('Passwords do not match.');
+
+    const errors = validateNewPassword({ password: payload.next, confirmPassword: payload.confirm })
+
+    if (Object.keys(errors).length > 0) {
+        setUpdatePasswordError(errors)
+        return
+    }
 
     if (payload.current && userEmail) {
         const { error: verifyErr } = await supabase.auth.signInWithPassword({

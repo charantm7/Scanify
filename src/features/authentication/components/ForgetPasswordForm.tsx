@@ -17,7 +17,6 @@ export default function ForgetPasswordForm() {
         return () => clearTimeout(t);
     }, [cooldown]);
 
-    console.log(process.env.COOLDOWN_SECONDS)
 
     async function sendResetLink() {
         if (loading || cooldown > 0) return;
@@ -35,7 +34,7 @@ export default function ForgetPasswordForm() {
     return (
 
         <div className="relative z-10" style={{ animation: 'fadeInUp 0.8s ease-out' }}>
-            <div className=" backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-theme">
+            <div className=" backdrop-blur-xl rounded-3xl sm:shadow-2xl p-6 sm:border sm:border-theme">
                 <div className="mb-8">
                     <h2 className="text-4xl text-theme font-syne font-bold mb-2">Reset Password</h2>
                     <p className="text-theme2 font-light">We&apos;ll send a secure reset link to your inbox.</p>
@@ -104,7 +103,7 @@ export default function ForgetPasswordForm() {
                         )}
                     </div>
 
-                    <p className="text-center text-sm text-theme2">
+                    <p className="text-start text-sm text-theme2">
                         Remember your password?{' '}
                         <Link href="/login" className="text-theme3 font-semibold underline">Sign in</Link>
                     </p>

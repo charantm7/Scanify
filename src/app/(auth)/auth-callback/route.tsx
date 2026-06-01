@@ -10,6 +10,7 @@ export async function GET(request) {
   const type = searchParams.get('type');
 
   if (!code) {
+    console.log("code: ", code)
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 

@@ -37,7 +37,7 @@ export default function ForgetPassword() {
     setApiError('');
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth-callback?type=recovery`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     setLoading(false);

@@ -28,10 +28,19 @@ export interface SignInPayload {
 }
 
 export interface PasswordResetPayload {
-    current: string;
+    current?: string;
     next: string;
     confirm: string;
 }
+
+export interface UpdatePasswordError {
+    password?: string;
+    confirmPassword?: string;
+    general?: string;
+    current?: string;
+
+}
+
 
 export interface UseAuthReturn {
     user: User | null;
@@ -41,6 +50,7 @@ export interface UseAuthReturn {
 
     loading: boolean;
     error: FormErrors | null;
+    updatePasswordError: UpdatePasswordError | null;
 
     signUp: (payload: SignUpPayload) => Promise<void>;
     signIn: (payload: SignInPayload) => Promise<void>;
@@ -54,4 +64,5 @@ export interface UseAuthReturn {
     clearError: () => void;
 
     setError: Dispatch<SetStateAction<FormErrors>>
+
 }
