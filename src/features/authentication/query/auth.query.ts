@@ -53,7 +53,7 @@ export async function signUp(
             email: formData.email,
             password: formData.password,
             options: {
-                emailRedirectTo: `${window.location.origin}/${process.env.SIGNUP_EMAIL_REDIRECT_TO}`
+                emailRedirectTo: `${window.location.origin}/${process.env.NEXT_PUBLIC_SIGNUP_EMAIL_REDIRECT_TO}`
             }
         })
 
@@ -78,7 +78,7 @@ export async function resetPassword(
     email: string
 ) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/${process.env.NEXT_PUBLIC_PASSWORD_RESET_EMAIL_REDIRECT_TO}`,
     });
     if (error) {
 
@@ -94,7 +94,7 @@ export async function resendEmailVerification(
         type: 'signup',
         email: email,
         options: {
-            emailRedirectTo: `${window.location.origin}/${process.env.SIGNUP_EMAIL_REDIRECT_TO}`
+            emailRedirectTo: `${window.location.origin}/${process.env.NEXT_PUBLIC_SIGNUP_EMAIL_REDIRECT_TO}`
         }
     })
     if (error) {
@@ -121,7 +121,7 @@ export async function oauthSignIn(
     const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: `${window.location.origin}/${process.env.OAUTH_EMAIL_REDIRECT_TO}`,
+            redirectTo: `${window.location.origin}/${process.env.NEXT_PUBLIC_OAUTH_EMAIL_REDIRECT_TO}`,
         },
     });
     if (error) {

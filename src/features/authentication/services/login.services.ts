@@ -1,4 +1,4 @@
-import { FormData, SignUpPayload, SignInPayload, PasswordResetPayload, UpdatePasswordError } from "../types";
+import { FormData, SignUpPayload, SignInPayload, PasswordResetPayload, UpdatePasswordError, UpdatePasswordReturn } from "../types";
 import { TypedSupabaseClient } from "../../../types/supabase";
 import { signInWithPassword, getUserProfile, signUp, signOut, resetPassword, updatePassword, resendEmailVerification } from "../query/auth.query";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -65,7 +65,7 @@ export function getPasswordStrength(pwd: string) {
     if (score <= 1) return { level: 1, label: 'Weak', color: '#ef4444' };
     if (score === 2) return { level: 2, label: 'Fair', color: '#f97316' };
     if (score === 3) return { level: 3, label: 'Good', color: '#eab308' };
-    return { level: 4, label: 'Strong', color: '#74c69d' };
+    return { level: 4, label: 'Strong', color: '#09a055' };
 }
 
 export async function AuthSignUp(
@@ -160,7 +160,7 @@ export async function AuthUpdatePassword(
     userEmail: string,
     toast: ToastMethods,
     setUpdatePasswordError: (error: UpdatePasswordError) => void,
-) {
+): Promise<UpdatePasswordReturn> {
 
     const errors = validateNewPassword({ password: payload.next, confirmPassword: payload.confirm })
 
@@ -179,6 +179,11 @@ export async function AuthUpdatePassword(
 
     await updatePassword(supabase, payload.next);
     toast.success('Password Updated')
+
+    return {
+        isRecovery: payload.isRecovery,
+        success: true
+    }
 }
 
 

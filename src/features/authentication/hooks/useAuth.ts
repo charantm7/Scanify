@@ -3,9 +3,10 @@
 import { useState, useCallback, Dispatch, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '../../../lib/supabase/client';
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { useApp } from '../../../context/AppContext';
 
-import { SignInPayload, SignUpPayload, PasswordResetPayload, UseAuthReturn, FormErrors, UpdatePasswordError } from '../types';
+import { SignInPayload, SignUpPayload, PasswordResetPayload, UseAuthReturn, FormErrors, UpdatePasswordError, UpdatePasswordReturn } from '../types';
 import { AuthResendEmail, AuthResetPassword, AuthSignIn, AuthSignOut, AuthSignUp, AuthUpdateEmail, AuthUpdatePassword } from '../services/login.services';
 import { oauthSignIn } from '../query/auth.query';
 import { useToast } from '../../../hooks/useToast';
@@ -82,9 +83,13 @@ export function useAuth(): UseAuthReturn {
 
     // Handels from link and settings panel
     const updatePassword = useCallback(async (payload: PasswordResetPayload) => {
+        let result: UpdatePasswordReturn;
         await run(async () => {
-            await AuthUpdatePassword(supabase, payload, user?.email, toast, setUpdatePasswordError)
+            result = await AuthUpdatePassword(supabase, payload, user?.email, toast, setUpdatePasswordError)
         });
+
+        return result;
+
     }, [supabase, user?.email]);
 
 
@@ -104,6 +109,7 @@ export function useAuth(): UseAuthReturn {
         loading,
         error,
         updatePasswordError,
+        router,
         signUp,
         signIn,
         signInWithGoogle,

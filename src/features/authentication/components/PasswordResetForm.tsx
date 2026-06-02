@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { PasswordResetPayload } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -11,12 +11,13 @@ import { useApp } from '../../../context/AppContext';
 export default function PasswordResetForm() {
 
     const { supabase } = useApp();
-    const { updatePasswordError, loading, updatePassword, clearError } = useAuth();
+    const { updatePasswordError, loading, updatePassword, clearError, router } = useAuth();
 
-    const [formData, setFormData] = useState<PasswordResetPayload>({ next: '', confirm: '' });
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
-    const [sessionReady, setSessionReady] = useState(false);
+    const [formData, setFormData] = useState<PasswordResetPayload>({ next: '', confirm: '', isRecovery: true });
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [done, setDone] = useState<boolean>(false);
+    const [showConfirm, setShowConfirm] = useState<boolean>(false);
+    const [sessionReady, setSessionReady] = useState<boolean>(false);
     const [sessionError, setSessionError] = useState('');
 
     useEffect(() => {
@@ -52,7 +53,19 @@ export default function PasswordResetForm() {
 
 
     async function handleReset() {
-        updatePassword(formData)
+        const result = await updatePassword(formData);
+
+        if (result?.success) {
+            setDone(result.success);
+            setTimeout(async () => {
+                await supabase.auth.signOut();
+
+                await fetch('/api/clear-recovery', { method: 'POST' });
+
+                router.push('/login?reset=success');
+            }, 2000);
+
+        }
     }
 
     const strength = getPasswordStrength(formData.next);
@@ -71,9 +84,19 @@ export default function PasswordResetForm() {
                     </p>
                 </div>
 
+                {done && (
+                    <div className="flex flex-col items-center py-8 gap-4 text-center">
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'var(--accentlt)' }}>
+                            <CheckCircle2 size={32} style={{ color: 'var(--accent)' }} />
+                        </div>
+                        <p className="text-theme font-semibold">Password updated!</p>
+                        <p className="text-sm text-theme2">Redirecting you to sign in…</p>
+                    </div>
+                )}
 
 
-                {!sessionReady && sessionError && (
+
+                {!sessionReady && !done && sessionError && (
                     <div className="space-y-4">
                         <div className="flex items-start gap-3 rounded-xl px-4 py-3 bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800">
                             <AlertCircle size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
@@ -88,7 +111,7 @@ export default function PasswordResetForm() {
                 )}
 
                 {/* Loading: waiting for PASSWORD_RECOVERY event */}
-                {!sessionReady && !sessionError && (
+                {!sessionReady && !done && !sessionError && (
                     <div className="flex items-center justify-center py-8 gap-3 text-theme2">
                         <Loader2 size={20} className="animate-spin" />
                         <span className="text-sm">Verifying link, please wait…</span>
@@ -96,7 +119,7 @@ export default function PasswordResetForm() {
                 )}
 
                 {/* Form */}
-                {sessionReady && (
+                {sessionReady && !done && (
                     <div className="space-y-5">
                         {/* New Password */}
                         <div>
@@ -107,7 +130,7 @@ export default function PasswordResetForm() {
                                     value={formData.next}
                                     onChange={(e) => { clearError(), setFormData({ ...formData, next: e.target.value }) }}
                                     onKeyDown={(e) => e.key === 'Enter' && handleReset()}
-                                    className={`w-full pl-4 pr-10 py-3 bg-auth-input border rounded-xl outline-none transition-all ${updatePasswordError.password ? 'border-red-500' : 'border-theme'} focus:ring-2 focus:ring-[var(--accent)]`}
+                                    className={`w-full pl-4 pr-10 py-3 bg-auth-input border rounded-xl outline-none transition-all ${updatePasswordError?.password ? 'border-red-500' : 'border-theme'} focus:ring-2 focus:ring-[var(--accent)]`}
                                     placeholder="••••••••"
                                 />
                                 <button type="button" onClick={() => setShowPassword(!showPassword)}
@@ -126,7 +149,7 @@ export default function PasswordResetForm() {
                                     <p className="text-xs" style={{ color: strength.color }}>{strength.label}</p>
                                 </div>
                             )}
-                            {updatePasswordError.password && <p className="text-red-500 text-sm mt-1">{updatePasswordError.password}</p>}
+                            {updatePasswordError?.password && <p className="text-red-500 text-sm mt-1">{updatePasswordError?.password}</p>}
                         </div>
 
                         {/* Confirm Password */}
@@ -138,7 +161,7 @@ export default function PasswordResetForm() {
                                     value={formData.confirm}
                                     onChange={(e) => { clearError(), setFormData({ ...formData, confirm: e.target.value }) }}
                                     onKeyDown={(e) => e.key === 'Enter' && handleReset()}
-                                    className={`w-full pl-4 pr-10 py-3 bg-auth-input border rounded-xl outline-none transition-all ${updatePasswordError.confirmPassword ? 'border-red-500' : 'border-theme'} focus:ring-2 focus:ring-[var(--accent)]`}
+                                    className={`w-full pl-4 pr-10 py-3 bg-auth-input border rounded-xl outline-none transition-all ${updatePasswordError?.confirmPassword ? 'border-red-500' : 'border-theme'} focus:ring-2 focus:ring-[var(--accent)]`}
                                     placeholder="••••••••"
                                 />
                                 <button type="button" onClick={() => setShowConfirm(!showConfirm)}
@@ -147,14 +170,14 @@ export default function PasswordResetForm() {
                                 </button>
                             </div>
                             {formData.confirm.length > 0 && (
-                                <p className="text-xs mt-1" style={{ color: formData.next === formData.confirm ? '#74c69d' : '#ef4444' }}>
+                                <p className="text-xs mt-1" style={{ color: formData.next === formData.confirm ? '#09a055' : '#ef4444' }}>
                                     {formData.next === formData.confirm ? '✓ Passwords match' : 'Passwords do not match'}
                                 </p>
                             )}
-                            {updatePasswordError.confirmPassword && <p className="text-red-500 text-sm mt-1">{updatePasswordError.confirmPassword}</p>}
+                            {updatePasswordError?.confirmPassword && <p className="text-red-500 text-sm mt-1">{updatePasswordError?.confirmPassword}</p>}
                         </div>
 
-                        {updatePasswordError.general && <p className="text-red-500 text-sm">{updatePasswordError.general}</p>}
+                        {updatePasswordError?.general && <p className="text-red-500 text-sm">{updatePasswordError?.general}</p>}
 
                         <button onClick={handleReset} disabled={loading}
                             className="w-full py-3 rounded-xl bg-submit text-white font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
