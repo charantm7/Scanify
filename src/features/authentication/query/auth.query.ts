@@ -1,4 +1,4 @@
-import { TypedSupabaseClient } from "../../../types/supabase";
+import { TypedSupabaseClient, UserUpdate } from "../../../types/supabase";
 import { UserRow, UserInsert } from "../../../types/supabase";
 import { FormData } from "../types";
 
@@ -143,6 +143,31 @@ export async function createUserProfile(
         .single();
     if (error) {
         throw new Error(`Create User Profile error: ${error.message}`)
+    }
+
+    return data;
+}
+
+
+// update
+
+export async function updateUserProfile(
+    supabase: TypedSupabaseClient,
+    payload: UserUpdate
+): Promise<UserRow> {
+    if (!payload.id) {
+        throw new Error('updateUserProfile: payload.id is required')
+    }
+
+    const { data, error } = await supabase
+        .from('users')
+        .update(payload)
+        .eq('id', payload.id)
+        .select()
+        .single();
+
+    if (error) {
+        throw new Error(`Update User Profile error: ${error.message}`)
     }
 
     return data;

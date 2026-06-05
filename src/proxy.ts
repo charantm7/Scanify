@@ -1,10 +1,20 @@
 import { createServerClient } from '@supabase/ssr';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = ['/console', '/onboarding'];
-const AUTH_ROUTES = ['/login', '/forget-password', '/check-mail'];
+const PROTECTED_ROUTES = ['/console',] as const;
+const AUTH_ROUTES = ['/login', '/forget-password', '/check-mail'] as const;
 
-export async function proxy(request) {
+const matchesRoute = (
+    pathname: string,
+    routes: readonly string[]
+): boolean => routes.some(route => pathname.startsWith(route))
+
+const redirect = (
+    request: NextRequest,
+    path: string
+): NextResponse => NextResponse.redirect(new URL(path, request.url))
+
+export async function proxy(request: NextRequest): Promise<NextResponse> {
     const url = request.nextUrl
     const pathname = url.pathname
 
@@ -21,8 +31,8 @@ export async function proxy(request) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-        return NextResponse.next();
+    if (!(supabaseUrl && supabaseAnonKey)) {
+        throw new Error('Missing Supabase environment variables');
     }
 
 
@@ -32,8 +42,11 @@ export async function proxy(request) {
         {
             cookies: {
                 getAll: () => request.cookies.getAll(),
-                setAll: (cookiesToSet) => {
-                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+                setAll: (cookiesToSet: {
+                    name: string;
+                    value: string;
+                    options?: Record<string, unknown>;
+                }[]) => {
                     cookiesToSet.forEach(({ name, value, options }) =>
                         response.cookies.set(name, value, options)
                     );
@@ -46,18 +59,18 @@ export async function proxy(request) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // if (pathname.startsWith('/reset-password')) {
-    //     const hasRecoveryCookie = request.cookies.get('recovery_flow')
+    if (pathname.startsWith('/reset-password')) {
+        const hasRecoveryCookie = request.cookies.get('recovery_flow')
 
-    //     if (!user || !hasRecoveryCookie) {
-    //         return NextResponse.redirect(new URL('/login', request.url))
-    //     }
-    //     return NextResponse.next()
-    // }
+        if (!user || !hasRecoveryCookie) {
+            return redirect(request, '/login')
+        }
+        return response;
+    }
 
 
-    const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r));
-    const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
+    const isProtected = matchesRoute(pathname, PROTECTED_ROUTES);
+    const isAuthRoute = matchesRoute(pathname, AUTH_ROUTES);
 
     if (isProtected && !user) {
         const loginUrl = request.nextUrl.clone();
@@ -68,7 +81,7 @@ export async function proxy(request) {
 
     // Authenticated user on auth pages → bounce to console
     if (user && isAuthRoute) {
-        return NextResponse.redirect(new URL('/console', request.url));
+        return redirect(request, '/console');
     }
 
     return response;

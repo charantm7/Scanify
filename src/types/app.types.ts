@@ -1,14 +1,6 @@
 import type {
     UserRow,
     HotelRow,
-    OrderRow,
-    OrderItemsRow,
-    MenuItemRow,
-    MenuScanRow,
-    HotelTabelRow,
-    CategoryRow,
-    QrCodeRow,
-    OrderPaymentRow,
     SubscriptionRow,
     PlanLimitsRow,
 
