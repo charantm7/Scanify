@@ -74,12 +74,15 @@ function QRCard({ qr, onDelete }) {
         </button>
       </div>
 
+
+
       <Image
         src={qrUrl(qr.target_url)}
-        width={40}
-        height={40}
+        width={250}
+        height={250}
         alt="QR Code"
-        className="w-40 h-40 rounded-xl border"
+        unoptimized
+        className="rounded-xl border"
         style={{ borderColor: 'var(--border)' }}
       />
 
