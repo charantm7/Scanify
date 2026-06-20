@@ -267,7 +267,7 @@ function ItemRow({ item, onEdit, onDelete, onToggle }) {
       >
 
         {item.image_url ? (
-          <Image src={item.image_url} alt={item.name} className="w-full h-full object-cover" onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
+          <Image src={item.image_url} alt={item.name} height={100} width={50} className=" object-cover" onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }} />
         ) : (
           <ChefHat size={16} style={{ color: 'var(--accent)' }} />
         )}

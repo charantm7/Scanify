@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
-  LayoutDashboard, MenuIcon, QrCode, BarChart2,
+  LayoutDashboard, QrCode, BarChart2,
   Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt
 } from 'lucide-react';
 import { getSupabaseClient } from '../../lib/supabase/client';

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Menu, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import Sidebar, { NAV_ITEMS } from './Sidebar';
 import DashboardPanel from './panels/DashboardPanel';
-import MenuPanel from './panels/MenuPanel';
+import { MenuPanel } from '../../features/menu';
 import QRPanel from './panels/QrPanel';
 import AnalyticsPanel from '../../features/analytics/components/AnalyticsPanel';
 import SettingsPanel from './panels/SettingsPanel';
