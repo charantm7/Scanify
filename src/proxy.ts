@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = ['/console',] as const;
+const PROTECTED_ROUTES = ['/console', 'onboarding'] as const;
 const AUTH_ROUTES = ['/login', '/forget-password', '/check-mail'] as const;
 
 const matchesRoute = (

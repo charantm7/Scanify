@@ -1,18 +1,13 @@
-import { Store, Navigation, ContactRound } from 'lucide-react';
-import type { OnboardingStep } from './types';
+import { Store, Navigation, Utensils, ContactRound } from 'lucide-react';
+import type { StepConfig } from './types';
 
-// ─── Step flow order ───────────────────────────────────────────────────────────
-export const ONBOARDING_STEPS: OnboardingStep[] = ['profile', 'restaurant', 'done'];
-
-// ─── Sidebar step metadata ─────────────────────────────────────────────────────
-export const STEPS = [
+export const STEPS: StepConfig[] = [
     {
         id: 1,
         label: 'Basic Info',
         sublabel: 'Restaurant identity',
         icon: Store,
         description: 'Tell us about your restaurant — name, vibe, and how guests see you.',
-        fields: 3, // restaurantName + description + logoUrl
     },
     {
         id: 2,
@@ -20,42 +15,47 @@ export const STEPS = [
         sublabel: 'Where you are',
         icon: Navigation,
         description: 'Your address helps guests find you and keeps your profile accurate.',
-        fields: 3, // address + city + pincode
     },
     {
         id: 3,
+        label: 'Preferences',
+        sublabel: 'Cuisine & service',
+        icon: Utensils,
+        description: 'Help guests know what to expect — cuisine, restaurant type, and how you serve.',
+    },
+    {
+        id: 4,
         label: 'Contact',
         sublabel: 'Admin details',
         icon: ContactRound,
         description: "We'll use these details for your account and to reach you if needed.",
-        fields: 2, // fullName + phone
     },
-] as const;
+];
 
-// ─── Cuisine types ─────────────────────────────────────────────────────────────
+export const TOTAL_STEPS = STEPS.length;
+
+/** Number of required fields counted toward the progress bar, per step */
+export const STEP_TOTALS: Record<number, number> = {
+    1: 2, // restaurant_name, description
+    2: 3, // address, city, pincode
+    3: 3, // cuisine_types, restaurant_types, service_types
+    4: 2, // name, phone
+};
+
 export const CUISINE_TYPES = [
-    // Indian regional
     'South Indian', 'North Indian', 'Karnataka', 'Andhra', 'Kerala',
     'Tamil Nadu', 'Hyderabadi', 'Punjabi', 'Gujarati', 'Rajasthani',
     'Bengali', 'Maharashtrian', 'Goan',
-    // Asian
     'Chinese', 'Indo-Chinese', 'Japanese', 'Korean', 'Thai', 'Vietnamese',
-    // European
     'Italian', 'French', 'Spanish', 'Greek',
-    // Americas
     'American', 'Mexican',
-    // Middle-Eastern
     'Arabic', 'Lebanese', 'Turkish', 'Persian',
-    // Specialty
     'Biryani', 'Seafood',
-    // Diet-based
     'Vegetarian', 'Vegan', 'Jain',
-    // Format
     'Street Food', 'BBQ & Grill', 'Bakery', 'Desserts',
     'Cafe', 'Juice Bar', 'Fast Food', 'Multi-Cuisine',
 ] as const;
 
-// ─── Restaurant types ──────────────────────────────────────────────────────────
 export const RESTAURANT_TYPES = [
     'Casual Dining', 'Fine Dining', 'Fast Food', 'Cafe',
     'Cloud Kitchen', 'Bakery', 'Buffet', 'Bar',
@@ -63,7 +63,15 @@ export const RESTAURANT_TYPES = [
     'Seafood Restaurant', 'BBQ Restaurant', 'Multi-Outlet Chain', 'Hotel Restaurant',
 ] as const;
 
-// ─── Service types ─────────────────────────────────────────────────────────────
 export const SERVICE_TYPES = [
     'Dine-In', 'Takeaway', 'Delivery', 'Drive-Thru', 'Curbside Pickup',
 ] as const;
+
+/** Turns a restaurant name into a URL-safe slug used for the subdomain */
+export function buildSlug(name: string): string {
+    return name
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+}

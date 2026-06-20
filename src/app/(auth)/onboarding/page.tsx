@@ -1,4 +1,4 @@
-import OnboardingPage from "../../../features/onboarding/components/OnboardingForm";
+import OnboardingPage from "../../../features/onboarding/page";
 import { redirect } from "next/navigation";
 import { createClient } from "../../../lib/supabase/server";
 
@@ -8,22 +8,22 @@ export const metadata = {
 };
 
 export default async function Onboarding() {
-  // const supabase = await createClient()
+  const supabase = await createClient()
 
-  // const {
-  //   data: { user },
-  // } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  // if (!user) redirect('/login')
+  if (!user) redirect('/login')
 
-  // const { data: profile } = await supabase
-  //   .from('users')
-  //   .select('onboarding_complete')
-  //   .eq('id', user.id)
-  //   .maybeSingle()
+  const { data: profile } = await supabase
+    .from('users')
+    .select('onboarding_complete')
+    .eq('id', user.id)
+    .maybeSingle()
 
-  // if (profile?.onboarding_complete) {
-  //   redirect('/console')
-  // }
+  if (profile?.onboarding_complete) {
+    redirect('/console')
+  }
   return <OnboardingPage />;
 }

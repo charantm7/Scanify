@@ -1,51 +1,76 @@
-import { CUISINE_TYPES, RESTAURANT_TYPES, SERVICE_TYPES } from './constants';
+import type { LucideIcon } from 'lucide-react';
+import type { ChangeEvent } from 'react';
 
-// ─── Step identifiers ──────────────────────────────────────────────────────────
-export type OnboardingStep = 'profile' | 'restaurant' | 'done';
+export type Step = 1 | 2 | 3 | 4;
+export type AnimDirection = 'forward' | 'backward';
 
-export type RestaurantSubStep = 1 | 2 | 3;
-
-// ─── Enum-like types derived from constants ────────────────────────────────────
-export type CuisineType = (typeof CUISINE_TYPES)[number];
-export type RestaurantType = (typeof RESTAURANT_TYPES)[number];
-export type ServiceType = (typeof SERVICE_TYPES)[number];
-
-// ─── Step data shapes ──────────────────────────────────────────────────────────
-export interface ProfileStepData {
-    fullName: string;
-    phone: string;
+export interface StepConfig {
+    id: Step;
+    label: string;
+    sublabel: string;
+    icon: LucideIcon;
+    description: string;
 }
 
-export interface RestaurantStepData {
-    restaurantName: string;
-    restaurantType: RestaurantType[];
-    cuisineType: CuisineType[];
-    serviceType: ServiceType[];
+export interface OnboardingFormState {
+    // Step 1 — Basic Info
+    restaurant_name: string;
+    description: string;
+    logo_url: string;
+    // Step 2 — Location
+    address: string;
     city: string;
-    address: string;
     pincode: string;
-    description: string;
+    // Step 3 — Preferences (multi-select)
+    cuisine_types: string[];
+    restaurant_types: string[];
+    service_types: string[];
+    // Step 4 — Contact
+    name: string;
+    phone: string;
     website: string;
-    logoUrl: string;
+    email: string;
 }
 
-// ─── Validation errors ─────────────────────────────────────────────────────────
-export type ProfileErrors = Partial<Record<keyof ProfileStepData, string>>;
-export type RestaurantErrors = Partial<Record<keyof RestaurantStepData | 'general', string>>;
+/** Fields rendered as pill multi-selects */
+export type MultiSelectField = 'cuisine_types' | 'restaurant_types' | 'service_types';
 
-// ─── Supabase insert payload ───────────────────────────────────────────────────
-// Extend / replace with your generated `HotelInsert` type from supabase types.
-export interface HotelInsertPayload {
-    owner_id: string;
-    name: string;
-    slug: string;
-    description: string;
-    logo_url: string | null;
-    address: string;
-    pincode: string;
-    website: string | null;
-    // New columns — add these to your hotels table migration:
-    restaurant_type: RestaurantType[];
-    cuisine_type: CuisineType[];
-    service_type: ServiceType[];
+/** Fields rendered as plain text inputs/textareas */
+export type OnboardingField = Exclude<keyof OnboardingFormState, MultiSelectField>;
+
+export interface OnboardingFormErrors {
+    restaurant_name?: string;
+    description?: string;
+    address?: string;
+    city?: string;
+    pincode?: string;
+    cuisine_types?: string;
+    restaurant_types?: string;
+    service_types?: string;
+    name?: string;
+    phone?: string;
+    general?: string;
+}
+
+export interface UseOnboardingReturn {
+    step: Step;
+    totalSteps: number;
+    loading: boolean;
+    done: boolean;
+    animDir: AnimDirection;
+    animating: boolean;
+    form: OnboardingFormState;
+    errors: OnboardingFormErrors;
+    createdSlug: string;
+    /** Live menu URL, only populated once `done` is true */
+    menuUrl: string;
+    completedFields: Record<number, number>;
+    stepTotals: Record<number, number>;
+
+    set: (field: OnboardingField) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    togglePill: (field: MultiSelectField, value: string) => void;
+    goNext: () => void;
+    goPrev: () => void;
+    handleSubmit: () => Promise<void>;
+    goToConsole: () => void;
 }

@@ -32,18 +32,7 @@ function ThemeIcon({ dark }) {
     );
 }
 
-function ConsoleLoader() {
-    return (
-        <div className="min-h-screen grid-bg flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'var(--accent)' }}>
-                    <Loader2 size={28} color="white" className="animate-spin" />
-                </div>
-                <p className="text-theme2 text-sm font-medium">Loading your console…</p>
-            </div>
-        </div>
-    );
-}
+
 
 function ConsoleError({ error }) {
     return (
@@ -101,10 +90,8 @@ function ConsoleShellInner() {
     const [error, setError] = useState(null)
 
     const { theme, toggleTheme } = useTheme();
-    const { loading } = useApp()
 
 
-    if (loading) return <ConsoleLoader />;
     if (error) return <ConsoleError error={error} />;
 
     const activeLabel = NAV_ITEMS.find((n) => n.id === activeTab)?.label ?? '';

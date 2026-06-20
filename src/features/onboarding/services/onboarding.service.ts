@@ -1,69 +1,101 @@
-import type {
-    ProfileStepData,
-    RestaurantStepData,
-    ProfileErrors,
-    RestaurantErrors,
-} from '../types';
+import type { SupabaseClient, Session } from '@supabase/supabase-js';
+import type { OnboardingFormState } from '../types';
+import { buildSlug } from '../constants';
+import {
+    createSubscriptionRecord,
+    generateUniqueSlug,
+    getSession,
+    insertHotel,
+    updateUserProfile,
+    type HotelInsertWithPreferences,
+} from '../queries/onboarding.queries';
 
-// ─── Slug generation ───────────────────────────────────────────────────────────
-export function generateSlug(name: string): string {
-    return name
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '');
+/**
+ * Fetches the current Supabase session for the onboarding gate.
+ * Throws if Supabase itself errors (network/auth issues) so the caller's
+ * `run()` wrapper can surface it via toast — a missing session (logged out)
+ * is a *normal* case and is just returned as `null`.
+ */
+export async function fetchOnboardingSession(supabase: SupabaseClient): Promise<Session | null> {
+    const { session, error } = await getSession(supabase);
+    if (error) throw error;
+    return session;
 }
 
-// ─── Validation ────────────────────────────────────────────────────────────────
-export function validateProfile(data: ProfileStepData): ProfileErrors {
-    const errors: ProfileErrors = {};
+/**
+ * Persists the full onboarding form: creates the hotel record, marks the
+ * owning user's profile as onboarded, and returns the generated slug.
+ */
+export async function submitOnboarding(
+    supabase: SupabaseClient,
+    userId: string,
+    form: OnboardingFormState,
+    email: string
+): Promise<string> {
+    const slug = await generateUniqueSlug(supabase, form.restaurant_name);
+    const hotelPayload: HotelInsertWithPreferences = {
+        owner_id: userId,
+        name: form.restaurant_name.trim(),
+        description: form.description.trim(),
+        logo_url: form.logo_url.trim() || null,
+        address: `${form.address.trim()}, ${form.city.trim()}`,
+        pincode: form.pincode.trim(),
+        slug,
+        cuisine_type: form.cuisine_types,
+        restaurant_type: form.restaurant_types,
+        service_type: form.service_types,
+    };
 
-    if (!data.fullName.trim()) {
-        errors.fullName = 'Full name is required.';
-    }
+    const hotelData = await insertHotel(supabase, hotelPayload);
 
-    if (!data.phone.trim()) {
-        errors.phone = 'Phone number is required.';
-    } else if (!/^\+?[\d\s\-]{7,15}$/.test(data.phone)) {
-        errors.phone = 'Enter a valid phone number.';
-    }
 
-    return errors;
+    await updateUserProfile(supabase, userId, {
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        restaurant_name: form.restaurant_name.trim(),
+        onboarding_complete: true,
+        email: email
+    });
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 4);
+
+    await createSubscriptionRecord(supabase, {
+        hotel_id: hotelData.id,
+        user_id: userId,
+        plan: 'starter',
+        status: 'trialing',
+        trial_ends_at: expiresAt.toISOString(),
+    })
+
+    return slug;
 }
 
-export function validateRestaurant(data: RestaurantStepData): RestaurantErrors {
-    const errors: RestaurantErrors = {};
 
-    if (!data.restaurantName.trim()) {
-        errors.restaurantName = 'Restaurant name is required.';
-    }
-    if (!data.restaurantType.length) {
-        errors.restaurantType = 'Select at least one restaurant type.';
-    }
-    if (!data.cuisineType.length) {
-        errors.cuisineType = 'Select at least one cuisine type.';
-    }
-    if (!data.serviceType.length) {
-        errors.serviceType = 'Select at least one service type.';
-    }
-    if (!data.description.trim()) {
-        errors.description = 'Please add a short description.';
-    }
-    if (!data.address.trim()) {
-        errors.address = 'Street address is required.';
-    }
-    if (!data.city.trim()) {
-        errors.city = 'City is required.';
-    }
-    if (!data.pincode.trim()) {
-        errors.pincode = 'Pincode is required.';
-    } else if (!/^\d{4,10}$/.test(data.pincode)) {
-        errors.pincode = 'Enter a valid pincode.';
+export function getFriendlyError(err: any) {
+    if (!err) {
+        return 'Something went wrong.';
     }
 
-    return errors;
-}
+    if (err.code === '23505') {
+        switch (err.constraint) {
+            case 'hotels_owner_id_key':
+                return 'A restaurant with this name already exists.';
 
-export function hasErrors(errors: Record<string, string | undefined>): boolean {
-    return Object.values(errors).some(Boolean);
+            case 'users_phone_key':
+                return 'This phone number is already registered.';
+
+            case 'subscriptions_user_id_key':
+                return 'You already have an active subscription.';
+
+            default:
+                return 'This information already exists.';
+        }
+    }
+
+    if (err.code === '42501') {
+        return 'You do not have permission to perform this action.';
+    }
+
+    return err.message;
 }

@@ -32,7 +32,6 @@ export default async function MenuPage({ params, searchParams, }) {
     const resolvedSearchParams = await searchParams;
 
     const qrId = resolvedSearchParams?.qr;
-    console.log("hello", qrId)
     const supabase = await createClient();
 
     // Fetch hotel
@@ -43,6 +42,48 @@ export default async function MenuPage({ params, searchParams, }) {
         .maybeSingle();
 
     if (!hotel) return notFound();
+
+    const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('trial_ends_at, status')
+        .eq('user_id', hotel.owner_id)
+        .maybeSingle();
+
+    if (!subscription) return notFound();
+
+    const now = new Date();
+
+    const accessible =
+        (subscription.status === 'active' || subscription.status === 'trialing') &&
+        (
+            !subscription.trial_ends_at ||
+            new Date(subscription.trial_ends_at) > now
+        );
+
+    if (!accessible) {
+        return (
+            <div className="min-h-screen flex items-center justify-center px-6 bg-white">
+                <div className="text-center max-w-md">
+                    <h2 className="text-sm font-semibold tracking-wider uppercase text-orange-500">
+                        Scanify
+                    </h2>
+
+                    <h1 className="mt-3 text-2xl font-bold text-gray-900">
+                        Menu Temporarily Unavailable
+                    </h1>
+
+                    <p className="mt-3 text-gray-500">
+                        This restaurant's digital menu is currently unavailable.
+                        Please contact the restaurant staff.
+                    </p>
+
+                    <p className="mt-8 text-xs text-gray-400">
+                        Powered by <span className="font-medium text-orange-500">Scanify</span>
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
 
     // Fetch categories

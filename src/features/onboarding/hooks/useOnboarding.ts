@@ -1,199 +1,205 @@
 'use client';
-import { useCallback, useState } from 'react';
+
+import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-
-import { ONBOARDING_STEPS } from '../constants';
-import { generateSlug, validateProfile, validateRestaurant, hasErrors } from '../services/onboarding.service';
-import { updateUserProfile, insertHotel, checkSlugAvailable } from '../queries/onboarding.queries';
-import type {
-    OnboardingStep,
-    ProfileStepData,
-    RestaurantStepData,
-    ProfileErrors,
-    RestaurantErrors,
-} from '../types';
-
-// Replace with your actual AppContext import path
-import { useApp } from '../../../context/AppContext';
+import { getSupabaseClient } from '../../../lib/supabase/client';
+import { subdomainUrlBuilderWithWindow } from '../../../context/Service';
 import { useToast } from '../../../hooks/useToast';
 
-// ─── Default state ─────────────────────────────────────────────────────────────
-const DEFAULT_PROFILE: ProfileStepData = { fullName: '', phone: '' };
+import type {
+    Step,
+    AnimDirection,
+    OnboardingField,
+    MultiSelectField,
+    OnboardingFormState,
+    OnboardingFormErrors,
+    UseOnboardingReturn,
+} from '../types';
+import { STEP_TOTALS, TOTAL_STEPS } from '../constants';
+import { fetchOnboardingSession, getFriendlyError, submitOnboarding } from '../services/onboarding.service';
 
-const DEFAULT_RESTAURANT: RestaurantStepData = {
-    restaurantName: '',
-    restaurantType: [],
-    cuisineType: [],
-    serviceType: [],
-    city: '',
-    address: '',
-    pincode: '',
-    description: '',
-    website: '',
-    logoUrl: '',
+const INITIAL_FORM: OnboardingFormState = {
+    restaurant_name: '', description: '', logo_url: '',
+    address: '', city: '', pincode: '',
+    cuisine_types: [], restaurant_types: [], service_types: [],
+    name: '', phone: '', website: '', email: ''
 };
 
-// ─── Hook ──────────────────────────────────────────────────────────────────────
-export function useOnboarding() {
+export function useOnboarding(): UseOnboardingReturn {
     const router = useRouter();
     const toast = useToast();
-    const { user, supabase } = useApp();
+    const supabase = getSupabaseClient();
 
-    // ── Navigation ────────────────────────────────────────────────────────────
-    const [currentStep, setCurrentStep] = useState<OnboardingStep>('profile');
+    const [step, setStep] = useState<Step>(1);
+    const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [animDir, setAnimDir] = useState<AnimDirection>('forward');
+    const [animating, setAnimating] = useState(false);
+    const [done, setDone] = useState(false);
+    const [createdSlug, setCreatedSlug] = useState('');
 
-    const stepIndex = ONBOARDING_STEPS.indexOf(currentStep);
-    const totalSteps = ONBOARDING_STEPS.length - 1; // exclude 'done'
-    const progressPct = Math.round((stepIndex / totalSteps) * 100);
-    const isFirstStep = stepIndex === 0;
-    const isLastStep = currentStep === 'restaurant';
+    const [form, setForm] = useState<OnboardingFormState>(INITIAL_FORM);
+    const [errors, setErrors] = useState<OnboardingFormErrors>({});
 
-    function goBack() {
-        const idx = ONBOARDING_STEPS.indexOf(currentStep);
-        if (idx > 0) setCurrentStep(ONBOARDING_STEPS[idx - 1]);
-    }
-
-    function goForward() {
-        const idx = ONBOARDING_STEPS.indexOf(currentStep);
-        if (idx < ONBOARDING_STEPS.length - 1) setCurrentStep(ONBOARDING_STEPS[idx + 1]);
-    }
-
-    // ── Async helpers ─────────────────────────────────────────────────────────
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    function clearError() { setError(null); }
-
-    async function run(action: () => Promise<void>) {
-        setSaving(true);
-        setError(null);
+    // wraps all async actions: handles the loading flag + a single error/toast path
+    const run = useCallback(async (action: () => Promise<void>) => {
+        setLoading(true);
         try {
             await action();
         } catch (err) {
-            setError(err instanceof Error && err.message);
+            const msg = err instanceof Error ? err.message + err.name : 'Something went wrong.';
+
+            toast.error(getFriendlyError(err));
         } finally {
-            setSaving(false);
+            setLoading(false);
         }
-    }
+    }, [toast]);
 
-    // ── Profile step ──────────────────────────────────────────────────────────
-    const [profileData, setProfileData] = useState<ProfileStepData>(DEFAULT_PROFILE);
-    const [profileErrors, setProfileErrors] = useState<ProfileErrors>({});
+    // Gate: require a session, then prefill the admin name from auth metadata
+    useEffect(() => {
+        fetchOnboardingSession(supabase)
+            .then((session) => {
+                if (!session) {
+                    router.push('/login');
+                    return;
+                }
+                setUserId(session.user.id);
+                setEmail(session.user.email)
+                const fullName = session.user.user_metadata?.full_name;
+                if (fullName) {
+                    setForm((f) => ({ ...f, name: fullName }));
+                }
+            })
+            .catch(() => {
+                toast.error('Could not verify your session. Please sign in again.');
+                router.push('/login');
+            });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router]);
 
-    const submitProfile = useCallback(async (data: ProfileStepData) => {
-        const errors = validateProfile(data);
-        if (hasErrors(errors)) { setProfileErrors(errors); return; }
-        if (!user?.id) { setError('Session expired. Please sign in again.'); return; }
+    const set = useCallback((field: OnboardingField) => {
+        return (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+            const value = e.target.value;
+            setForm((f) => ({ ...f, [field]: value }));
+            setErrors((err) => ({ ...err, [field]: undefined }));
+        };
+    }, []);
 
-        await run(async () => {
-            setProfileData(data);
-            // We don't persist yet — profile is saved together with restaurant on final submit
-            goForward();
+    const togglePill = useCallback((field: MultiSelectField, value: string) => {
+        setForm((f) => {
+            const current = f[field];
+            const next = current.includes(value)
+                ? current.filter((v) => v !== value)
+                : [...current, value];
+            return { ...f, [field]: next };
         });
-    }, [user?.id]);
+        setErrors((err) => ({ ...err, [field]: undefined }));
+    }, []);
 
-    // ── Restaurant step ───────────────────────────────────────────────────────
-    const [restaurantData, setRestaurantData] = useState<RestaurantStepData>(DEFAULT_RESTAURANT);
-    const [restaurantErrors, setRestaurantErrors] = useState<RestaurantErrors>({});
+    const validateStep = useCallback((s: Step): boolean => {
+        const e: OnboardingFormErrors = {};
 
-    // Slug preview
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-    const previewSlug = generateSlug(restaurantData.restaurantName);
-    const menuPreview = previewSlug ? `${appUrl}/menu/${previewSlug}` : '';
-
-    // Slug availability (debounced externally or on demand)
-    const [slugChecking, setSlugChecking] = useState(false);
-    const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
-
-    const checkSlug = useCallback(async (name: string) => {
-        const slug = generateSlug(name);
-        if (!slug) return;
-        setSlugChecking(true);
-        try {
-            const available = await checkSlugAvailable(supabase, slug);
-            setSlugAvailable(available);
-        } catch {
-            setSlugAvailable(null);
-        } finally {
-            setSlugChecking(false);
+        if (s === 1) {
+            if (!form.restaurant_name.trim()) e.restaurant_name = 'Restaurant name is required';
+            if (!form.description.trim()) e.description = 'Please add a short description';
         }
-    }, [supabase]);
+        if (s === 2) {
+            if (!form.address.trim()) e.address = 'Address is required';
+            if (!form.city.trim()) e.city = 'City is required';
+            if (!form.pincode.trim()) e.pincode = 'Pincode is required';
+            else if (!/^\d{4,10}$/.test(form.pincode)) e.pincode = 'Enter a valid pincode';
+        }
+        if (s === 3) {
+            if (form.cuisine_types.length === 0) e.cuisine_types = 'Select at least one cuisine';
+            if (form.restaurant_types.length === 0) e.restaurant_types = 'Select at least one restaurant type';
+            if (form.service_types.length === 0) e.service_types = 'Select at least one service type';
+        }
+        if (s === 4) {
+            if (!form.name.trim()) e.name = 'Your name is required';
+            if (!form.phone.trim()) e.phone = 'Phone number is required';
+            else if (!/^\+?[\d\s\-]{7,15}$/.test(form.phone)) e.phone = 'Enter a valid phone number';
+        }
 
-    // Final submit — persists both profile + restaurant in one go
-    const submitRestaurant = useCallback(async (data: RestaurantStepData) => {
-        const errors = validateRestaurant(data);
-        if (hasErrors(errors)) { setRestaurantErrors(errors); return; }
-        if (!user?.id) { setError('Session expired. Please sign in again.'); return; }
+        setErrors(e);
+        return Object.keys(e).length === 0;
+    }, [form]);
 
+    const goNext = useCallback(() => {
+        if (!validateStep(step) || animating) return;
+        setAnimDir('forward');
+        setAnimating(true);
+        setTimeout(() => {
+            setStep((s) => (s + 1) as Step);
+            setAnimating(false);
+        }, 220);
+    }, [step, animating, validateStep]);
+
+    const goPrev = useCallback(() => {
+        if (animating) return;
+        setAnimDir('backward');
+        setAnimating(true);
+        setTimeout(() => {
+            setStep((s) => (s - 1) as Step);
+            setAnimating(false);
+        }, 220);
+    }, [animating]);
+
+    const handleSubmit = useCallback(async () => {
+        if (!validateStep(4)) return;
+        if (!userId) {
+            toast.error('Session expired. Please sign in again.');
+            return;
+        }
+
+        setErrors((err) => ({ ...err, general: undefined }));
         await run(async () => {
-            setRestaurantData(data);
-
-            const slug = generateSlug(data.restaurantName);
-
-            // 1. Insert hotel row (with new array columns)
-            await insertHotel(supabase, {
-                owner_id: user.id,
-                name: data.restaurantName.trim(),
-                slug,
-                description: data.description.trim(),
-                logo_url: data.logoUrl.trim() || null,
-                address: data.address.trim(),
-                pincode: data.pincode.trim(),
-                website: data.website.trim() || null,
-                restaurant_type: data.restaurantType,
-                cuisine_type: data.cuisineType,
-                service_type: data.serviceType,
-            });
-
-            // 2. Update user profile + mark onboarding complete
-            await updateUserProfile(supabase, {
-                id: user.id,
-                name: profileData.fullName.trim(),
-                phone: profileData.phone.trim() || null,
-                restaurantName: data.restaurantName.trim(),
-            });
-
-            setCurrentStep('done');
+            try {
+                const slug = await submitOnboarding(supabase, userId, form, email);
+                setCreatedSlug(slug);
+                toast.success('Restaurant profile created! 🎉');
+                setDone(true);
+            } catch (err) {
+                const msg = err instanceof Error ? err.message : 'Something went wrong.';
+                setErrors((e) => ({ ...e, general: msg }));
+                throw err;
+            }
         });
-    }, [user?.id, supabase, profileData]);
+    }, [form, userId, supabase, toast, run, validateStep]);
 
-    // ── Derived slug for success screen ───────────────────────────────────────
-    const createdSlug = generateSlug(restaurantData.restaurantName);
+    const goToConsole = useCallback(() => {
+        window.location.href = `https://${window.location.host}/console`;
+    }, [router, createdSlug]);
+
+    const completedFields: Record<number, number> = {
+        1: [form.restaurant_name, form.description].filter(Boolean).length,
+        2: [form.address, form.city, form.pincode].filter(Boolean).length,
+        3: [
+            form.cuisine_types.length > 0,
+            form.restaurant_types.length > 0,
+            form.service_types.length > 0,
+        ].filter(Boolean).length,
+        4: [form.name, form.phone].filter(Boolean).length,
+    };
 
     return {
-        // Navigation
-        currentStep,
-        stepIndex,
-        progressPct,
-        isFirstStep,
-        isLastStep,
-        goBack,
-
-        // Async state
-        saving,
-        error,
-        clearError,
-
-        // Profile
-        profileData,
-        profileErrors,
-        setProfileErrors,
-        submitProfile,
-
-        // Restaurant
-        restaurantData,
-        restaurantErrors,
-        setRestaurantErrors,
-        submitRestaurant,
-
-        // Slug
-        previewSlug,
-        menuPreview,
-        slugChecking,
-        slugAvailable,
-        checkSlug,
-
-        // Done
+        step,
+        totalSteps: TOTAL_STEPS,
+        loading,
+        done,
+        animDir,
+        animating,
+        form,
+        errors,
         createdSlug,
+        menuUrl: done ? subdomainUrlBuilderWithWindow(createdSlug) : '',
+        completedFields,
+        stepTotals: STEP_TOTALS,
+        set,
+        togglePill,
+        goNext,
+        goPrev,
+        handleSubmit,
+        goToConsole,
     };
 }
