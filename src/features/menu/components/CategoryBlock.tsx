@@ -190,7 +190,6 @@ export function CategoryBlock({
             )}
           </div>
         ) : viewMode === 'grid' ? (
-          /* Grid view */
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 p-4">
             {items.map((item) => (
               <ItemCard
@@ -203,8 +202,7 @@ export function CategoryBlock({
             ))}
           </div>
         ) : (
-          /* List view */
-          <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
+          <div className="" style={{ borderColor: 'var(--border)' }}>
             {items.map((item, index) => (
               <div
                 key={item.id}
@@ -221,6 +219,7 @@ export function CategoryBlock({
                       ? '3px solid var(--accent)'
                       : '3px solid transparent',
                 }}
+                className='border border-[var(--border)]'
               >
                 <ItemRow
                   item={item}

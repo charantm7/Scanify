@@ -76,7 +76,7 @@ export async function insertItemQuery(
     .from('menu_items')
     .insert(payload as any)
     .select(ITEM_COLUMNS)
-    .single();
+    .maybeSingle();
   if (error) throw error;
   return data as unknown as MenuItem;
 }

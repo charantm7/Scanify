@@ -1,30 +1,24 @@
 'use client';
 
 import toast, { type Toast } from 'react-hot-toast';
-import { CheckCircle2, AlertTriangle, XCircle, Info, Loader2 } from 'lucide-react';
+import { CheckCircle2Icon, AlertTriangle, XCircle, Info, Loader2, X, Check } from 'lucide-react';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Config
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface ToastConfig {
     icon: React.ElementType;
     iconColor: string;
     iconBg: string;
-    accentLine: string; // left border color — the main visual anchor
+    accentLine: string;
 }
 
 const CONFIGS: Record<string, ToastConfig> = {
-    success: { icon: CheckCircle2, iconColor: '#16a34a', iconBg: '#dcfce7', accentLine: '#16a34a' },
-    error: { icon: XCircle, iconColor: '#dc2626', iconBg: '#fee2e2', accentLine: '#dc2626' },
+    success: { icon: Check, iconColor: '#ffffff', iconBg: '#dcfce7', accentLine: '#16a34a' },
+    error: { icon: X, iconColor: '#ffffff', iconBg: '#fee2e2', accentLine: '#dc2626' },
     warning: { icon: AlertTriangle, iconColor: '#d97706', iconBg: '#fef3c7', accentLine: '#d97706' },
     info: { icon: Info, iconColor: 'var(--accent)', iconBg: 'var(--accentlt)', accentLine: 'var(--accent)' },
     loading: { icon: Loader2, iconColor: 'var(--accent)', iconBg: 'var(--accentlt)', accentLine: 'var(--accent)' },
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ToastContent
-// ─────────────────────────────────────────────────────────────────────────────
 
 function ToastContent({
     t,
@@ -43,23 +37,20 @@ function ToastContent({
     return (
         <div
             className={`
-        flex items-start gap-3.5 w-full
-        
-      `}
+                flex items-center gap-3.5 w-full
+            `}
         >
-            {/* Icon — 36px, rounded-[10px], solid background */}
             <div
-                className="flex-shrink-0 flex items-center justify-center rounded-[10px]"
-                style={{ width: 36, height: 36, background: cfg.iconBg }}
+                className="flex-shrink-0 flex items-center justify-center p-1 rounded-full"
+                style={{ background: cfg.accentLine }}
             >
                 <Icon
-                    size={16}
+                    size={20}
                     className={type === 'loading' ? 'animate-spin' : ''}
-                    style={{ color: cfg.iconColor }}
+                    style={{ color: 'white' }}
                 />
             </div>
 
-            {/* Text */}
             <div className="flex-1 min-w-0 py-0.5">
                 <p className="text-[13.5px] font-semibold text-theme leading-snug">{message}</p>
                 {description && (
@@ -67,7 +58,6 @@ function ToastContent({
                 )}
             </div>
 
-            {/* Dismiss — subtle, top-aligned */}
             <button
                 onClick={() => toast.dismiss(t.id)}
                 className="flex-shrink-0 text-theme3 hover:text-theme2 transition-colors mt-0.5"
@@ -97,7 +87,7 @@ function showToast({ message, description, type, duration, id }: ShowToastOption
         ${t.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
                 style={{
                     background: 'var(--card)',
-                    borderLeft: `3px solid ${cfg.accentLine}`,   // ← the fix: visible accent anchor
+                    borderLeft: `2px solid ${cfg.accentLine}`,   // ← the fix: visible accent anchor
                     borderTop: '0.5px solid var(--border)',
                     borderRight: '0.5px solid var(--border)',
                     borderBottom: '0.5px solid var(--border)',

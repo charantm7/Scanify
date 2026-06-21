@@ -16,12 +16,34 @@ function genId(): string {
 
 function toFormValues(item?: MenuItem | null): ItemFormValues {
   if (!item) return EMPTY_ITEM_FORM;
+
+  const variants =
+    item.variants?.flatMap((v) => {
+      try {
+        const variant =
+          typeof v === 'string'
+            ? JSON.parse(v)
+            : v;
+
+        return [{
+          id:
+            variant.id ??
+            genId(),
+          label:
+            variant.label ?? '',
+          price:
+            variant.price ?? 0,
+        }];
+      } catch {
+        return [];
+      }
+    }) ?? [];
   return {
     id: item.id,
     name: item.name,
     description: item.description ?? '',
     price: String(item.price ?? ''),
-    variants: item.variants ?? [],
+    variants,
     image_url: item.image_url ?? '',
     is_available: item.is_available,
     dietary_type: item.dietary_type ?? '',

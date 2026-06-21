@@ -46,7 +46,6 @@ export function ItemCard({ item, onEdit, onDelete, onToggle }: ItemCardProps) {
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
-      {/* Image area */}
       <div
         className="relative h-32 flex items-center justify-center overflow-hidden"
         style={{ background: 'var(--accentlt)' }}
@@ -66,13 +65,11 @@ export function ItemCard({ item, onEdit, onDelete, onToggle }: ItemCardProps) {
           <ChefHat size={200} style={{ color: 'var(--accent)', opacity: 0.4 }} />
         )}
 
-        {/* Overlay gradient for action buttons */}
         <div
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
           style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)' }}
         />
 
-        {/* Status badge */}
         {!item.is_available && (
           <div className="absolute bottom-2 left-2">
             <span
@@ -84,7 +81,6 @@ export function ItemCard({ item, onEdit, onDelete, onToggle }: ItemCardProps) {
           </div>
         )}
 
-        {/* Hover action buttons */}
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => onToggle(item)}
@@ -105,12 +101,10 @@ export function ItemCard({ item, onEdit, onDelete, onToggle }: ItemCardProps) {
         </div>
       </div>
 
-      {/* Info section */}
       <div className="p-3 flex-1 flex flex-col gap-1.5">
-        {/* Name + dietary */}
-        <div className="flex items-start gap-1.5">
+        <div className="flex items-center gap-1.5">
           {item.dietary_type && (
-            <div className="mt-0.5 flex-shrink-0">
+            <div className="flex-shrink-0">
               <DietaryDot type={item.dietary_type} />
             </div>
           )}
@@ -122,7 +116,6 @@ export function ItemCard({ item, onEdit, onDelete, onToggle }: ItemCardProps) {
           </p>
         </div>
 
-        {/* Description */}
         {item.description && (
           <p
             className="text-xs line-clamp-2 leading-relaxed"
@@ -131,8 +124,6 @@ export function ItemCard({ item, onEdit, onDelete, onToggle }: ItemCardProps) {
             {item.description}
           </p>
         )}
-
-        {/* Tags */}
         {(item.tags?.length ?? 0) > 0 && (
           <div className="flex items-center gap-1 flex-wrap">
             {item.tags!.slice(0, 2).map((tag) => (

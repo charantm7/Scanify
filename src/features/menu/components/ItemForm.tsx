@@ -35,12 +35,9 @@ export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
     onSubmit(form);
   }
 
-  console.log(
-    form.variants.map(v => ({
-      id: v.id,
-      label: v.label,
-    }))
-  );
+
+
+  console.log(form.variants.map((i) => i))
 
   return (
     <div className="grid md:grid-cols-2 sm:grid-cols-2 grid-cols-1 gap-4">
@@ -130,89 +127,114 @@ export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
                 {form.variants.map((variant, i) => (
                   <div
                     key={variant.id}
-                    className="flex-col items-center gap-2"
+                    className="flex
+                      flex-col
+                      gap-2
+                      sm:flex-row
+                      sm:items-center"
                   >
-                    <span
-                      className="w-5 text-center text-[11px] font-semibold flex-shrink-0"
-                      style={{ color: 'var(--text2)' }}
-                    >
-                      {i + 1}
-                    </span>
-
-                    <input
-                      placeholder="Half"
-                      value={variant.label}
-                      onChange={(e) =>
-                        updateVariant(variant.id, {
-                          label: e.target.value,
-                        })
-                      }
-                      className="flex-1 h-10 px-3 rounded-xl text-sm outline-none transition"
-                      style={{
-                        border: '1.5px solid var(--border)',
-                        background: 'var(--card)',
-                        color: 'var(--text)',
-                      }}
-                      onFocus={(e) =>
-                      (e.currentTarget.style.borderColor =
-                        'var(--accent)')
-                      }
-                      onBlur={(e) =>
-                      (e.currentTarget.style.borderColor =
-                        'var(--border)')
-                      }
-                    />
-
-                    <div
-                      className="flex items-center gap-2 h-10 px-3 rounded-xl flex-shrink-0"
-                      style={{
-                        border: '1.5px solid var(--border)',
-                        background: 'var(--card)',
-                      }}
-                    >
+                    <div className="flex items-center gap-2 w-full">
                       <span
-                        className="text-sm font-semibold"
-                        style={{ color: 'var(--text2)' }}
+                        className=" text-center py-2 rounded-lg px-3 text-[12px] font-semibold flex-shrink-0"
+                        style={{ color: '#ffffff', background: 'var(--accent)' }}
                       >
-                        ₹
+                        {i + 1}
                       </span>
 
                       <input
-                        placeholder="0.00"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={variant.price || ''}
+                        placeholder="Half"
+                        value={variant.label}
                         onChange={(e) =>
                           updateVariant(variant.id, {
-                            price:
-                              Number(e.target.value) || 0,
+                            label: e.target.value,
                           })
                         }
-                        className="w-20 bg-transparent outline-none text-sm"
-                        style={{ color: 'var(--text)' }}
+                        className="
+                            flex-1
+                            h-10
+                            px-3
+                            rounded-xl
+                            text-sm
+                            outline-none
+                          "
+                        style={{
+                          border: '1.5px solid var(--border)',
+                          background: 'var(--card)',
+                          color: 'var(--text)',
+                        }}
                       />
                     </div>
 
-                    {/* Delete */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeVariant(variant.id)
-                      }
-                      className="w-10 h-10 rounded-xl flex items-center justify-center transition flex-shrink-0"
-                      style={{ color: '#ef4444' }}
-                      onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        '#fef2f2')
-                      }
-                      onMouseLeave={(e) =>
-                      (e.currentTarget.style.background =
-                        'transparent')
-                      }
-                    >
-                      <XIcon size={16} />
-                    </button>
+                    <div className="flex items-center gap-2 sm:w-auto">
+                      <div
+                        className="
+                            flex
+                            items-center
+                            gap-2
+                            h-10
+                            px-3
+                            rounded-xl
+                            flex-1
+                            sm:flex-none
+                          "
+                        style={{
+                          border: '1.5px solid var(--border)',
+                          background: 'var(--card)',
+                        }}
+                      >
+                        <span
+                          className="text-sm font-semibold"
+                          style={{ color: 'var(--text2)' }}
+                        >
+                          ₹
+                        </span>
+
+                        <input
+                          placeholder="0.00"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={variant.price || ''}
+                          onChange={(e) =>
+                            updateVariant(variant.id, {
+                              price:
+                                Number(e.target.value) || 0,
+                            })
+                          }
+                          className="
+                            flex-1
+                            min-w-0
+                            bg-transparent
+                            outline-none
+                            text-sm
+                          "
+                          style={{
+                            color: 'var(--text)',
+                          }}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeVariant(variant.id)
+                        }
+                        className="
+                                w-9
+                                h-9
+                                rounded-xl
+                                flex
+                                items-center
+                                justify-center
+                                flex-shrink-0
+                              "
+                        style={{
+                          color: '#ffffff', background: 'var(--accent)'
+                        }}
+                      >
+                        <XIcon size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -226,7 +248,7 @@ export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
           </div>
         </section>
 
-      </div>
+      </div >
       <div className='space-y-4'>
 
         {/* ── Classification ── */}
@@ -327,6 +349,6 @@ export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
           </Button>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
