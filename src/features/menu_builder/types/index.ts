@@ -1,12 +1,24 @@
-// src/features/menu/types/index.ts
 
-/** Veg / non-veg / egg indicator — standard on Indian restaurant menus */
-export type DietaryType = 'veg' | 'non_veg' | 'egg';
+export type DietaryType = 'veg' | 'non_veg' | 'egg' | 'vegan' | 'gluten_free' | 'dairy' | 'jain';
 
-/** Merchandising tags shown as small badges on a menu item */
-export type ItemTag = 'bestseller' | 'new' | 'chefs_special' | 'spicy' | 'recommended';
+export type ItemTag =
+  | 'bestseller'
+  | 'popular'
+  | 'new'
+  | 'chefs_special'
+  | 'signature'
+  | 'recommended'
+  | 'combo'
+  | 'family_pack'
+  | 'limited_time';
 
-/** A single price point for an item, e.g. "Half" / "Full", "Regular" / "Large" */
+export type SpiceLevel =
+  | 'none'
+  | 'mild'
+  | 'medium'
+  | 'hot'
+  | 'extra_hot';
+
 export interface PriceVariant {
   id: string;
   label: string;
@@ -26,6 +38,7 @@ export interface MenuItem {
   dietary_type: DietaryType | null;
   tags: ItemTag[] | null;
   sort_order: number;
+  spice_level: SpiceLevel | null;
 }
 
 export interface Category {
@@ -47,6 +60,7 @@ export interface ItemFormValues {
   is_available: boolean;
   dietary_type: DietaryType | '';
   tags: ItemTag[];
+  spice_level: SpiceLevel | '';
 }
 
 export interface ItemFormErrors {

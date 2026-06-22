@@ -33,7 +33,9 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
     planLabel,
     maxMenuItems,
     isActionBlocked,
+    advancedCategories
   } = useApp();
+
 
   const { state, actions } = useMenu(hotel?.id, refreshMenuCount);
 
@@ -126,6 +128,8 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
           onReorderItems={actions.reorderItems}
           onReorderCategories={actions.reorderCategories}
           onCreateFirstCategory={() => handleCreateCategory('Mains', null)}
+          isAdvanceCategory={advancedCategories}
+
         />
 
 
@@ -135,6 +139,7 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
         saving={savingItem}
         onClose={() => setItemModal({ open: false, item: null, categoryId: null })}
         onSubmit={handleSaveItem}
+        isAdvanceCategory={advancedCategories}
       />
     </>
   );

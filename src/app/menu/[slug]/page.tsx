@@ -1,138 +1,75 @@
-// app/[slug]/page.js
-// Public-facing menu page — no auth required.
+// app/menu/[slug]/page.tsx
+// ─────────────────────────────────────────────────────────────────────────────
+// Server Component: runs at request time, fetches all data from Supabase,
+// injects theme CSS variables server-side (no FOUC), passes typed props to
+// the client component.
+// ─────────────────────────────────────────────────────────────────────────────
 
-import { createClient } from "../../../lib/supabase/server";
 import { notFound } from "next/navigation";
-import MenuPageClient from "../../../components/menu/MenuPageClient";
+import { Suspense } from "react";
+import type { Metadata } from "next";
 
-export async function generateMetadata({ params }) {
-    const { slug } = await params;
-    const supabase = await createClient();
-    const { data: hotel } = await supabase
-        .from("hotels")
-        .select("name, description, logo_url")
-        .eq("slug", slug)
-        .maybeSingle();
+import { fetchMenuPage } from "../../../features/menu/services/menu.service";
+import { buildThemeTokens, buildThemeStyleTag } from "../../../features/menu/utils/theme";
+import MenuPageClient from "../../../features/menu/pages/MenuPageClient";
+import { MenuPageSkeleton } from "../../../features/menu/components/MenuSkeleton";
 
-    if (!hotel) return { title: "Menu Not Found" };
+// ── Static generation ─────────────────────────────────────────────────────────
+// Pages are ISR: revalidate every 60 s so menu changes propagate quickly.
+export const revalidate = 60;
 
-    return {
-        title: `${hotel.name} — Menu`,
-        description: hotel.description || `Browse the menu at ${hotel.name}`,
-        openGraph: {
-            title: `${hotel.name} — Menu`,
-            description: hotel.description || `Browse the digital menu at ${hotel.name}`,
-            images: hotel.logo_url ? [hotel.logo_url] : [],
-        },
-    };
+interface PageProps {
+    params: Promise<{ slug: string }>;
+    searchParams: Promise<{ qr?: string }>;
 }
 
-export default async function MenuPage({ params, searchParams, }) {
-    const { slug, } = await params;
-    const resolvedSearchParams = await searchParams;
+// ── Dynamic metadata ──────────────────────────────────────────────────────────
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+    const { slug } = await params;
 
-    const qrId = resolvedSearchParams?.qr;
-    const supabase = await createClient();
+    try {
+        const { hotel } = await fetchMenuPage(slug);
+        return {
+            title: `${hotel.name} Menu`,
+            description: hotel.description ?? `Browse the menu at ${hotel.name}`,
+            openGraph: {
+                title: `${hotel.name} — Digital Menu`,
+                description: hotel.description ?? undefined,
+                images: hotel.cover_image_url ? [hotel.cover_image_url] : hotel.logo_url ? [hotel.logo_url] : [],
+            },
+        };
+    } catch {
+        return { title: "Menu" };
+    }
+}
 
-    // Fetch hotel
-    const { data: hotel } = await supabase
-        .from("hotels")
-        .select("id, name, description, owner_id, logo_url, address, slug")
-        .eq("slug", slug)
-        .maybeSingle();
+// ── Page component ────────────────────────────────────────────────────────────
+export default async function MenuPage({ params, searchParams }: PageProps) {
+    const { slug } = await params;
+    const { qr } = await searchParams;
 
-    if (!hotel) return notFound();
-
-    const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('trial_ends_at, status')
-        .eq('user_id', hotel.owner_id)
-        .maybeSingle();
-
-    if (!subscription) return notFound();
-
-    const now = new Date();
-
-    const accessible =
-        (subscription.status === 'active' || subscription.status === 'trialing') &&
-        (
-            !subscription.trial_ends_at ||
-            new Date(subscription.trial_ends_at) > now
-        );
-
-    if (!accessible) {
-        return (
-            <div className="min-h-screen flex items-center justify-center px-6 bg-white">
-                <div className="text-center max-w-md">
-                    <h2 className="text-sm font-semibold tracking-wider uppercase text-orange-500">
-                        Scanify
-                    </h2>
-
-                    <h1 className="mt-3 text-2xl font-bold text-gray-900">
-                        Menu Temporarily Unavailable
-                    </h1>
-
-                    <p className="mt-3 text-gray-500">
-                        This restaurant's digital menu is currently unavailable.
-                        Please contact the restaurant staff.
-                    </p>
-
-                    <p className="mt-8 text-xs text-gray-400">
-                        Powered by <span className="font-medium text-orange-500">Scanify</span>
-                    </p>
-                </div>
-            </div>
-        );
+    let data;
+    try {
+        data = await fetchMenuPage(slug);
+    } catch {
+        notFound();
     }
 
+    // Build theme tokens on the server so variables are available immediately —
+    // prevents the flash of unstyled content that would occur if the client
+    // had to wait for JS hydration before applying colours.
+    const themeTokens = buildThemeTokens(data.customization);
+    const themeStyle = buildThemeStyleTag(themeTokens);
 
-    // Fetch categories
-    const { data: categories } = await supabase
-        .from("categories")
-        .select("id, name, sort_order")
-        .eq("hotel_id", hotel.id)
-        .order("sort_order", { ascending: true });
+    return (
+        <>
+            {/* Server-injected theme tokens */}
+            {/* eslint-disable-next-line react/no-danger */}
+            <div dangerouslySetInnerHTML={{ __html: themeStyle }} />
 
-    // Fetch available menu items only
-    const { data: items } = await supabase
-        .from("menu_items")
-        .select("id, name, description, price, image_url, is_available, sort_order, category_id")
-        .eq("hotel_id", hotel.id)
-        .eq("is_available", true)
-        .order("sort_order", { ascending: true });
-
-    const { data: qrcode } = await supabase
-        .from('qr_codes')
-        .select('*')
-        .eq('id', qrId)
-        .maybeSingle()
-    // Log scan (fire-and-forget — don't block render)
-    if (qrId) {
-        supabase
-            .from("menu_scans")
-            .insert({
-                hotel_id: hotel.id,
-                qr_code_id: qrId || null,
-                metadata: { 'label': qrcode.label, 'scan_count': qrcode.scan_count }
-            })
-            .then(() => { });
-    } else {
-        supabase
-            .from("menu_scans")
-            .insert({
-                hotel_id: hotel.id,
-                qr_code_id: qrId || null,
-                event_type: 'menu_view',
-            })
-            .then(() => { });
-    }
-
-
-    // Group items by category
-    const menuData = (categories ?? []).map((cat) => ({
-        ...cat,
-        items: (items ?? []).filter((item) => item.category_id === cat.id),
-    })).filter((cat) => cat.items.length > 0);
-
-    return <MenuPageClient hotel={hotel} menuData={menuData} />;
+            <Suspense fallback={<MenuPageSkeleton />}>
+                <MenuPageClient data={data} slug={slug} qrCodeId={qr} />
+            </Suspense>
+        </>
+    );
 }

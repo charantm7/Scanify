@@ -23,6 +23,7 @@ import {
   setItemAvailabilityService,
   persistItemOrder,
 } from '../services/menu.services';
+import { useApp } from '../../../context/AppContext';
 
 const INITIAL_STATE: MenuState = { categories: [], loading: true, error: null };
 
@@ -76,7 +77,7 @@ function reducer(state: MenuState, action: MenuAction): MenuState {
 }
 
 export function useMenu(hotelId: string | undefined, onItemCountChange?: () => void | Promise<void>) {
-  const supabase = getSupabaseClient();
+  const { supabase } = useApp()
   const toast = useToast();
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
 
@@ -163,6 +164,7 @@ export function useMenu(hotelId: string | undefined, onItemCountChange?: () => v
       if (!hotelId) return false;
       try {
         if (existing) {
+
           const patch = await updateItemService(supabase, existing.id, form, toast);
           dispatch({ type: 'UPDATE_ITEM', payload: { id: existing.id, ...patch } });
         } else {

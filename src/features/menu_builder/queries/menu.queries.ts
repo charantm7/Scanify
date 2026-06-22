@@ -4,7 +4,7 @@ import type { Category, MenuItem } from '../types';
 
 const CATEGORY_COLUMNS = 'id, name, sort_order';
 const ITEM_COLUMNS =
-  'id, name, description, price, variants, image_url, is_available, dietary_type, tags, sort_order, category_id';
+  'id, name, description, price, variants, image_url, is_available, dietary_type, tags, sort_order, spice_level , category_id';
 
 // ── Categories ───────────────────────────────────────────────────────────
 

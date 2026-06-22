@@ -26,12 +26,14 @@ interface CategoryBlockProps {
   onDeleteItem: (id: string) => Promise<void> | void;
   onToggleItem: (item: MenuItem) => void;
   onReorderItems: (categoryId: string, items: MenuItem[]) => void;
+  isAdvanceCategory: boolean;
 }
 
 export function CategoryBlock({
   category,
   viewMode,
   isAtCap,
+  isAdvanceCategory,
   onRename,
   onIconChange,
   onDelete,
@@ -198,6 +200,7 @@ export function CategoryBlock({
                 onEdit={onEditItem}
                 onDelete={onDeleteItem}
                 onToggle={onToggleItem}
+                isAdvanceCategory={isAdvanceCategory}
               />
             ))}
           </div>
@@ -226,6 +229,7 @@ export function CategoryBlock({
                   onEdit={onEditItem}
                   onDelete={onDeleteItem}
                   onToggle={onToggleItem}
+                  isAdvanceCategory={isAdvanceCategory}
                 />
               </div>
             ))}

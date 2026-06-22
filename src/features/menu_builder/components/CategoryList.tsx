@@ -23,6 +23,7 @@ interface CategoryListProps {
   onReorderItems: (categoryId: string, items: MenuItem[]) => void;
   onReorderCategories: (categories: Category[]) => void;
   onCreateFirstCategory: () => void;
+  isAdvanceCategory: boolean;
 }
 
 function filterCategories(categories: Category[], search: string): Category[] {
@@ -53,6 +54,8 @@ export function CategoryList({
   onReorderItems,
   onReorderCategories,
   onCreateFirstCategory,
+  isAdvanceCategory
+
 }: CategoryListProps) {
   const visible = filterCategories(categories, search);
 
@@ -110,6 +113,7 @@ export function CategoryList({
               onDeleteItem={onDeleteItem}
               onToggleItem={onToggleItem}
               onReorderItems={onReorderItems}
+              isAdvanceCategory={isAdvanceCategory}
             />
           </div>
         );

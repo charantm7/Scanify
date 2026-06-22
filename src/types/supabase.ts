@@ -30,6 +30,8 @@ export type QrCodeRow = Row<'qr_codes'>;
 export type OrderPaymentRow = Row<'order_payments'>;
 export type SubscriptionRow = Row<'subscriptions'>;
 export type PlanLimitsRow = Row<'plan_limits'>;
+export type MenuThemesRow = Row<'menu_themes'>
+export type MenuCustomizationRow = Row<'menu_customizations'>
 
 
 // Named Update Row Types
@@ -49,6 +51,9 @@ export type OrderPaymentUpdate = Update<'order_payments'>;
 export type SubscriptionUpdate = Update<'subscriptions'>;
 export type PlanLimitsUpdate = Update<'plan_limits'>;
 
+export type MenuThemesUpdate = Update<'menu_themes'>
+export type MenuCustomizationUpdate = Update<'menu_customizations'>
+
 
 // Named Insert Row Types
 
@@ -67,6 +72,9 @@ export type OrderPaymentInsert = Insert<'order_payments'>;
 export type SubscriptionInsert = Insert<'subscriptions'>;
 export type PlanLimitsInsert = Insert<'plan_limits'>;
 
+export type MenuThemesInsert = Insert<'menu_themes'>
+export type MenuCustomizationInsert = Insert<'menu_customizations'>
+
 
 // ENUMS Types
 
@@ -78,3 +86,9 @@ export type SubscriptionStatus = Enum['subscription_status']
 export type PaymentStatus = Enum['order_status']
 export type OrderStatus = Enum['order_status']
 export type AnalyticsLevel = Enum['analytics_level_type']
+export type SpiceLevel = Enum['spice_level']
+export type FontFamily = Enum['font_family']
+export type CategoryStyle = Enum['category_style']
+export type MenuLayout = Enum['menu_layout']
+export type RestaurantType = Enum['restaurant_type']
+export type ShadowIntensity = Enum['shadow_intensity']

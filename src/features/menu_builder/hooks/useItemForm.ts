@@ -48,6 +48,7 @@ function toFormValues(item?: MenuItem | null): ItemFormValues {
     is_available: item.is_available,
     dietary_type: item.dietary_type ?? '',
     tags: item.tags ?? [],
+    spice_level: item.spice_level ?? '',
   };
 }
 

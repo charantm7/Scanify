@@ -3,16 +3,18 @@
 // src/features/menu/components/ItemForm.tsx
 // Redesigned: cleaner section dividers, better field grouping, improved mobile layout
 
+import { useState } from 'react';
 import { ChefHat, IndianRupee, ImageIcon, Plus, X as XIcon, Info } from 'lucide-react';
 import { Input, Textarea, Toggle, Button } from '../../../components/shared/ui';
-import { DIETARY_META, TAG_META, MAX_VARIANTS_PER_ITEM } from '../constants';
+import { DIETARY_META, TAG_META, MAX_VARIANTS_PER_ITEM, SPICE_LEVEL_META } from '../constants';
 import { useItemForm } from '../hooks/useItemForm';
-import type { MenuItem, DietaryType, ItemTag, ItemFormValues } from '../types';
+import type { MenuItem, DietaryType, ItemTag, ItemFormValues, SpiceLevel } from '../types';
 
 interface ItemFormProps {
   initial?: MenuItem | null;
   onSubmit: (values: ItemFormValues) => void;
   loading?: boolean;
+  isAdvanceCategory: boolean;
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -26,7 +28,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
+export function ItemForm({ initial = null, onSubmit, loading, isAdvanceCategory }: ItemFormProps) {
   const { form, errors, setField, toggleTag, addVariant, updateVariant, removeVariant, validate } =
     useItemForm(initial);
 
@@ -34,10 +36,6 @@ export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
     if (!validate()) return;
     onSubmit(form);
   }
-
-
-
-  console.log(form.variants.map((i) => i))
 
   return (
     <div className="grid md:grid-cols-2 sm:grid-cols-2 grid-cols-1 gap-4">
@@ -170,12 +168,13 @@ export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
                         className="
                             flex
                             items-center
-                            gap-2
                             h-10
+                            w-32
                             px-3
                             rounded-xl
                             flex-1
                             sm:flex-none
+                            sm:w-32
                           "
                         style={{
                           border: '1.5px solid var(--border)',
@@ -183,7 +182,7 @@ export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
                         }}
                       >
                         <span
-                          className="text-sm font-semibold"
+                          className="mr-2 text-sm font-semibold"
                           style={{ color: 'var(--text2)' }}
                         >
                           ₹
@@ -202,8 +201,7 @@ export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
                             })
                           }
                           className="
-                            flex-1
-                            min-w-0
+                            w-full
                             bg-transparent
                             outline-none
                             text-sm
@@ -293,54 +291,91 @@ export function ItemForm({ initial = null, onSubmit, loading }: ItemFormProps) {
             </div>
           </div>
 
-          {/* Tags */}
-          <div>
-            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text)' }}>
-              Tags
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              {(Object.keys(TAG_META) as ItemTag[]).map((key) => {
-                const meta = TAG_META[key];
-                const active = form.tags.includes(key);
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => toggleTag(key)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition"
-                    style={{
-                      border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
-                      background: active ? 'var(--accentlt)' : 'transparent',
-                      color: active ? 'var(--accent)' : 'var(--text2)',
-                    }}
-                  >
-                    <span>{meta.emoji}</span>
-                    {meta.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {isAdvanceCategory && (
+            <>
+              {/* Tags */}
+              <div>
+                <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                  Tags
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {(Object.keys(TAG_META) as ItemTag[]).map((key) => {
+                    const meta = TAG_META[key];
+                    const active = form.tags.includes(key);
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => toggleTag(key)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition"
+                        style={{
+                          border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+                          background: active ? 'var(--accentlt)' : 'transparent',
+                          color: active ? 'var(--accent)' : 'var(--text2)',
+                        }}
+                      >
+                        <span>{meta.emoji}</span>
+                        {meta.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Spicy level */}
+              <div>
+                <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                  Spice Level
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {(Object.keys(SPICE_LEVEL_META) as SpiceLevel[]).map((key) => {
+                    const meta = SPICE_LEVEL_META[key];
+                    const active = form.spice_level === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setField('spice_level', active ? '' : key)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition"
+                        style={{
+                          border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+                          background: active ? 'var(--accentlt)' : 'transparent',
+                          color: active ? 'var(--accent)' : 'var(--text2)',
+                        }}
+                      >
+                        <span>{meta.emoji}</span>
+                        {meta.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+
         </section>
 
-        {/* ── Availability ── */}
-        <section
-          className="rounded-xl p-3 flex items-center justify-between gap-3"
-          style={{ background: 'var(--accentlt)', border: '1.5px solid var(--border)' }}
-        >
-          <div>
-            <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
-              Available for ordering
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text2)' }}>
-              Hidden items won't appear on the customer menu
-            </p>
-          </div>
-          <Toggle
-            checked={form.is_available}
-            onChange={(v) => setField('is_available', v)}
-          />
-        </section>
+        {isAdvanceCategory && (
+
+          < section
+            className="rounded-xl p-3 flex items-center justify-between gap-3"
+            style={{ background: 'var(--accentlt)', border: '1.5px solid var(--border)' }}
+          >
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
+                Available for ordering
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text2)' }}>
+                Hidden items won't appear on the customer menu
+              </p>
+            </div>
+            <Toggle
+              checked={form.is_available}
+              onChange={(v) => setField('is_available', v)}
+            />
+          </section>
+        )}
+
 
         {/* ── Submit ── */}
         <div className="flex justify-end gap-3 pt-1">

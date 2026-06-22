@@ -46,6 +46,7 @@ function buildItemPayload(form: ItemFormValues) {
     is_available: form.is_available,
     dietary_type: form.dietary_type || null,
     tags: form.tags.length ? form.tags : null,
+    spice_level: form.spice_level || null
   };
 }
 

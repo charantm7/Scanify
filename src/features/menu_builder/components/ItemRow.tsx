@@ -7,17 +7,18 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { ChefHat, Pencil, Trash2, Eye, EyeOff, Loader2, GripVertical } from 'lucide-react';
 import { DietaryDot } from './shared/DietaryDot';
-import { TagBadge } from './shared/TagBadge';
+import { SpiceBadge, TagBadge } from './shared/TagBadge';
 import type { MenuItem } from '../types';
 
 interface ItemRowProps {
   item: MenuItem;
+  isAdvanceCategory: boolean;
   onEdit: (item: MenuItem) => void;
   onDelete: (id: string) => Promise<void> | void;
   onToggle: (item: MenuItem) => void;
 }
 
-export function ItemRow({ item, onEdit, onDelete, onToggle }: ItemRowProps) {
+export function ItemRow({ item, onEdit, onDelete, onToggle, isAdvanceCategory }: ItemRowProps) {
   const [deleting, setDeleting] = useState(false);
   const hasVariants = !!item.variants?.length;
 
@@ -131,13 +132,25 @@ export function ItemRow({ item, onEdit, onDelete, onToggle }: ItemRowProps) {
             </p>
           )}
 
-          {(item.tags?.length ?? 0) > 0 && (
-            <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-              {item.tags!.map((tag) => (
-                <TagBadge key={tag} tag={tag} />
-              ))}
-            </div>
+          {isAdvanceCategory && (
+            <>
+              {(item.tags?.length ?? 0) > 0 && (
+                <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                  {item.tags!.map((tag) => (
+                    <TagBadge key={tag} tag={tag} />
+                  ))}
+                </div>
+              )}
+
+              {item.spice_level && (
+                <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                  <SpiceBadge tag={item.spice_level} />
+                </div>
+              )}
+            </>
           )}
+
+
         </div>
 
       </div>
