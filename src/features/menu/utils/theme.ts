@@ -52,8 +52,8 @@ export function buildThemeStyleTag(tokens: ThemeTokens, nonce?: string): string 
         .join("\n");
 
     return `<style${nonce ? ` nonce="${nonce}"` : ""}>
-:root {
-${vars}
-}
-</style>`;
+            :root {
+            ${vars}
+            }
+            </style>`;
 }

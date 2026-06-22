@@ -1,5 +1,3 @@
-// features/menu/utils/search.ts
-// Client-side search over menu items — aligned with real DB schema.
 
 import type { MenuItem, MenuCategory, SearchResult } from "../types";
 

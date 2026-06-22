@@ -1,6 +1,3 @@
-// features/menu/services/menu.service.ts
-// All Supabase reads for the public menu page.
-// Aligned with the actual database schema.
 
 import { createClient } from "../../../lib/supabase/server";
 import type { Json } from "../../../types/database.types";

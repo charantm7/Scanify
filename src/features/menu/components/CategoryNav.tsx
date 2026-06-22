@@ -1,4 +1,3 @@
-// features/menu/components/CategoryNav.tsx
 "use client";
 
 import { memo } from "react";

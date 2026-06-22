@@ -1,8 +1,3 @@
-// features/menu/pages/MenuPageClient.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Client component: receives SSR data as props, hydrates React Query,
-// owns all UI state, and renders the full public menu experience.
-// ─────────────────────────────────────────────────────────────────────────────
 "use client";
 
 import { useEffect, useMemo, useCallback } from "react";
@@ -37,19 +32,18 @@ export default function MenuPageClient({
 }: MenuPageClientProps) {
     const { hotel, categories, customization } = data;
 
-    // ── Hydrate React Query cache with SSR data ───────────────────────────────
+
     const qc = useQueryClient();
     useEffect(() => {
         qc.setQueryData(QUERY_KEYS.menuPage(slug), data);
     }, [qc, slug, data]);
 
-    // ── Theme tokens → CSS variables on root ─────────────────────────────────
+
     const themeTokens = useMemo(
         () => buildThemeTokens(customization),
         [customization]
     );
 
-    // ── All UI state in one hook ──────────────────────────────────────────────
     const {
         searchQuery,
         setSearchQuery,
@@ -63,13 +57,12 @@ export default function MenuPageClient({
         closeItemModal,
     } = useMenuUI(categories);
 
-    // ── Search results ────────────────────────────────────────────────────────
+
     const searchResults = useMemo(
         () => searchMenu(categories, searchQuery),
         [categories, searchQuery]
     );
 
-    // ── Selected item for modal ───────────────────────────────────────────────
     const selectedItem = useMemo((): MenuItem | undefined => {
         if (!selectedItemId) return undefined;
         for (const cat of categories) {
@@ -79,7 +72,7 @@ export default function MenuPageClient({
         return undefined;
     }, [selectedItemId, categories]);
 
-    // ── Analytics: page view ─────────────────────────────────────────────────
+    // update the Menuscan table when page is fired up
     useEffect(() => {
         const sessionId = sessionStorage.getItem("scanify_session") ?? crypto.randomUUID();
         sessionStorage.setItem("scanify_session", sessionId);
@@ -97,7 +90,7 @@ export default function MenuPageClient({
         }).catch(() => {/* fire and forget */ });
     }, [hotel.id, qrCodeId]);
 
-    // ── Track item modal open ─────────────────────────────────────────────────
+    // track Item click and save it in menuscan
     const handleItemClick = useCallback(
         (itemId: string) => {
             openItemModal(itemId);
@@ -115,9 +108,8 @@ export default function MenuPageClient({
         },
         [hotel.id, openItemModal]
     );
-
+    console.log(selectedItemId)
     return (
-        // Apply theme CSS variables to the entire tree
         <div
             className="min-h-screen"
             style={{
@@ -127,7 +119,7 @@ export default function MenuPageClient({
                 color: "var(--color-text)",
             }}
         >
-            {/* ── Restaurant Header ─────────────────────────────────────────────── */}
+
             <RestaurantHeader
                 hotel={hotel}
                 customization={customization}

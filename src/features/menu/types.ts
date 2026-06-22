@@ -1,9 +1,5 @@
-// features/menu/types.ts
-// Aligned 1-to-1 with the actual Supabase database schema (database.types.ts)
-
 import type { Json } from "../../types/database.types";
 
-// ── Enum types (match DB enums exactly) ──────────────────────────────────────
 export type DietaryFlag =
     | "veg"
     | "non_veg"
@@ -19,8 +15,6 @@ export type CategoryStyle = "pill" | "underline" | "card";
 export type FontFamily = "inter" | "poppins" | "syne" | "outfit" | "playfair" | "dm_sans";
 export type ShadowIntensity = "none" | "soft" | "medium" | "strong";
 
-// ── hotels row ───────────────────────────────────────────────────────────────
-// Matches database.types.ts hotels.Row exactly
 export interface DBHotel {
     id: string;
     created_at: string;
@@ -37,21 +31,19 @@ export interface DBHotel {
     website: string | null;
     google_maps_url: string | null;
     is_active: boolean;
-    is_open: boolean | null;       // nullable in real DB
+    is_open: boolean | null;
     open_time: string | null;
     close_time: string | null;
     theme_color: string | null;
     currency: string;
-    rating: number | null;         // nullable in real DB
-    review_count: number | null;   // nullable in real DB
+    rating: number | null;
+    review_count: number | null;
     cuisine_type: string[] | null;
     service_type: string[] | null;
     restaurant_type: string[] | null;
     deleted_at: string | null;
 }
 
-// ── categories row ───────────────────────────────────────────────────────────
-// Matches database.types.ts categories.Row exactly
 export interface DBCategory {
     id: string;
     created_at: string;
@@ -65,10 +57,7 @@ export interface DBCategory {
     deleted_at: string | null;
 }
 
-// ── menu_items row ───────────────────────────────────────────────────────────
-// Matches database.types.ts menu_items.Row exactly.
-// NOTE: The real DB uses dietary_type (string | null) and spice_level (string | null).
-//       There is NO dietary_flag, is_featured, is_new, is_bestseller, is_chef_special.
+
 export interface DBMenuItem {
     id: string;
     created_at: string;
@@ -81,9 +70,9 @@ export interface DBMenuItem {
     image_url: string | null;
     is_available: boolean;
     sort_order: number;
-    dietary_type: string | null;   // "veg" | "non_veg" | etc — stored as plain text
-    spice_level: string | null;    // "mild" | "hot" | etc — stored as plain text
-    tags: string[] | null;         // free-form tags like ["Bestseller", "New"]
+    dietary_type: string | null;
+    spice_level: string | null;
+    tags: string[] | null;
     variants: string[] | null;
     serving_size: string | null;
     preparation_time: number | null;
@@ -93,7 +82,6 @@ export interface DBMenuItem {
     deleted_at: string | null;
 }
 
-// ── menu_item_images row ─────────────────────────────────────────────────────
 export interface DBMenuItemImage {
     id: string;
     item_id: string;
@@ -105,7 +93,6 @@ export interface DBMenuItemImage {
     created_at: string;
 }
 
-// ── menu_customizations row ──────────────────────────────────────────────────
 export interface DBMenuCustomization {
     id: string;
     hotel_id: string;
@@ -139,26 +126,21 @@ export interface DBMenuCustomization {
     updated_at: string;
 }
 
-// ── Composed view models ──────────────────────────────────────────────────────
 
-/** A menu item enriched with its gallery images */
 export interface MenuItem extends DBMenuItem {
     images: DBMenuItemImage[];
 }
 
-/** A category with its items */
 export interface MenuCategory extends DBCategory {
     items: MenuItem[];
 }
 
-/** Full payload passed to the menu page */
 export interface MenuPageData {
     hotel: DBHotel;
     categories: MenuCategory[];
     customization: DBMenuCustomization;
 }
 
-// ── Theme tokens ──────────────────────────────────────────────────────────────
 export interface ThemeTokens {
     "--color-primary": string;
     "--color-bg": string;
@@ -176,14 +158,12 @@ export interface ThemeTokens {
     "--shadow-lg": string;
 }
 
-// ── Search ────────────────────────────────────────────────────────────────────
 export interface SearchResult {
     item: MenuItem;
     categoryName: string;
     matchScore: number;
 }
 
-// ── Analytics ─────────────────────────────────────────────────────────────────
 export type MenuEventType =
     | "page_view"
     | "search"
