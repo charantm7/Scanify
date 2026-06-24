@@ -9,7 +9,6 @@ import { DIETARY_META, TAG_META, SPICE_LEVEL_META } from "../../menu_builder/con
 import type { DietaryType, ItemTag, SpiceLevel } from "../../menu_builder/types";
 import type { MenuItem } from "../types";
 
-// ── Dietary dot (Indian standard square indicator) ────────────────────────────
 export function DietaryIndicator({ dietaryType }: { dietaryType: string | null }) {
     if (!dietaryType) return null;
     const meta = DIETARY_META[dietaryType as DietaryType];
@@ -24,19 +23,45 @@ export function DietaryIndicator({ dietaryType }: { dietaryType: string | null }
                 width: 14,
                 height: 14,
                 borderColor: meta.ring,
-                borderWidth: 1.5,
+                borderWidth: 1.7,
                 padding: 2,
             }}
         >
             <span
                 className="block rounded-full"
-                style={{ width: "55%", height: "55%", background: meta.dot }}
+                style={{ width: "65%", height: "65%", background: meta.dot }}
             />
         </span>
     );
 }
 
-// ── Spice indicator (flame row) ───────────────────────────────────────────────
+
+export function VariantIndicator({
+    item,
+    i,
+}: {
+    item: { id: string; label: string; price: number } | null;
+    i: number;
+}) {
+    if (!item) return null;
+
+    return (
+        <div
+            key={i}
+            className="flex items-center gap-3 bg-[var(--color-accent-lt)] rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 shadow-sm"
+        >
+
+            <span className="text-sm ">
+                {item.label}
+            </span>
+
+            <span className="text-sm font-semibold">
+                ₹{item.price}
+            </span>
+        </div>
+    );
+}
+
 export function SpiceIndicator({ level }: { level: string | null }) {
     if (!level || level === "none") return null;
     const meta = SPICE_LEVEL_META[level as SpiceLevel];
@@ -44,23 +69,22 @@ export function SpiceIndicator({ level }: { level: string | null }) {
 
     return (
         <span
-            className="text-[10px] leading-none"
+            className="text-[10px] leading-none px-1.5 py-1 rounded-full"
             title={meta.label}
+            style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)" }}
             aria-label={`Spice: ${meta.label}`}
         >
-            {meta.emoji}
+            spice: {meta.label} {meta.emoji}
         </span>
     );
 }
 
-// ── Single tag badge ──────────────────────────────────────────────────────────
 export function TagBadge({ tag }: { tag: string }) {
     const meta = TAG_META[tag as ItemTag];
-    // If it's a known tag use the canonical label+emoji, otherwise render raw
     if (meta) {
         return (
             <span
-                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold leading-none tracking-wide"
+                className="inline-flex items-center gap-1 px-1.5 py-1 rounded-full text-[9px] font-bold leading-none tracking-wide"
                 style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)" }}
             >
                 <span style={{ fontSize: 9 }}>{meta.emoji}</span>
@@ -79,10 +103,7 @@ export function TagBadge({ tag }: { tag: string }) {
     );
 }
 
-// ── All tag badges for one item ───────────────────────────────────────────────
-// tags[] in the DB stores ItemTag values set by the menu builder.
-// dietary-type strings are NOT stored in tags[] — they're in dietary_type column.
-// We skip any tag that duplicates the dietary type to avoid double-rendering.
+
 export function ItemBadgeRow({ item }: { item: MenuItem }) {
     const tags = item.tags ?? [];
     if (tags.length === 0) return null;

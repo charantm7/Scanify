@@ -1,20 +1,20 @@
+// features/menu/types.ts
+// Aligned 1-to-1 with the actual Supabase schema (database.types.ts).
+// DietaryType / ItemTag / SpiceLevel are imported from menu_builder — single source of truth.
+
 import type { Json } from "../../types/database.types";
+import type { DietaryType, ItemTag, SpiceLevel } from "../menu_builder/types";
 
-export type DietaryFlag =
-    | "veg"
-    | "non_veg"
-    | "vegan"
-    | "jain"
-    | "gluten_free"
-    | "dairy"
-    | "egg";
+// Re-export so callers can import from one place
+export type { DietaryType as DietaryFlag, ItemTag, SpiceLevel };
 
-export type SpiceLevel = "none" | "mild" | "medium" | "hot" | "extra_hot";
+// ── Customization enums ────────────────────────────────────────────────────────
 export type MenuLayout = "card" | "list" | "grid";
 export type CategoryStyle = "pill" | "underline" | "card";
 export type FontFamily = "inter" | "poppins" | "syne" | "outfit" | "playfair" | "dm_sans";
 export type ShadowIntensity = "none" | "soft" | "medium" | "strong";
 
+// ── hotels row ─────────────────────────────────────────────────────────────────
 export interface DBHotel {
     id: string;
     created_at: string;
@@ -31,19 +31,20 @@ export interface DBHotel {
     website: string | null;
     google_maps_url: string | null;
     is_active: boolean;
-    is_open: boolean | null;
+    is_open: boolean | null;       // nullable in real DB
     open_time: string | null;
     close_time: string | null;
     theme_color: string | null;
     currency: string;
-    rating: number | null;
-    review_count: number | null;
+    rating: number | null;         // nullable in real DB
+    review_count: number | null;   // nullable in real DB
     cuisine_type: string[] | null;
     service_type: string[] | null;
     restaurant_type: string[] | null;
     deleted_at: string | null;
 }
 
+// ── categories row ─────────────────────────────────────────────────────────────
 export interface DBCategory {
     id: string;
     created_at: string;
@@ -57,7 +58,11 @@ export interface DBCategory {
     deleted_at: string | null;
 }
 
-
+// ── menu_items row ─────────────────────────────────────────────────────────────
+// Exact match to database.types.ts menu_items.Row.
+// dietary_type stores DietaryType values ("veg", "non_veg", etc.)
+// spice_level stores SpiceLevel values ("mild", "hot", etc.)
+// tags stores ItemTag[] values ("bestseller", "chefs_special", etc.)
 export interface DBMenuItem {
     id: string;
     created_at: string;
@@ -70,9 +75,9 @@ export interface DBMenuItem {
     image_url: string | null;
     is_available: boolean;
     sort_order: number;
-    dietary_type: string | null;
-    spice_level: string | null;
-    tags: string[] | null;
+    dietary_type: DietaryType | null;  // written by menu_builder
+    spice_level: SpiceLevel | null;    // written by menu_builder
+    tags: ItemTag[] | null;            // written by menu_builder
     variants: string[] | null;
     serving_size: string | null;
     preparation_time: number | null;
@@ -82,6 +87,7 @@ export interface DBMenuItem {
     deleted_at: string | null;
 }
 
+// ── menu_item_images row ───────────────────────────────────────────────────────
 export interface DBMenuItemImage {
     id: string;
     item_id: string;
@@ -93,6 +99,7 @@ export interface DBMenuItemImage {
     created_at: string;
 }
 
+// ── menu_customizations row ────────────────────────────────────────────────────
 export interface DBMenuCustomization {
     id: string;
     hotel_id: string;
@@ -126,7 +133,7 @@ export interface DBMenuCustomization {
     updated_at: string;
 }
 
-
+// ── Composed view models ───────────────────────────────────────────────────────
 export interface MenuItem extends DBMenuItem {
     images: DBMenuItemImage[];
 }
@@ -141,6 +148,9 @@ export interface MenuPageData {
     customization: DBMenuCustomization;
 }
 
+// ── Theme tokens ───────────────────────────────────────────────────────────────
+// Includes both --color-* (menu components) and legacy --bg/--accent/etc.
+// (globals.css utilities). Index signature allows both sets.
 export interface ThemeTokens {
     "--color-primary": string;
     "--color-bg": string;
@@ -156,14 +166,18 @@ export interface ThemeTokens {
     "--shadow-sm": string;
     "--shadow-md": string;
     "--shadow-lg": string;
+    // Legacy aliases consumed by globals.css utilities
+    [key: string]: string;
 }
 
+// ── Search ─────────────────────────────────────────────────────────────────────
 export interface SearchResult {
     item: MenuItem;
     categoryName: string;
     matchScore: number;
 }
 
+// ── Analytics ──────────────────────────────────────────────────────────────────
 export type MenuEventType =
     | "page_view"
     | "search"

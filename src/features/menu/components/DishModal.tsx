@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import { X, Clock, Users, AlertCircle, ChefHat } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DietaryIndicator, SpiceIndicator, ItemBadgeRow } from "./ItemBadges";
+import { DietaryIndicator, SpiceIndicator, ItemBadgeRow, VariantIndicator } from "./ItemBadges";
 import { DIETARY_CONFIG } from "../constant";
 import type { MenuItem, DietaryFlag } from "../types";
 
@@ -240,12 +240,11 @@ function ModalContent({
                     <X size={14} />
                 </button>
 
-                <div className="px-5 pb-10 space-y-5">
+                <div className="px-5 pb-16 space-y-5">
                     <ImageGallery item={item} />
 
-                    {/* Header */}
                     <div className="space-y-2">
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-center gap-2">
                             <DietaryIndicator dietaryType={item.dietary_type} />
                             <h2
                                 className="font-bold text-xl leading-tight flex-1"
@@ -255,7 +254,6 @@ function ModalContent({
                             </h2>
                         </div>
 
-                        {/* Tag badges — reads from tags[] using TAG_META slugs */}
                         <ItemBadgeRow item={item} />
 
                         {item.description && (
@@ -284,6 +282,22 @@ function ModalContent({
                         >
                             <DietaryIndicator dietaryType={item.dietary_type} />
                             {dietaryMeta.label}
+                        </div>
+                    )}
+
+                    {item.variants && item.variants.length > 0 && (
+
+                        <div className="flex items-center gap-2">
+                            {item.variants.map((variant, i) => {
+                                const item = JSON.parse(variant)
+
+
+                                return (
+
+                                    <VariantIndicator item={item} i={i} />
+
+                                )
+                            })}
                         </div>
                     )}
 
@@ -362,8 +376,7 @@ export function DishModal({ item, isOpen, onClose, currency = "₹" }: DishModal
 
     if (!mounted) return null;
 
-    // createPortal renders directly into document.body, escaping any
-    // overflow:hidden or stacking context on ancestor elements.
+    console.log(item)
     return createPortal(
         <AnimatePresence>
             {isOpen && item && (

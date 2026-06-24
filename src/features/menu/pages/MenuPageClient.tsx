@@ -72,11 +72,7 @@ export default function MenuPageClient({
         return undefined;
     }, [selectedItemId, categories]);
 
-    // update the Menuscan table when page is fired up
     useEffect(() => {
-        const sessionId = sessionStorage.getItem("scanify_session") ?? crypto.randomUUID();
-        sessionStorage.setItem("scanify_session", sessionId);
-
         fetch("/api/menu/track", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -85,7 +81,7 @@ export default function MenuPageClient({
                 event_type: "page_view",
                 qr_code_id: qrCodeId,
                 metadata: { referrer: document.referrer, ua: navigator.userAgent },
-                session_id: sessionId,
+
             }),
         }).catch(() => {/* fire and forget */ });
     }, [hotel.id, qrCodeId]);
