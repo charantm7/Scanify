@@ -45,7 +45,6 @@ function OpenChip({ isOpen }: { isOpen: boolean | null }) {
     );
 }
 
-// ── Logo ──────────────────────────────────────────────────────────────────────
 function HotelLogo({ hotel }: { hotel: DBHotel }) {
     const [err, setErr] = useState(false);
     return (
@@ -68,7 +67,7 @@ function HotelLogo({ hotel }: { hotel: DBHotel }) {
                 />
             ) : (
                 <span
-                    className="font-bold text-2xl select-none"
+                    className="font-bold px-5 py-3 text-2xl select-none"
                     style={{ color: "var(--color-accent)", fontFamily: "var(--font-family)" }}
                 >
                     {hotel.name.charAt(0).toUpperCase()}
@@ -78,10 +77,9 @@ function HotelLogo({ hotel }: { hotel: DBHotel }) {
     );
 }
 
-// ── Cover image with overlaid gradient ───────────────────────────────────────
 function CoverImage({ url, name }: { url: string; name: string }) {
     return (
-        <div className="relative w-full h-48 sm:h-56 overflow-hidden">
+        <div className="relative w-full" style={{ height: "180px" }}>
             <Image
                 src={url}
                 alt={`${name} cover`}
@@ -90,18 +88,11 @@ function CoverImage({ url, name }: { url: string; name: string }) {
                 className="object-cover"
                 priority
             />
-            {/* Multi-stop scrim: dark at top-edges for legibility, fades to bg colour at bottom */}
             <div
-                className="absolute inset-0"
+                className="absolute inset-x-0 bottom-0"
                 style={{
-                    background: `
-                        linear-gradient(
-                            to bottom,
-                            rgba(0,0,0,0.15) 0%,
-                            rgba(0,0,0,0.02) 40%,
-                            var(--color-bg) 100%
-                        )
-                    `,
+                    height: "72px",
+                    background: "linear-gradient(to bottom, transparent 0%, var(--bg) 100%)",
                 }}
             />
         </div>
@@ -167,7 +158,6 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
     );
 }
 
-// ── Main header ───────────────────────────────────────────────────────────────
 interface RestaurantHeaderProps {
     hotel: DBHotel;
     customization: DBMenuCustomization;
@@ -191,27 +181,24 @@ export function RestaurantHeader({
             className="border-b"
             style={{ borderColor: "var(--color-border)", background: "var(--color-bg)" }}
         >
-            {/* ── Cover photo ────────────────────────────────────────────── */}
+
             {hasCover && <CoverImage url={hotel.cover_image_url!} name={hotel.name} />}
 
-            {/* ── Identity block ─────────────────────────────────────────── */}
             <div className="max-w-[680px] mx-auto px-5">
 
-                {/* Logo row — overlaps cover by pulling up with -mt when cover exists */}
-                <div className={`flex items-end gap-4 ${hasCover ? "-mt-9" : "pt-6"} mb-3`}>
+                <div className={`flex w-full gap-4 pt-5 mb-3`}>
                     {customization.show_logo && <HotelLogo hotel={hotel} />}
 
-                    {/* Name + open status live beside the logo so they're anchored together */}
                     <div className="flex-1 min-w-0 pb-1">
                         <div className="flex items-center gap-2 mb-1">
                             <OpenChip isOpen={hotel.is_open} />
                             {hotel.open_time && hotel.close_time && (
                                 <span
-                                    className="text-[10px] flex items-center gap-0.5"
+                                    className="text-[10px] flex items-center gap-1.5"
                                     style={{ color: "var(--color-muted)" }}
                                 >
                                     <Clock size={9} />
-                                    {hotel.open_time}–{hotel.close_time}
+                                    {hotel.open_time} – {hotel.close_time}
                                 </span>
                             )}
                         </div>
@@ -228,10 +215,8 @@ export function RestaurantHeader({
                     </div>
                 </div>
 
-                {/* ── Meta strip ─────────────────────────────────────────── */}
-                <div className="space-y-2.5 pb-5">
+                <div className="space-y-3 ">
 
-                    {/* Description */}
                     {hotel.description && (
                         <p
                             className="text-sm leading-relaxed"
@@ -241,7 +226,6 @@ export function RestaurantHeader({
                         </p>
                     )}
 
-                    {/* Rating + cuisine tags on one line */}
                     {(showRating || (hotel.cuisine_type && hotel.cuisine_type.length > 0)) && (
                         <div className="flex items-center flex-wrap gap-2">
                             {showRating && (
@@ -264,7 +248,6 @@ export function RestaurantHeader({
                                 </div>
                             )}
 
-                            {/* Separator dot between rating and cuisine tags */}
                             {showRating && hotel.cuisine_type && hotel.cuisine_type.length > 0 && (
                                 <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: "var(--color-border)" }} />
                             )}
@@ -272,8 +255,8 @@ export function RestaurantHeader({
                             {hotel.cuisine_type?.map((c) => (
                                 <span
                                     key={c}
-                                    className="text-[11px] font-semibold"
-                                    style={{ color: "var(--color-muted)" }}
+                                    className="text-[11px]  border px-1.5 py-1 rounded-md font-semibold"
+                                    style={{ color: "var(--color-accent)", background: "rgba(245,158,11,0.07)", borderColor: "rgba(245,158,11,0.25)", }}
                                 >
                                     {c}
                                 </span>
@@ -281,9 +264,8 @@ export function RestaurantHeader({
                         </div>
                     )}
 
-                    {/* Address / phone / website row */}
                     {customization.show_address && (hotel.address || hotel.phone || hotel.website) && (
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                        <div className="flex flex-wrap items-center gap-3 gap-y-1.5">
                             {hotel.address && (
                                 <a
                                     href={
@@ -327,9 +309,8 @@ export function RestaurantHeader({
                         </div>
                     )}
 
-                    {/* ── Divider before search ───────────────────────────── */}
                     {customization.show_search && (
-                        <div className="pt-1">
+                        <div className="pt-1 pb-4">
                             <SearchBar value={searchQuery} onChange={onSearchChange} />
                         </div>
                     )}
