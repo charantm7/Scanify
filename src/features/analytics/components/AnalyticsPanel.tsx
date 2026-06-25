@@ -91,6 +91,7 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
   const { stats, loading, error, canViewBasicAnalytics, refetch } =
     useAnalytics(period);
 
+
   if (!canViewBasicAnalytics || !stats) {
     return (
       <div className="space-y-5">

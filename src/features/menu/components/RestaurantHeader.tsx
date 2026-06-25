@@ -176,6 +176,7 @@ export function RestaurantHeader({
     const reviewCount = hotel.review_count ?? 0;
     const showRating = customization.show_ratings && rating > 0;
 
+
     return (
         <header
             className="border-b"

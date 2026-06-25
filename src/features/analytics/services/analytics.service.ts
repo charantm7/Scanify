@@ -2,6 +2,7 @@
 
 import type { MenuScanRow, OrderRow, OrderItemsRow } from '../../../types/supabase';
 import { AnalyticsPeriod, DOW_LABELS } from '../constants';
+import { MenuScansWithItem } from '../queries/analytics.query';
 
 import {
     AnalyticsStats,
@@ -57,7 +58,7 @@ export function hourLabel(h: number): string {
 
 // ── Basic derivations ─────────────────────────────────────────────────────────
 
-export function buildDayStats(scans: MenuScanRow[], days: number): DayStat[] {
+export function buildDayStats(scans: MenuScansWithItem[], days: number): DayStat[] {
     const buckets = new Map<string, number>();
     for (let i = days - 1; i >= 0; i--) {
         const d = new Date();
@@ -75,11 +76,12 @@ export function buildDayStats(scans: MenuScanRow[], days: number): DayStat[] {
 }
 
 
-export function buildTopItems(scans: MenuScanRow[], orderItems: OrderItemsRow[] = []): TopItem[] {
+export function buildTopItems(scans: MenuScansWithItem[], orderItems: OrderItemsRow[] = []): TopItem[] {
     const views = new Map<string, { name: string; count: number }>();
     for (const s of scans) {
-        if (s.event_type !== 'item_view' || !s.item_id) continue;
-        const name = (s.metadata as Record<string, string>)?.item_name ?? 'Unknown';
+        console.log(s)
+        if (s.event_type !== 'item_modal_open' || !s.item_id) continue;
+        const name = s.item.name ?? 'Unknown';
         const e = views.get(s.item_id);
         if (e) e.count++;
         else views.set(s.item_id, { name, count: 1 });
@@ -109,7 +111,7 @@ export function buildTopItems(scans: MenuScanRow[], orderItems: OrderItemsRow[] 
 
 // ── Advanced derivations ──────────────────────────────────────────────────────
 
-export function buildPeakHours(scans: MenuScanRow[]): HourStat[] {
+export function buildPeakHours(scans: MenuScansWithItem[]): HourStat[] {
     const buckets = Array.from({ length: 24 }, (_, h) => ({
         hour: h,
         label: hourLabel(h),
@@ -121,7 +123,7 @@ export function buildPeakHours(scans: MenuScanRow[]): HourStat[] {
     return buckets;
 }
 
-export function buildPeakDays(scans: MenuScanRow[]): DayOfWeekStat[] {
+export function buildPeakDays(scans: MenuScansWithItem[]): DayOfWeekStat[] {
     const buckets = DOW_LABELS.map(label => ({ label, value: 0 }));
     for (const s of scans) {
         buckets[new Date(s.scanned_at).getDay()].value++;
@@ -129,7 +131,7 @@ export function buildPeakDays(scans: MenuScanRow[]): DayOfWeekStat[] {
     return buckets;
 }
 
-export function buildQrBreakdown(scans: MenuScanRow[]): QrStat[] {
+export function buildQrBreakdown(scans: MenuScansWithItem[]): QrStat[] {
     const counts = new Map<string, { label: string; scans: number }>();
     const qrScans = scans.filter(s => s.event_type === 'qr_scan' && s.qr_code_id);
     const total = qrScans.length || 1;
@@ -137,7 +139,7 @@ export function buildQrBreakdown(scans: MenuScanRow[]): QrStat[] {
 
     for (const s of qrScans) {
         const id = s.qr_code_id!;
-        const label = (s.metadata as Record<string, string>)?.label ?? 'Unknown QR';
+        const label = s.qr.label ?? 'Unknown QR';
         const e = counts.get(id);
         if (e) e.scans++;
         else counts.set(id, { label, scans: 1 });
@@ -153,10 +155,10 @@ export function buildQrBreakdown(scans: MenuScanRow[]): QrStat[] {
         .sort((a, b) => b.scans - a.scans);
 }
 
-export function buildFunnel(scans: MenuScanRow[]): FunnelStep[] {
+export function buildFunnel(scans: MenuScansWithItem[]): FunnelStep[] {
     const s = scans.filter(x => x.event_type === 'qr_scan').length;
-    const m = scans.filter(x => x.event_type === 'menu_view').length;
-    const i = scans.filter(x => x.event_type === 'item_view').length;
+    const m = scans.filter(x => x.event_type === 'page_view').length;
+    const i = scans.filter(x => x.event_type === 'item_modal_open').length;
     const steps = [
         { label: 'QR Scanned', value: s },
         { label: 'Menu Opened', value: m },
@@ -210,14 +212,14 @@ export function buildOrderStats(orders: OrderRow[], days: number): OrderStat {
 }
 
 export function buildComparison(
-    current: MenuScanRow[],
-    previous: MenuScanRow[],
+    current: MenuScansWithItem[],
+    previous: MenuScansWithItem[],
 ): PeriodComparison {
-    const count = (arr: MenuScanRow[], type: string) =>
+    const count = (arr: MenuScansWithItem[], type: string) =>
         arr.filter(s => s.event_type === type).length;
     const cs = count(current, 'qr_scan'), ps = count(previous, 'qr_scan');
-    const cm = count(current, 'menu_view'), pm = count(previous, 'menu_view');
-    const ci = count(current, 'item_view'), pi = count(previous, 'item_view');
+    const cm = count(current, 'page_view'), pm = count(previous, 'menu_view');
+    const ci = count(current, 'item_modal_open'), pi = count(previous, 'item_view');
     return {
         scans: { current: cs, previous: ps, changePct: pctChange(cs, ps) },
         menuViews: { current: cm, previous: pm, changePct: pctChange(cm, pm) },

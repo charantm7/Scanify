@@ -13,6 +13,7 @@ import { AppProvider } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useApp } from '../../context/AppContext';
 import BillingPanel from './panels/BillingPanel';
+import CustomizationPanel from '../../features/customization/components/CustomizationPanel';
 
 function ThemeIcon({ dark }) {
     return dark ? (
@@ -63,6 +64,7 @@ function Panel({ id, onNavigate }) {
         case 'analytics': return <AnalyticsPanel onNavigate={onNavigate} />;
         case 'settings': return <SettingsPanel />;
         case 'billing': return <BillingPanel />;
+        case 'customization': return <CustomizationPanel />
         default: return (
             <div className="text-center py-20 text-theme2">
                 <p className="font-syne font-bold text-xl text-theme mb-2">Coming Soon</p>
@@ -134,7 +136,7 @@ function ConsoleShellInner() {
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 p-5 sm:p-6 max-w-5xl w-full mx-auto">
+                <main className="flex-1 p-5 sm:p-6 max-w-6xl w-full mx-auto">
                     <Panel id={activeTab} onNavigate={setActiveTab} />
                 </main>
             </div>

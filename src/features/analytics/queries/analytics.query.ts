@@ -1,15 +1,22 @@
 import { TypedSupabaseClient } from "../../../types/supabase";
-import { MenuScanRow } from "../../../types/supabase";
+import { MenuScanRow, MenuItemRow, QrCodeRow } from "../../../types/supabase";
+
+
+export interface MenuScansWithItem extends MenuScanRow {
+    item: MenuItemRow
+    qr: QrCodeRow
+}
+
 
 // Menu scan read
 export async function getMenuScans(
     supabase: TypedSupabaseClient,
     hotelId: string,
     since: Date
-): Promise<MenuScanRow[]> {
+): Promise<MenuScansWithItem[]> {
     const { data, error } = await supabase
         .from('menu_scans')
-        .select('*')
+        .select(`*, item:menu_items(*), qr:qr_codes(*)`)
         .eq('hotel_id', hotelId)
         .gte('scanned_at', since.toISOString())
         .order('scanned_at', { ascending: false })

@@ -181,11 +181,10 @@ function ModalContent({
                 style={{
                     position: "fixed",
                     bottom: 0,
-                    left: "27%",
+                    left: 0,
                     right: 0,
                     zIndex: 9999,
                     maxHeight: "92dvh",
-                    maxWidth: "680px",
                     overflowY: "auto",
                     borderRadius: "24px 24px 0 0",
                     background: "var(--color-surface)",

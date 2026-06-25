@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../../../context/AppContext';
 import type { MenuScanRow, OrderRow, OrderItemsRow } from '../../../types/supabase';
-import { getMenuScans, getPrevMenuScan } from '../queries/analytics.query';
+import { getMenuScans, getPrevMenuScan, MenuScansWithItem } from '../queries/analytics.query';
 import { getOrderItems, getOrders } from '../../../lib/queries/orders';
 import { AnalyticsPeriod } from '../constants';
 
@@ -27,6 +27,7 @@ import {
     isAdvancedStats
 } from '../services/analytics.service';
 import { buildBasicStats } from '../utils/build-basic-stats';
+import { fetchItemsQuery } from '../../menu_builder/queries/menu.queries';
 
 
 
@@ -65,13 +66,13 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
             // current scans
             const scans = await getMenuScans(supabase, hotel.id, since);
 
-            const currentScans: MenuScanRow[] = scans ?? [];
+            const currentScans: MenuScansWithItem[] = scans ?? [];
 
             // Basic plan analytics
             const basicStats: BasicAnalyticsStats = {
                 totalScans: currentScans.filter(s => s.event_type === 'qr_scan').length,
-                totalMenuViews: currentScans.filter(s => s.event_type === 'menu_view').length,
-                totalItemViews: currentScans.filter(s => s.event_type === 'item_view').length,
+                totalMenuViews: currentScans.filter(s => s.event_type === 'page_view').length,
+                totalItemViews: currentScans.filter(s => s.event_type === 'item_modal_open').length,
                 uniqueDays: new Set(currentScans.map(s => s.scanned_at.slice(0, 10))).size,
                 scansByDay: buildDayStats(currentScans, days),
                 topItems: buildTopItems(currentScans),
@@ -93,7 +94,7 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
                     : Promise.resolve({ data: [], error: null }),
             ]);
 
-            const previousScans: MenuScanRow[] = prevRes as MenuScanRow[];
+            const previousScans: MenuScansWithItem[] = prevRes as MenuScansWithItem[];
             const orders: OrderRow[] = ordersRes as OrderRow[];
 
             // fetch order items

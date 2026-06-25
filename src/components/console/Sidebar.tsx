@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import {
   LayoutDashboard, QrCode, BarChart2,
-  Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt
+  Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt, SlidersHorizontal
 } from 'lucide-react';
 import { getSupabaseClient } from '../../lib/supabase/client';
 import { Badge } from '../shared/ui';
@@ -37,6 +37,7 @@ export const NAV_ITEMS = [
   { id: 'qr-codes', label: 'QR Codes', icon: QrCode },
   { id: 'analytics', label: 'Analytics', icon: BarChart2 },
   { id: 'billing', label: 'Subscription', icon: Receipt },
+  { id: 'customization', label: 'Customization', icon: SlidersHorizontal },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -47,6 +48,7 @@ function PlanBadge({ plan }) {
   if (plan === 'growth') return <Badge variant="success">Growth</Badge>;
   if (plan === 'starter') return <Badge>Starter</Badge>;
   if (plan === 'basic') return <Badge>Basic</Badge>;
+
   return <Badge variant="warning">Trial</Badge>;
 }
 

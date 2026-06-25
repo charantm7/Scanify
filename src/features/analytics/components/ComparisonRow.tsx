@@ -10,14 +10,14 @@ export default function ComparisonRow({ data }: { data: PeriodComparison }) {
     ];
 
     return (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="flex justify-between items-center gap-3">
             {items.map(item => {
                 const up = item.changePct > 0;
                 const down = item.changePct < 0;
                 return (
                     <div
                         key={item.label}
-                        className="rounded-xl p-3 text-center"
+                        className="rounded-xl p-3 text-center w-full"
                         style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
                     >
                         <p className="text-xs mb-1" style={{ color: 'var(--muted-foreground)' }}>

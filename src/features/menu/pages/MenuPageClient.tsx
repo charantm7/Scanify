@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,7 +31,9 @@ export default function MenuPageClient({
     qrCodeId,
 }: MenuPageClientProps) {
     const { hotel, categories, customization } = data;
+    const [accesstype, setAccesstype] = useState("page_view")
 
+    if (qrCodeId) setAccesstype('qr_scan');
 
     const qc = useQueryClient();
     useEffect(() => {
@@ -78,7 +80,7 @@ export default function MenuPageClient({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 hotel_id: hotel.id,
-                event_type: "page_view",
+                event_type: accesstype,
                 qr_code_id: qrCodeId,
                 metadata: { referrer: document.referrer, ua: navigator.userAgent },
 
@@ -104,7 +106,7 @@ export default function MenuPageClient({
         },
         [hotel.id, openItemModal]
     );
-    console.log(selectedItemId)
+
     return (
         <div
             className="min-h-screen"
@@ -134,7 +136,6 @@ export default function MenuPageClient({
                 />
             )}
 
-            {/* ── Main Content ──────────────────────────────────────────────────── */}
             <main
                 className="max-w-[680px] mx-auto px-5 pb-24 pt-7"
                 id="menu-content"
@@ -222,10 +223,9 @@ export default function MenuPageClient({
                 </AnimatePresence>
             </main>
 
-            {/* ── Footer ───────────────────────────────────────────────────────── */}
             <MenuFooter showBadge={customization.show_scanify_badge} />
 
-            {/* ── Dish Detail Modal ─────────────────────────────────────────────── */}
+
             <DishModal
                 item={selectedItem}
                 isOpen={!!selectedItemId}

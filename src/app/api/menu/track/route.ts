@@ -1,8 +1,3 @@
-// app/api/menu/track/route.ts
-// ─────────────────────────────────────────────────────────────────────────────
-// Lightweight analytics endpoint. Fire-and-forget from the client.
-// Validates input then inserts into menu_scans.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "../../../../lib/supabase/server";
