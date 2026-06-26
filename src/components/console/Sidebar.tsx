@@ -26,7 +26,7 @@ function Logo() {
         />
       </div>
       <span className="font-syne font-bold text-theme text-lg">Scanify</span>
-      <span className='font-blog text-[12px] ml-1 border border-orange-200 text-orange-700 bg-orange-100 px-2 rounded-full'>Beta</span>
+      <span className='font-blog text-[12px] ml-1 border border-orange-200 text-orange-700 bg-orange-100 px-2 rounded-full'>Bet</span>
     </div>
   );
 }
