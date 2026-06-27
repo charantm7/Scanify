@@ -1058,7 +1058,7 @@ export default function CustomizationPanel() {
                 </div>
 
                 {/* Right: live preview */}
-                <div className="hidden xl:block border-l p-5 overflow-y-auto"
+                <div className="block border-l p-5 overflow-y-auto"
                     style={{ borderColor: 'var(--border)', background: 'var(--bg3)' }}>
                     <LivePreview config={config} hotelName={hotel?.name ?? 'Your Restaurant'} />
                 </div>
