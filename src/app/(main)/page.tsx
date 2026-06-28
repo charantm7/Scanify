@@ -4,9 +4,11 @@ import Hero from "../../components/home/Hero";
 import HowItWorks from "../../components/home/HowItWorks";
 import Pricing from "../../components/home/Pricing";
 import WhySwitch from "../../components/home/WhySwitch";
+import LogoStrip from "../../components/home/LogoStrip";
 import { AppProvider } from "../../context/AppContext";
 import { createClient } from "../../lib/supabase/server";
 import { redirect } from "next/navigation";
+import CTASection from "../../components/home/CTAsection";
 
 export const metadata = {
   title: "Scanify",
@@ -34,10 +36,12 @@ function HomeInner() {
   return (
     <>
       <Hero />
+      <LogoStrip />
       <HowItWorks />
       <Benefits />
       <Pricing />
       <WhySwitch />
+      <CTASection />
       <Footer />
     </>
   )

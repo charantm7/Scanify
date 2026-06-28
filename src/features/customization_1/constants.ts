@@ -1,0 +1,128 @@
+import { PresetTheme, DBMenuCustomization } from "./types";
+import { DEFAULT_CUSTOMIZATION } from "../menu/constant";
+
+
+export const PRESET_THEMES: PresetTheme[] = [
+    {
+        id: 'ember',
+        name: 'Ember',
+        emoji: '🔥',
+        description: 'Warm terracotta — Scanify default',
+        palette: {
+            primary_color: '#C8622A',
+            background_color: '#FAF7F2',
+            surface_color: '#FFFFFF',
+            text_color: '#1C1008',
+            accent_color: '#C8622A',
+            muted_color: '#A08870',
+        },
+        typography: { font_family: 'inter', border_radius: 12, shadow_intensity: 'soft' },
+    },
+    {
+        id: 'midnight',
+        name: 'Midnight',
+        emoji: '🌑',
+        description: 'Ink black with gold luxury accents',
+        palette: {
+            primary_color: '#B8972A',
+            background_color: '#0E0E0E',
+            surface_color: '#1A1A1A',
+            text_color: '#F5F0E8',
+            accent_color: '#D4AF37',
+            muted_color: '#6B6B6B',
+        },
+        typography: { font_family: 'syne', border_radius: 8, shadow_intensity: 'strong' },
+    },
+    {
+        id: 'sage',
+        name: 'Sage Garden',
+        emoji: '🌿',
+        description: 'Earthy greens, perfect for farm-to-table',
+        palette: {
+            primary_color: '#4A7C59',
+            background_color: '#F4F7F2',
+            surface_color: '#FFFFFF',
+            text_color: '#1A2B1E',
+            accent_color: '#4A7C59',
+            muted_color: '#7A9680',
+        },
+        typography: { font_family: 'dm_sans', border_radius: 14, shadow_intensity: 'soft' },
+    },
+    {
+        id: 'ocean',
+        name: 'Ocean Blue',
+        emoji: '🌊',
+        description: 'Cool Mediterranean coastal vibes',
+        palette: {
+            primary_color: '#1E6FA8',
+            background_color: '#F0F6FC',
+            surface_color: '#FFFFFF',
+            text_color: '#0D2137',
+            accent_color: '#1E6FA8',
+            muted_color: '#5E8FAA',
+        },
+        typography: { font_family: 'instrument_sans', border_radius: 16, shadow_intensity: 'soft' },
+    },
+    {
+        id: 'rose',
+        name: 'Rose Petal',
+        emoji: '🌸',
+        description: 'Soft blush tones for cafés & bakeries',
+        palette: {
+            primary_color: '#C2557A',
+            background_color: '#FDF5F7',
+            surface_color: '#FFFFFF',
+            text_color: '#2D0A14',
+            accent_color: '#C2557A',
+            muted_color: '#A07080',
+        },
+        typography: { font_family: 'instrument_sans', border_radius: 20, shadow_intensity: 'soft' },
+    },
+    {
+        id: 'slate',
+        name: 'Slate Pro',
+        emoji: '🪨',
+        description: 'Minimal grey — works for any cuisine',
+        palette: {
+            primary_color: '#3B4A6B',
+            background_color: '#F8F9FC',
+            surface_color: '#FFFFFF',
+            text_color: '#1A1F2E',
+            accent_color: '#3B4A6B',
+            muted_color: '#6B7280',
+        },
+        typography: { font_family: 'dm_sans', border_radius: 10, shadow_intensity: 'none' },
+    },
+    {
+        id: 'spice',
+        name: 'Saffron Spice',
+        emoji: '🌶️',
+        description: 'Bold Indian spice market palette',
+        palette: {
+            primary_color: '#D97706',
+            background_color: '#FFFBF0',
+            surface_color: '#FFFFFF',
+            text_color: '#1C1008',
+            accent_color: '#D97706',
+            muted_color: '#92680A',
+        },
+        typography: { font_family: 'syne', border_radius: 12, shadow_intensity: 'medium' },
+    },
+    {
+        id: 'charcoal',
+        name: 'Charcoal',
+        emoji: '🖤',
+        description: 'High contrast monochrome editorial',
+        palette: {
+            primary_color: '#111111',
+            background_color: '#FAFAFA',
+            surface_color: '#FFFFFF',
+            text_color: '#111111',
+            accent_color: '#111111',
+            muted_color: '#737373',
+        },
+        typography: { font_family: 'inter', border_radius: 4, shadow_intensity: 'none' },
+    },
+];
+
+export type { DEFAULT_CUSTOMIZATION };

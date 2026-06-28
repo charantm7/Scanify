@@ -41,6 +41,7 @@ export const FONT_STACKS: Record<FontFamily, string> = {
     outfit: "'Outfit', sans-serif",
     playfair: "'Playfair Display', serif",
     dm_sans: "'DM Sans', sans-serif",
+    instrument_sans: "'Instrument Sans', sans-serif",
 };
 
 export const SHADOW_MAP: Record<ShadowIntensity, { sm: string; md: string; lg: string }> = {

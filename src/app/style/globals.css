@@ -33,8 +33,6 @@
   --radial: rgba(0, 0, 0, 0.04);
   --input: #ffffff79;
   --hover: rgba(0, 0, 0, 0.057);
-  --muted: 240 4.8% 95.9%;
-  --a: #b98d0a;
 
   /* utils theme */
   --utils-text: #000000;
@@ -72,7 +70,6 @@
   --radial: rgba(255, 255, 255, 0.03);
   --input: #ffffff33;
   --hover: #ffffff1c;
-  --muted: 240 4.8% 95.9%;
 
   /* utils theme */
   --utils-text: #ffffff;
@@ -84,6 +81,7 @@
   --divider: #1f1f1f;
 
 }
+
 
 html {
   scroll-behavior: smooth;

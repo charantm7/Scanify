@@ -9,9 +9,9 @@ import type { DietaryType, ItemTag, SpiceLevel } from "../menu_builder/types";
 export type { DietaryType as DietaryFlag, ItemTag, SpiceLevel };
 
 // ── Customization enums ────────────────────────────────────────────────────────
-export type MenuLayout = "card" | "list" | "grid";
+export type MenuLayout = "card" | "list" | "compact";
 export type CategoryStyle = "pill" | "underline" | "card";
-export type FontFamily = "inter" | "poppins" | "syne" | "outfit" | "playfair" | "dm_sans";
+export type FontFamily = "inter" | "poppins" | "syne" | "outfit" | "playfair" | "dm_sans" | "instrument_sans";
 export type ShadowIntensity = "none" | "soft" | "medium" | "strong";
 
 // ── hotels row ─────────────────────────────────────────────────────────────────

@@ -85,7 +85,7 @@ export function MenuHeader({
           {search && (
             <button
               onClick={() => onSearchChange('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center transition"
+              className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center transition"
               style={{ background: 'var(--border)', color: 'var(--text2)' }}
             >
               <X size={11} />

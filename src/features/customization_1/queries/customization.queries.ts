@@ -1,8 +1,5 @@
-// features/customization/queries/customization.queries.ts
-// Typed Supabase query wrappers — no business logic here.
-
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DBMenuCustomization } from '../types';
+import type { DBMenuCustomization } from '../../menu/types';
 
 export async function fetchCustomization(
     supabase: SupabaseClient,

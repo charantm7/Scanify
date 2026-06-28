@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Menu, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
-import Sidebar, { NAV_ITEMS } from './Sidebar';
+import { Menu, Loader2, AlertTriangle, RefreshCw, Search, X, Bell } from 'lucide-react';
+import Sidebar, { NAV_GROUPS } from './Sidebar';
 import DashboardPanel from './panels/DashboardPanel';
 import { MenuPanel } from '../../features/menu_builder';
 import QRPanel from './panels/QrPanel';
@@ -90,13 +90,14 @@ function ConsoleShellInner() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [error, setError] = useState(null)
+    const [search, setSearch] = useState('');
 
     const { theme, toggleTheme } = useTheme();
 
 
     if (error) return <ConsoleError error={error} />;
 
-    const activeLabel = NAV_ITEMS.find((n) => n.id === activeTab)?.label ?? '';
+    const activeLabel = NAV_GROUPS.flatMap(group => group.items).find(item => item.id === activeTab)?.label ?? "";
 
     return (
         <div className="min-h-screen grid-bg flex">
@@ -125,21 +126,71 @@ function ConsoleShellInner() {
                         </button>
                         <h2 className="font-syne font-bold text-theme text-lg">{activeLabel}</h2>
                     </div>
-                    <button
-                        onClick={toggleTheme}
-                        className="w-9 h-9 rounded-xl border text-theme2 flex items-center justify-center hover:bg-theme3 transition-all"
-                        style={{ borderColor: 'var(--border)' }}
-                        aria-label="Toggle theme"
-                    >
-                        <ThemeIcon dark={theme === 'dark'} />
-                    </button>
+
+
+
+                    <div className="relative w-[50%]">
+                        <Search
+                            size={14}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                            style={{ color: 'var(--text2)' }}
+                        />
+                        <input
+                            value={search}
+                            onChange={() => { }}
+                            placeholder="Search anything…"
+                            className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm outline-none transition-all"
+                            style={{
+                                border: '1.5px solid var(--border2)',
+                                background: 'var(--card)',
+                                color: 'var(--text)',
+                                fontSize: '13px',
+                            }}
+                            onFocus={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--accent)';
+                                e.currentTarget.style.boxShadow = '0 0 0 3px var(--accentlt)';
+                            }}
+                            onBlur={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--border)';
+                                e.currentTarget.style.boxShadow = 'none';
+                            }}
+                        />
+                        {search && (
+                            <button
+                                onClick={() => { }}
+                                className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center transition"
+                                style={{ background: 'var(--border)', color: 'var(--text2)' }}
+                            >
+                                <X size={11} />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className='flex gap-6'>
+
+                        <button className="w-9 h-9 rounded-xl border text-theme2 flex items-center justify-center hover:bg-theme3 transition-all"
+                            style={{ borderColor: 'var(--border)' }}>
+                            <Bell size={16} />
+                        </button>
+
+                        <button
+                            onClick={toggleTheme}
+                            className="w-9 h-9 rounded-xl border text-theme2 flex items-center justify-center hover:bg-theme3 transition-all"
+                            style={{ borderColor: 'var(--border)' }}
+                            aria-label="Toggle theme"
+                        >
+                            <ThemeIcon dark={theme === 'dark'} />
+                        </button>
+
+                    </div>
+
                 </header>
 
                 {/* Page content */}
                 <main className="flex-1 p-5 sm:p-6 max-w-6xl w-full mx-auto">
                     <Panel id={activeTab} onNavigate={setActiveTab} />
                 </main>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
