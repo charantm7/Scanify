@@ -1,9 +1,3 @@
-// app/menu/[slug]/page.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Server Component: runs at request time, fetches all data from Supabase,
-// injects theme CSS variables server-side (no FOUC), passes typed props to
-// the client component.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -14,8 +8,7 @@ import { buildThemeTokens, buildThemeStyleTag } from "../../../features/menu/uti
 import MenuPageClient from "../../../features/menu/pages/MenuPageClient";
 import { MenuPageSkeleton } from "../../../features/menu/components/MenuSkeleton";
 
-// ── Static generation ─────────────────────────────────────────────────────────
-// Pages are ISR: revalidate every 60 s so menu changes propagate quickly.
+
 export const revalidate = 60;
 
 interface PageProps {
@@ -23,7 +16,6 @@ interface PageProps {
     searchParams: Promise<{ qr?: string }>;
 }
 
-// ── Dynamic metadata ──────────────────────────────────────────────────────────
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { slug } = await params;
 
@@ -43,7 +35,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
 }
 
-// ── Page component ────────────────────────────────────────────────────────────
 export default async function MenuPage({ params, searchParams }: PageProps) {
     const { slug } = await params;
     const { qr } = await searchParams;
@@ -55,16 +46,11 @@ export default async function MenuPage({ params, searchParams }: PageProps) {
         notFound();
     }
 
-    // Build theme tokens on the server so variables are available immediately —
-    // prevents the flash of unstyled content that would occur if the client
-    // had to wait for JS hydration before applying colours.
     const themeTokens = buildThemeTokens(data.customization);
     const themeStyle = buildThemeStyleTag(themeTokens);
 
     return (
         <>
-            {/* Server-injected theme tokens */}
-            {/* eslint-disable-next-line react/no-danger */}
             <div dangerouslySetInnerHTML={{ __html: themeStyle }} />
 
             <Suspense fallback={<MenuPageSkeleton />}>

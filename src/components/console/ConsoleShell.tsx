@@ -12,8 +12,8 @@ import { getSupabaseClient } from '../../lib/supabase/client';
 import { AppProvider } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useApp } from '../../context/AppContext';
-import BillingPanel from './panels/BillingPanel';
-import CustomizationPanel from '../../features/customization_1/components/CustomizationPanel';
+import BillingPanel from '../../features/billing/page/BillingPanel';
+import CustomizationPanel from '../../features/customization/components/CustomizationPanel';
 
 function ThemeIcon({ dark }) {
     return dark ? (
