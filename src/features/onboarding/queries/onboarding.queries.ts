@@ -29,6 +29,7 @@ export interface SubscriptionRecord {
     status: SubscriptionStatus;
     hotel_id: string;
     trial_ends_at: string;
+    trial_used: boolean;
 }
 
 export async function getSession(supabase: SupabaseClient): Promise<{

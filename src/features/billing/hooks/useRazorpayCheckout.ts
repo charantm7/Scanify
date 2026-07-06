@@ -3,6 +3,7 @@
 
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '../../../hooks/useToast';
 
 declare global {
   interface Window {
@@ -31,6 +32,7 @@ export function useRazorpayCheckout() {
   const [loading, setLoading] = useState<PlanKey | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const toast = useToast();
 
   const startCheckout = useCallback(
     async (plan: PlanKey, billingCycle: BillingCycle, startTrial = false) => {
@@ -50,14 +52,18 @@ export function useRazorpayCheckout() {
           throw new Error(orderData.error || 'Could not start checkout');
         }
 
-        // Trial path: no payment needed right now.
-        if (orderData.trialStarted) {
-          router.push('/console?trial=started');
-          return;
-        }
-
         // Downgrade path: scheduled for next renewal, nothing to pay now.
         if (orderData.downgradeScheduled) {
+          const effectiveDate = new Date(orderData.effectiveAt);
+
+          toast.success(
+            'Downgrade Scheduled',
+            `New Plan: ${orderData.newPlan},
+              Effective From: ${effectiveDate.toLocaleString('en-IN', {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            })}`
+          );
           router.push(
             `/console?downgradeScheduled=true&newPlan=${orderData.newPlan}&effectiveAt=${encodeURIComponent(
               orderData.effectiveAt

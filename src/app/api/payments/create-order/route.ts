@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { razorpay } from '../../../../features/billing//lib/razorpay';
 import { supabaseAdmin } from '../../../../features/billing//lib/supabase-admin';
 import { getAuthUser } from '../../../../features/billing//lib/get-auth-user';
-import { isValidPlan, isValidCycle, getPlanPricing, comparePlans, calculateProratedUpgrade, PlanKey, BillingCycle } from '../../../../features/billing//lib/plans';
+import { isValidPlan, isValidCycle, getPlanPricing, comparePlans, calculateProratedUpgrade, PlanKey, BillingCycle, compareSubscription } from '../../../../features/billing/lib/plans';
+import { determineSubscriptionAction, SubscriptionAction } from '../../../../features/billing/subscriptions/subscription.service';
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,61 +51,22 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     const now = new Date();
-    const isFirstEverPurchase = !existingSub || !existingSub.trial_used;
 
-    // Trial logic: only the very first purchase for this hotel gets the
-    // 4-day delayed-charge trial. Upgrades/renewals/downgrades always
-    // charge immediately.
-    const wantsTrial = Boolean(body?.startTrial) && isFirstEverPurchase;
 
-    if (wantsTrial) {
-      // No Razorpay order needed yet — just open the trial window and
-      // record the *intended* plan as pending. A scheduled job (or the
-      // user returning after trial) triggers the real charge later via
-      // this same endpoint with startTrial=false.
-      const trialEnds = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
+    const decision = await determineSubscriptionAction(existingSub, plan as PlanKey, billingCycle as BillingCycle)
 
-      const { error: upsertErr } = await supabaseAdmin
-        .from('subscriptions')
-        .upsert(
+    switch (decision.action) {
+      case 'same':
+        return NextResponse.json(
           {
-            hotel_id: hotel.id,
-            user_id: user.id,
-            plan: plan,
-            billing_cycle: billingCycle,
-            status: 'trialing',
-            trial_ends_at: trialEnds.toISOString(),
-            trial_used: true,
-            pending_plan: plan,
-            pending_billing_cycle: billingCycle,
-            payment_provider: 'razorpay',
+            error: "You are already subscribed to this plan."
           },
-          { onConflict: 'hotel_id' }
+          {
+            status: 400
+          }
         );
 
-      if (upsertErr) {
-        console.error('Trial upsert failed:', upsertErr);
-        return NextResponse.json({ error: 'Could not start trial' }, { status: 500 });
-      }
-
-      await supabaseAdmin
-        .from('users')
-        .update({ plan: plan })
-        .eq('id', user.id);
-
-      return NextResponse.json({ trialStarted: true, trialEndsAt: trialEnds.toISOString() });
-    }
-
-    // ---- Plan-change branches (only relevant if there's an active sub) ----
-    const hasActiveSub = existingSub && existingSub.status === 'active';
-
-    if (hasActiveSub) {
-      const direction = comparePlans(existingSub.plan as PlanKey, plan as PlanKey);
-
-      // DOWNGRADE: deferred. No charge now. Record intent, apply at
-      // current_period_end via the cron job. User keeps current plan
-      // and access until then.
-      if (direction === 'downgrade') {
+      case 'downgrade':
         const { error: downgradeErr } = await supabaseAdmin
           .from('subscriptions')
           .update({
@@ -124,16 +86,14 @@ export async function POST(req: NextRequest) {
           effectiveAt: existingSub.current_period_end,
           newPlan: plan,
         });
-      }
 
-      // UPGRADE: charge a prorated difference now, keep the same
-      // current_period_end (we're not extending the cycle, just
-      // changing which plan it's billed at).
-      if (direction === 'upgrade') {
+      case 'upgrade':
+
         const periodEnd = new Date(existingSub.current_period_end);
         const proration = calculateProratedUpgrade(
           existingSub.plan as PlanKey,
           plan as PlanKey,
+          existingSub.billing_cycle as BillingCycle,
           billingCycle as BillingCycle,
           periodEnd,
           now
@@ -146,7 +106,7 @@ export async function POST(req: NextRequest) {
           const receipt = `upg_${hotel.id.slice(0, 8)}_${Date.now()}`;
 
           const order = await razorpay.orders.create({
-            amount: proration.amountPaise,
+            amount: proration.payablePaise,
             currency: 'INR',
             receipt,
             notes: {
@@ -166,7 +126,7 @@ export async function POST(req: NextRequest) {
             subscription_id: existingSub.id,
             plan,
             billing_cycle: billingCycle,
-            amount_paise: proration.amountPaise,
+            amount_paise: proration.payablePaise,
             currency: 'INR',
             razorpay_order_id: order.id,
             status: 'created',
@@ -194,7 +154,7 @@ export async function POST(req: NextRequest) {
 
           return NextResponse.json({
             orderId: order.id,
-            amount: proration.amountPaise,
+            amount: proration.payablePaise,
             currency: 'INR',
             keyId: process.env.RAZORPAY_KEY_ID,
             isProration: true,
@@ -202,69 +162,81 @@ export async function POST(req: NextRequest) {
             hotelId: hotel.id,
           });
         }
-      }
+        break;
+
+      case 'new':
+        const receipt = `sub_${hotel.id.slice(0, 8)}_${Date.now()}`;
+
+        const order = await razorpay.orders.create({
+          amount: amountPaise,
+          currency: 'INR',
+          receipt,
+          notes: {
+            hotel_id: hotel.id,
+            user_id: user.id,
+            plan,
+            billing_cycle: billingCycle,
+            is_renewal: String(Boolean(existingSub && existingSub.plan)),
+          },
+        });
+
+        const { error: paymentInsertErr } = await supabaseAdmin.from('payments').insert({
+          user_id: user.id,
+          hotel_id: hotel.id,
+          subscription_id: existingSub?.id ?? null,
+          plan,
+          billing_cycle: billingCycle,
+          amount_paise: amountPaise,
+          currency: 'INR',
+          razorpay_order_id: order.id,
+          status: 'created',
+          is_renewal: Boolean(existingSub && existingSub.status === 'active'),
+        });
+
+        if (paymentInsertErr) {
+          console.error('Payment row insert failed:', paymentInsertErr);
+          return NextResponse.json({ error: 'Could not initialize payment' }, { status: 500 });
+        }
+
+        // Mark the subscription's intent so the verify route knows what to
+        // activate once payment is confirmed, even if the user's tab closes.
+        await supabaseAdmin.from('subscriptions').upsert(
+          {
+            hotel_id: hotel.id,
+            user_id: user.id,
+            plan: existingSub?.plan ?? plan, // don't change live plan until payment verified
+            billing_cycle: existingSub?.billing_cycle ?? billingCycle,
+            status: existingSub?.status ?? 'past_due',
+            pending_plan: plan,
+            pending_billing_cycle: billingCycle,
+            payment_provider: 'razorpay',
+            provider_subscription_id: order.id,
+          },
+          { onConflict: 'hotel_id' }
+        );
+
+        return NextResponse.json({
+          orderId: order.id,
+          amount: amountPaise,
+          currency: 'INR',
+          keyId: process.env.RAZORPAY_KEY_ID,
+          durationDays,
+          hotelId: hotel.id,
+        });
+
+
+
+      default:
+        return NextResponse.json(
+          {
+            error: "Invalid subscription action"
+          },
+          {
+            status: 400
+          }
+        );
     }
 
-    // Real charge path (fresh purchase, post-expiry repurchase, or
-    // upgrade with no remaining proratable time).
-    const receipt = `sub_${hotel.id.slice(0, 8)}_${Date.now()}`;
-
-    const order = await razorpay.orders.create({
-      amount: amountPaise,
-      currency: 'INR',
-      receipt,
-      notes: {
-        hotel_id: hotel.id,
-        user_id: user.id,
-        plan,
-        billing_cycle: billingCycle,
-        is_renewal: String(Boolean(existingSub && existingSub.plan)),
-      },
-    });
-
-    const { error: paymentInsertErr } = await supabaseAdmin.from('payments').insert({
-      user_id: user.id,
-      hotel_id: hotel.id,
-      subscription_id: existingSub?.id ?? null,
-      plan,
-      billing_cycle: billingCycle,
-      amount_paise: amountPaise,
-      currency: 'INR',
-      razorpay_order_id: order.id,
-      status: 'created',
-      is_renewal: Boolean(existingSub && existingSub.status === 'active'),
-    });
-
-    if (paymentInsertErr) {
-      console.error('Payment row insert failed:', paymentInsertErr);
-      return NextResponse.json({ error: 'Could not initialize payment' }, { status: 500 });
-    }
-
-    // Mark the subscription's intent so the verify route knows what to
-    // activate once payment is confirmed, even if the user's tab closes.
-    await supabaseAdmin.from('subscriptions').upsert(
-      {
-        hotel_id: hotel.id,
-        user_id: user.id,
-        plan: existingSub?.plan ?? plan, // don't change live plan until payment verified
-        billing_cycle: existingSub?.billing_cycle ?? billingCycle,
-        status: existingSub?.status ?? 'past_due',
-        pending_plan: plan,
-        pending_billing_cycle: billingCycle,
-        payment_provider: 'razorpay',
-        provider_subscription_id: order.id,
-      },
-      { onConflict: 'hotel_id' }
-    );
-
-    return NextResponse.json({
-      orderId: order.id,
-      amount: amountPaise,
-      currency: 'INR',
-      keyId: process.env.RAZORPAY_KEY_ID,
-      durationDays,
-      hotelId: hotel.id,
-    });
   } catch (err) {
     console.error('create-order error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

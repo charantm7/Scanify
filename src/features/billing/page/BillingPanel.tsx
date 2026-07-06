@@ -5,8 +5,7 @@ import { Check, Zap, Crown, Building2, ArrowRight, AlertCircle } from 'lucide-re
 import { useApp } from '../../../context/AppContext';
 import { useRazorpayCheckout } from '../hooks/useRazorpayCheckout';
 import { AppProvider } from '../../../context/AppContext';
-
-type BillingCycle = 'monthly' | 'annual';
+import { comparePlans, PLAN_RANK, type PlanKey, type BillingCycle } from '../lib/plans';
 
 const PLAN_CARDS = [
   {
@@ -99,9 +98,15 @@ export default function BillingPanel() {
 }
 
 export function BillingPanelInner() {
-  const { planLabel, plan, isTrialing, isFreeTier, trialHoursLeft, trialDaysLeft } = useApp();
+  const { planLabel, plan, subscription, isTrialing, isFreeTier, trialHoursLeft, trialDaysLeft } = useApp();
   const { startCheckout, loading, error } = useRazorpayCheckout();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
+
+  // The billing cycle the account is actually paying/committed to right now
+  // (as opposed to the cycle toggle above, which is just what the user is
+  // browsing). Falls back to null when there's no live subscription yet
+  // (e.g. free tier before any purchase), so nothing can match it.
+  const activeCycle: BillingCycle | null = subscription?.billing_cycle ?? null;
 
   let subtitle: string;
   if (isTrialing) {
@@ -151,11 +156,23 @@ export function BillingPanelInner() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {PLAN_CARDS.map((p) => {
-          const isCurrentPlan = p.key === plan && !isTrialing && !isFreeTier;
+          // "Current Plan" only applies to the exact plan + billing cycle
+          // combination the account is actually on — Starter Monthly and
+          // Starter Annual are different commitments, so only one of them
+          // can ever be "current" at a time.
+          const isCurrentPlan =
+            p.key === plan && billingCycle === activeCycle && !isTrialing && !isFreeTier;
           const isTrialPlan = p.key === plan && isTrialing;
           const Icon = p.icon;
           const price = billingCycle === 'monthly' ? p.monthlyPrice : p.annualPrice;
           const isLoading = loading === p.key;
+
+          const current_plan = PLAN_RANK[plan];
+
+          let isHigher = false;
+
+          if ((PLAN_RANK[p.key] > current_plan && !(billingCycle === 'monthly' && activeCycle === 'annual')) || (billingCycle === 'annual' && activeCycle === 'monthly' && PLAN_RANK[p.key] >= current_plan)) isHigher = true;
+
 
           return (
             <div
@@ -241,12 +258,18 @@ export function BillingPanelInner() {
                     'Current Plan'
                   ) : isLoading ? (
                     'Processing…'
-                  ) : (
+                  ) : isHigher ? (
                     <>
-                      {isFreeTier && !plan ? 'Start 4-Day Free Trial' : `Upgrade to ${p.name}`}
+                      {`Upgrade to ${p.name}`}
                       <ArrowRight size={13} />
                     </>
-                  )}
+                  ) :
+                    (
+                      <>
+                        {`Downgrade to ${p.name}`}
+                        <ArrowRight size={13} />
+                      </>
+                    )}
                 </button>
               </div>
             </div>
@@ -263,5 +286,3 @@ export function BillingPanelInner() {
     </div>
   );
 }
-
-

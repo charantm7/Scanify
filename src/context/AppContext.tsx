@@ -129,6 +129,7 @@ export function AppProvider({ children }) {
     const trialHoursLeft = Math.ceil(trialMsLeft / 3_600_000);
     const trialDaysLeft = Math.max(isTrialing ? 1 : 0, Math.ceil(trialMsLeft / 86_400_000));
     const isTrialExpired = isTrialing && trialMsLeft === 0;
+    const isFreeTier = !isSubscriptionOk && isTrialExpired;
 
 
     // Menu
@@ -208,6 +209,7 @@ export function AppProvider({ children }) {
         subStatus,
 
         isTrialing,
+        isFreeTier,
         isActive,
         isCancelled,
         isExpired,

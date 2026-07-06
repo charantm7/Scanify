@@ -66,6 +66,7 @@ export async function submitOnboarding(
         plan: 'starter',
         status: 'trialing',
         trial_ends_at: expiresAt.toISOString(),
+        trial_used: true,
     })
 
     return slug;

@@ -58,6 +58,48 @@ export const PLAN_RANK: Record<PlanKey, number> = {
   pro: 3,
 };
 
+
+export type SubscriptionAction =
+  | "same"
+  | "upgrade"
+  | "downgrade";
+
+
+export function compareSubscription(
+  currentPlan: PlanKey,
+  currentCycle: BillingCycle,
+  selectedPlan: PlanKey,
+  selectedCycle: BillingCycle
+): SubscriptionAction {
+  const currentRank = PLAN_RANK[currentPlan];
+  const selectedRank = PLAN_RANK[selectedPlan];
+
+  // Higher tier
+  if (selectedRank > currentRank && !(currentCycle === 'annual' && selectedCycle === 'monthly')) {
+    return "upgrade";
+  }
+
+  // Lower tier
+  if (selectedRank < currentRank) {
+    return "downgrade";
+  }
+
+  // Same tier, same cycle
+  if (currentCycle === selectedCycle) {
+    return "same";
+  }
+
+  // Same tier, billing cycle changed
+  if (
+    currentCycle === "monthly" &&
+    selectedCycle === "annual"
+  ) {
+    return "upgrade";
+  }
+
+  return "downgrade";
+}
+
 export function comparePlans(a: PlanKey, b: PlanKey): 'upgrade' | 'downgrade' | 'same' {
   if (PLAN_RANK[a] === PLAN_RANK[b]) return 'same';
   return PLAN_RANK[a] > PLAN_RANK[b] ? 'downgrade' /* a is below b */ : 'upgrade';
@@ -76,29 +118,45 @@ export function comparePlans(a: PlanKey, b: PlanKey): 'upgrade' | 'downgrade' | 
  * or if days remaining is non-positive — caller should treat that as
  * "just charge the next full cycle normally" rather than prorate.
  */
+
+export interface ProrationResult {
+  originalPricePaise: number;
+  creditPaise: number;
+  payablePaise: number;
+  daysRemaining: number;
+  currentDailyRate: number;
+  newDailyRate: number;
+}
+
 export function calculateProratedUpgrade(
   oldPlan: PlanKey,
   newPlan: PlanKey,
-  cycle: BillingCycle,
+  currentBillingCycle: BillingCycle,
+  newBillingCycle: BillingCycle,
   currentPeriodEnd: Date,
   now: Date = new Date()
-): { amountPaise: number; daysRemaining: number } | null {
+): ProrationResult | null {
   const msRemaining = currentPeriodEnd.getTime() - now.getTime();
   const daysRemaining = Math.ceil(msRemaining / (24 * 60 * 60 * 1000));
 
   if (daysRemaining <= 0) return null;
 
-  const { amountPaise: oldPrice, durationDays } = getPlanPricing(oldPlan, cycle);
-  const { amountPaise: newPrice } = getPlanPricing(newPlan, cycle);
+  const { amountPaise: oldPrice, durationDays: oldDuration } = getPlanPricing(oldPlan, currentBillingCycle);
+  const { amountPaise: newPrice, durationDays: newDuration } = getPlanPricing(newPlan, newBillingCycle);
 
-  const oldDailyRate = oldPrice / durationDays;
-  const newDailyRate = newPrice / durationDays;
+  const currentDailyRate = oldPrice / oldDuration;
+  const newDailyRate = newPrice / newDuration;
 
-  const rawAmount = Math.round((newDailyRate - oldDailyRate) * daysRemaining);
+  const creditPaise = Math.round(currentDailyRate * daysRemaining);
 
-  // Floor at a minimum charge so we never create a free or negative
-  // Razorpay order. ₹10 minimum (1000 paise) is comfortably above
-  // Razorpay's own minimum order amount of ₹1.
-  const amountPaise = Math.max(rawAmount, 1000);
-  return { amountPaise, daysRemaining };
+  const payablePaise = Math.max(newPrice - creditPaise, 1000);
+
+  return {
+    originalPricePaise: newPrice,
+    creditPaise,
+    payablePaise,
+    daysRemaining,
+    currentDailyRate,
+    newDailyRate
+  };
 }
