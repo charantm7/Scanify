@@ -149,6 +149,7 @@ export async function POST(req: NextRequest) {
               pending_billing_cycle: billingCycle,
               provider_subscription_id: order.id,
               updated_at: now.toISOString(),
+
             })
             .eq('hotel_id', hotel.id);
 
