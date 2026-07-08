@@ -1,9 +1,9 @@
 // app/api/payments/verify/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { supabaseAdmin } from '../../../../features/billing//lib/supabase-admin';
-import { getAuthUser } from '../../../../features/billing//lib/get-auth-user';
-import { getPlanPricing, PlanKey, BillingCycle } from '../../../../features/billing//lib/plans';
+import { supabaseAdmin } from '../../../../features/billing/lib/supabase-admin';
+import { getAuthUser } from '../../../../features/billing/lib/get-auth-user';
+import { fulfillSubscriptionPayment } from '../../../../features/billing/lib/fulfill-subscription';
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,86 +51,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Idempotency — if webhook already processed this, don't double-apply.
+    // Idempotency — if the webhook already processed this, don't double-apply.
     if (payment.status === 'captured') {
       return NextResponse.json({ alreadyProcessed: true, success: true });
     }
 
     // ---- Step 3: mark payment captured ----
+    const now = new Date();
     await supabaseAdmin
       .from('payments')
       .update({
         status: 'captured',
         razorpay_payment_id,
         razorpay_signature,
-        updated_at: new Date().toISOString(),
+        updated_at: now.toISOString(),
       })
       .eq('razorpay_order_id', razorpay_order_id);
 
-    // ---- Step 4: activate the subscription ----
-    const plan = payment.plan as PlanKey;
-    const cycle = payment.billing_cycle as BillingCycle;
-    const now = new Date();
+    // ---- Step 4: activate the subscription (shared with the webhook path) ----
+    const { subUpdate } = await fulfillSubscriptionPayment(payment, razorpay_payment_id, now);
 
-    let subUpdate: Record<string, unknown>;
-
-    if (payment.is_proration) {
-      // Mid-cycle upgrade: change the plan, leave current_period_end
-      // untouched — the user already paid for the remaining days at
-      // the new plan's rate via the proration charge.
-      subUpdate = {
-        plan,
-        billing_cycle: cycle,
-        pending_plan: null,
-        pending_billing_cycle: null,
-        last_payment_id: razorpay_payment_id,
-        provider_subscription_id: razorpay_order_id,
-        updated_at: now.toISOString(),
-      };
-    } else {
-      // Fresh purchase or renewal: full new period starting now.
-      const { durationDays } = getPlanPricing(plan, cycle);
-      const periodEnd = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
-      subUpdate = {
-        plan,
-        billing_cycle: cycle,
-        status: 'active',
-        current_period_start: now.toISOString(),
-        current_period_end: periodEnd.toISOString(),
-        pending_plan: null,
-        pending_billing_cycle: null,
-        last_payment_id: razorpay_payment_id,
-        provider_subscription_id: razorpay_order_id,
-        cancel_at_period_end: false,
-        updated_at: now.toISOString(),
-      };
+    // A same-cycle, mid-period upgrade doesn't touch current_period_end, so
+    // subUpdate won't carry it — fetch the live value to report back accurately.
+    let periodEnd = (subUpdate.current_period_end as string | undefined) ?? null;
+    if (!periodEnd) {
+      const { data: liveSub } = await supabaseAdmin
+        .from('subscriptions')
+        .select('current_period_end')
+        .eq('hotel_id', payment.hotel_id)
+        .maybeSingle();
+      periodEnd = liveSub?.current_period_end ?? null;
     }
-
-    const { error: subUpdateErr } = await supabaseAdmin
-      .from('subscriptions')
-      .update(subUpdate)
-      .eq('hotel_id', payment.hotel_id);
-
-    if (subUpdateErr) {
-      console.error('Subscription activation failed:', subUpdateErr);
-      // Payment is captured in Razorpay & our DB — this is now a support
-      // case, not a user-facing failure. Don't tell the user it failed.
-    }
-
-    await supabaseAdmin.from('users').update({ plan }).eq('id', user.id);
-
-    const { data: finalSub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('current_period_end')
-      .eq('hotel_id', payment.hotel_id)
-      .single();
 
     return NextResponse.json({
       success: true,
-      plan,
-      billingCycle: cycle,
+      plan: payment.plan,
+      billingCycle: payment.billing_cycle,
       isProration: Boolean(payment.is_proration),
-      periodEnd: finalSub?.current_period_end ?? null,
+      periodEnd,
     });
   } catch (err) {
     console.error('verify error:', err);

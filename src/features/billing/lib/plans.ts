@@ -1,15 +1,22 @@
 // lib/plans.ts
-// Server-side source of truth for plan pricing & duration.
-// MUST match the seed values in sql/001_payments_migration.sql (plan_pricing table).
-// We hardcode here too (rather than only trusting the DB) so that a
-// compromised/misconfigured DB row can never silently undercharge a user —
-// the API route cross-checks DB price against this constant and rejects
-// on mismatch. If you change pricing, update BOTH this file and the SQL seed.
+//
+// Server-side (but isomorphic — no Node-only APIs) source of truth for plan
+// pricing, duration, and all upgrade/downgrade/proration math. Safe to
+// import from client components too (pricing cards, checkout UI) since it
+// has zero server-only imports (no supabase-admin, no razorpay, no secrets).
+//
+// MUST match the seed values in your plan_pricing table. We hardcode here
+// too (rather than only trusting the DB) so a misconfigured DB row can
+// never silently undercharge a user. If you change pricing, update BOTH
+// this file and the DB seed.
 
 export type PlanKey = 'basic' | 'starter' | 'growth' | 'pro';
 export type BillingCycle = 'monthly' | 'annual';
 
 export const TRIAL_DAYS = 4;
+
+// Minimum charge floor so we never create a ₹0 or negative Razorpay order.
+export const MIN_CHARGE_PAISE = 1000; // ₹10
 
 interface PlanPricing {
   amountPaise: number;
@@ -50,7 +57,7 @@ export function getPlanPricing(plan: PlanKey, cycle: BillingCycle): PlanPricing 
   return PLAN_PRICING[plan][cycle];
 }
 
-// Ordinal ranking used to decide upgrade vs downgrade. Index = "weight".
+// Ordinal ranking used to decide upgrade vs downgrade BY PLAN TIER ONLY.
 export const PLAN_RANK: Record<PlanKey, number> = {
   basic: 0,
   starter: 1,
@@ -58,81 +65,90 @@ export const PLAN_RANK: Record<PlanKey, number> = {
   pro: 3,
 };
 
-
-export type SubscriptionAction =
-  | "same"
-  | "upgrade"
-  | "downgrade";
-
-
-export function compareSubscription(
-  currentPlan: PlanKey,
-  currentCycle: BillingCycle,
-  selectedPlan: PlanKey,
-  selectedCycle: BillingCycle
-): SubscriptionAction {
-  const currentRank = PLAN_RANK[currentPlan];
-  const selectedRank = PLAN_RANK[selectedPlan];
-
-  // Higher tier
-  if (selectedRank > currentRank && !(currentCycle === 'annual' && selectedCycle === 'monthly')) {
-    return "upgrade";
-  }
-
-  // Lower tier
-  if (selectedRank < currentRank) {
-    return "downgrade";
-  }
-
-  // Same tier, same cycle
-  if (currentCycle === selectedCycle) {
-    return "same";
-  }
-
-  // Same tier, billing cycle changed
-  if (
-    currentCycle === "monthly" &&
-    selectedCycle === "annual"
-  ) {
-    return "upgrade";
-  }
-
-  return "downgrade";
-}
-
+/** Pure plan-tier comparison — does NOT consider billing cycle. */
 export function comparePlans(a: PlanKey, b: PlanKey): 'upgrade' | 'downgrade' | 'same' {
   if (PLAN_RANK[a] === PLAN_RANK[b]) return 'same';
-  return PLAN_RANK[a] > PLAN_RANK[b] ? 'downgrade' /* a is below b */ : 'upgrade';
+  // a -> b: is b higher (upgrade) or lower (downgrade) than a?
+  return PLAN_RANK[b] > PLAN_RANK[a] ? 'upgrade' : 'downgrade';
+}
+
+export type PlanChangeType = 'same' | 'upgrade' | 'downgrade' | 'cycle_change';
+
+/**
+ * Combined plan+cycle change classification used by the checkout flow.
+ *
+ * Business rules (deliberate & simple):
+ *  - Same plan, same cycle           -> 'same'         (already subscribed)
+ *  - Plan tier goes up (any cycle)   -> 'upgrade'       (charge now, prorated)
+ *  - Plan tier goes down (any cycle) -> 'downgrade'     (deferred to period end,
+ *                                       NEVER charged immediately, regardless
+ *                                       of whether the cycle also changes)
+ *  - Same plan tier, cycle changes   -> 'cycle_change'  (charge now, prorated —
+ *                                       switching Monthly <-> Annual always
+ *                                       takes effect immediately in EITHER
+ *                                       direction, since the user is actively
+ *                                       opting into a new commitment length)
+ */
+export function comparePlanChange(
+  currentPlan: PlanKey,
+  currentCycle: BillingCycle,
+  newPlan: PlanKey,
+  newCycle: BillingCycle
+): PlanChangeType {
+  const tierComparison = comparePlans(currentPlan, newPlan);
+
+  if (tierComparison === 'upgrade') return 'upgrade';
+  if (tierComparison === 'downgrade') return 'downgrade';
+
+  // Same plan tier — the only remaining question is whether the billing
+  // cycle changed.
+  return currentCycle === newCycle ? 'same' : currentCycle === 'monthly' && newCycle === 'annual' ? 'cycle_change' : 'downgrade';
+}
+
+export interface ProrationResult {
+  /** Amount to actually charge via Razorpay, in paise. Always >= MIN_CHARGE_PAISE. */
+  amountPaise: number;
+  /** Sticker price of the destination plan+cycle, in paise, before credit. */
+  originalPricePaise: number;
+  /** Unused value of the current subscription applied as credit, in paise. */
+  creditPaise: number;
+  /** Whole days remaining in the CURRENT billing period at calculation time. */
+  daysRemaining: number;
+  /**
+   * Whether the destination differs in BILLING CYCLE from the source. When
+   * true, the caller must reset current_period_start/end to a fresh full
+   * period for the NEW cycle (rather than preserving the old
+   * current_period_end) — the user is paying for a new commitment length,
+   * not just a mid-cycle tier change.
+   */
+  cycleChanged: boolean;
 }
 
 /**
- * Prorated upgrade charge: the difference between the new plan's daily
- * rate and the old plan's daily rate, multiplied by days remaining in
- * the CURRENT billing cycle. period_end does not change.
+ * Credit-based proration for ANY plan and/or billing-cycle change — the
+ * single source of truth for "what do we charge right now", used for both
+ * same-cycle plan upgrades (starter-monthly -> growth-monthly) AND
+ * cross-cycle changes (starter-monthly -> starter-annual, growth-annual ->
+ * pro-monthly, etc).
  *
- * Daily rate is derived from each plan's price for the cycle the user
- * is currently on (billing_cycle doesn't change on an upgrade — you
- * upgrade within the same cycle type, e.g. monthly->monthly).
+ * Credit = remaining unused value of the CURRENT subscription, computed
+ * from the CURRENT plan's OWN cycle daily rate (never the new cycle's
+ * rate), multiplied by whole days left until current_period_end.
  *
- * Returns null if there's no time left to prorate (cycle already over)
- * or if days remaining is non-positive — caller should treat that as
- * "just charge the next full cycle normally" rather than prorate.
+ * Charge = destination plan+cycle sticker price − credit, floored at
+ * MIN_CHARGE_PAISE (credit itself is capped so it can never exceed the
+ * destination sticker price — this function never implies a refund).
+ *
+ * Returns null when there's no time left to prorate against (the period
+ * has technically already lapsed but the cron hasn't caught up yet) —
+ * callers should treat that as "charge the new plan's full sticker price"
+ * (a fresh purchase), not a ₹0 prorate.
  */
-
-export interface ProrationResult {
-  originalPricePaise: number;
-  creditPaise: number;
-  payablePaise: number;
-  daysRemaining: number;
-  currentDailyRate: number;
-  newDailyRate: number;
-}
-
-export function calculateProratedUpgrade(
-  oldPlan: PlanKey,
+export function calculateCreditBasedProration(
+  currentPlan: PlanKey,
+  currentCycle: BillingCycle,
   newPlan: PlanKey,
-  currentBillingCycle: BillingCycle,
-  newBillingCycle: BillingCycle,
+  newCycle: BillingCycle,
   currentPeriodEnd: Date,
   now: Date = new Date()
 ): ProrationResult | null {
@@ -141,22 +157,26 @@ export function calculateProratedUpgrade(
 
   if (daysRemaining <= 0) return null;
 
-  const { amountPaise: oldPrice, durationDays: oldDuration } = getPlanPricing(oldPlan, currentBillingCycle);
-  const { amountPaise: newPrice, durationDays: newDuration } = getPlanPricing(newPlan, newBillingCycle);
+  const { amountPaise: currentPrice, durationDays: currentDurationDays } = getPlanPricing(
+    currentPlan,
+    currentCycle
+  );
+  const { amountPaise: originalPricePaise } = getPlanPricing(newPlan, newCycle);
 
-  const currentDailyRate = oldPrice / oldDuration;
-  const newDailyRate = newPrice / newDuration;
+  const currentDailyRate = currentPrice / currentDurationDays;
+  const rawCredit = Math.round(currentDailyRate * daysRemaining);
 
-  const creditPaise = Math.round(currentDailyRate * daysRemaining);
+  // Never let credit exceed the destination price.
+  const creditPaise = Math.min(rawCredit, originalPricePaise);
 
-  const payablePaise = Math.max(newPrice - creditPaise, 1000);
+  const rawAmount = originalPricePaise - creditPaise;
+  const amountPaise = Math.max(rawAmount, MIN_CHARGE_PAISE);
 
   return {
-    originalPricePaise: newPrice,
+    amountPaise,
+    originalPricePaise,
     creditPaise,
-    payablePaise,
     daysRemaining,
-    currentDailyRate,
-    newDailyRate
+    cycleChanged: currentCycle !== newCycle,
   };
 }

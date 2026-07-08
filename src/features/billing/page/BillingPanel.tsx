@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Check, Zap, Crown, Building2, ArrowRight, AlertCircle } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
-import { useRazorpayCheckout } from '../hooks/useRazorpayCheckout';
 import { AppProvider } from '../../../context/AppContext';
-import { comparePlans, PLAN_RANK, type PlanKey, type BillingCycle } from '../lib/plans';
+import CheckoutModal from '../components/CheckoutModal';
+import { comparePlanChange, type PlanKey, type BillingCycle } from '../lib/plans';
 
 const PLAN_CARDS = [
   {
@@ -45,7 +45,6 @@ const PLAN_CARDS = [
     ],
     icon: Crown,
     featured: false,
-
   },
   {
     key: 'growth',
@@ -93,14 +92,19 @@ export default function BillingPanel() {
     <AppProvider>
       <BillingPanelInner />
     </AppProvider>
+  );
+}
 
-  )
+interface CheckoutTarget {
+  plan: PlanKey;
+  billingCycle: BillingCycle;
+  startTrial: boolean;
 }
 
 export function BillingPanelInner() {
   const { planLabel, plan, subscription, isTrialing, isFreeTier, trialHoursLeft, trialDaysLeft } = useApp();
-  const { startCheckout, loading, error } = useRazorpayCheckout();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
+  const [checkoutTarget, setCheckoutTarget] = useState<CheckoutTarget | null>(null);
 
   // The billing cycle the account is actually paying/committed to right now
   // (as opposed to the cycle toggle above, which is just what the user is
@@ -124,16 +128,6 @@ export function BillingPanelInner() {
         <p className="text-sm text-theme2">{subtitle}</p>
       </div>
 
-      {error && (
-        <div
-          className="rounded-2xl p-4 flex items-start gap-3"
-          style={{ background: '#FEF2F2', border: '1px solid #FCA5A5' }}
-        >
-          <AlertCircle size={18} style={{ color: '#DC2626', flexShrink: 0, marginTop: 2 }} />
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
-
       {/* Billing cycle toggle */}
       <div className="flex justify-center">
         <div className="inline-flex rounded-xl p-1" style={{ background: 'var(--accentlt)' }}>
@@ -156,23 +150,55 @@ export function BillingPanelInner() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {PLAN_CARDS.map((p) => {
-          // "Current Plan" only applies to the exact plan + billing cycle
+          // "Current Plan" only applies to the EXACT plan + billing cycle
           // combination the account is actually on — Starter Monthly and
           // Starter Annual are different commitments, so only one of them
-          // can ever be "current" at a time.
+          // can ever be "current" at a time, regardless of which cycle the
+          // toggle above happens to be browsing.
           const isCurrentPlan =
             p.key === plan && billingCycle === activeCycle && !isTrialing && !isFreeTier;
           const isTrialPlan = p.key === plan && isTrialing;
           const Icon = p.icon;
           const price = billingCycle === 'monthly' ? p.monthlyPrice : p.annualPrice;
-          const isLoading = loading === p.key;
 
-          const current_plan = PLAN_RANK[plan];
+          // Correct upgrade/downgrade/cycle-change classification —
+          // considers BOTH plan tier and billing cycle rather than just
+          // rank, so Starter-Monthly -> Starter-Annual is a same-tier
+          // "cycle change" rather than being mis-labelled by a naive
+          // rank-only comparison.
+          const changeType =
+            plan && activeCycle && !isFreeTier && !isTrialing
+              ? comparePlanChange(plan as PlanKey, activeCycle, p.key, billingCycle)
+              : null;
 
-          let isHigher = false;
-
-          if ((PLAN_RANK[p.key] > current_plan && !(billingCycle === 'monthly' && activeCycle === 'annual')) || (billingCycle === 'annual' && activeCycle === 'monthly' && PLAN_RANK[p.key] >= current_plan)) isHigher = true;
-
+          let buttonLabel: ReactNode;
+          if (isCurrentPlan) {
+            buttonLabel = 'Current Plan';
+          } else if (isFreeTier && !isTrialing) {
+            buttonLabel = (
+              <>
+                Subscribe <ArrowRight size={13} />
+              </>
+            );
+          } else if (changeType === 'downgrade') {
+            buttonLabel = (
+              <>
+                {`Downgrade to ${p.name}`} <ArrowRight size={13} />
+              </>
+            );
+          } else if (changeType === 'cycle_change') {
+            buttonLabel = (
+              <>
+                {`Switch to ${billingCycle === 'monthly' ? 'Monthly' : 'Annual'}`} <ArrowRight size={13} />
+              </>
+            );
+          } else {
+            buttonLabel = (
+              <>
+                {`Upgrade to ${p.name}`} <ArrowRight size={13} />
+              </>
+            );
+          }
 
           return (
             <div
@@ -218,6 +244,22 @@ export function BillingPanelInner() {
                       Trial
                     </span>
                   )}
+                  {!isCurrentPlan && !isTrialPlan && changeType === 'downgrade' && (
+                    <span
+                      className="ml-auto text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                      style={{ background: 'var(--accentlt)', color: 'var(--text2)' }}
+                    >
+                      Downgrade
+                    </span>
+                  )}
+                  {!isCurrentPlan && !isTrialPlan && changeType === 'upgrade' && (
+                    <span
+                      className="ml-auto text-[10px] px-2 py-0.5 rounded-full font-semibold text-white"
+                      style={{ background: 'var(--accent)' }}
+                    >
+                      Upgrade
+                    </span>
+                  )}
                 </div>
 
                 <p className="text-xs text-theme2 mb-3">{p.tagline}</p>
@@ -245,8 +287,14 @@ export function BillingPanelInner() {
                 </ul>
 
                 <button
-                  disabled={isCurrentPlan || isLoading}
-                  onClick={() => startCheckout(p.key, billingCycle, isFreeTier && !isTrialing && !plan)}
+                  disabled={isCurrentPlan}
+                  onClick={() =>
+                    setCheckoutTarget({
+                      plan: p.key,
+                      billingCycle,
+                      startTrial: isFreeTier && !isTrialing && !plan,
+                    })
+                  }
                   className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
                   style={
                     isCurrentPlan
@@ -254,22 +302,7 @@ export function BillingPanelInner() {
                       : { background: 'var(--accent)', color: 'white' }
                   }
                 >
-                  {isCurrentPlan ? (
-                    'Current Plan'
-                  ) : isLoading ? (
-                    'Processing…'
-                  ) : isHigher ? (
-                    <>
-                      {`Upgrade to ${p.name}`}
-                      <ArrowRight size={13} />
-                    </>
-                  ) :
-                    (
-                      <>
-                        {`Downgrade to ${p.name}`}
-                        <ArrowRight size={13} />
-                      </>
-                    )}
+                  {buttonLabel}
                 </button>
               </div>
             </div>
@@ -283,6 +316,17 @@ export function BillingPanelInner() {
           hello@scanify.co.in
         </a>
       </p>
+
+      {checkoutTarget && (
+        <CheckoutModal
+          open={Boolean(checkoutTarget)}
+          plan={checkoutTarget.plan}
+          billingCycle={checkoutTarget.billingCycle}
+          startTrial={checkoutTarget.startTrial}
+          onClose={() => setCheckoutTarget(null)}
+          onConfirmed={() => setCheckoutTarget(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,8 +1,8 @@
 // app/api/payments/webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { supabaseAdmin } from '../../../../features/billing//lib/supabase-admin';
-import { getPlanPricing, PlanKey, BillingCycle } from '../../../../features/billing//lib/plans';
+import { supabaseAdmin } from '../../../../features/billing/lib/supabase-admin';
+import { fulfillSubscriptionPayment } from '../../../../features/billing/lib/fulfill-subscription';
 
 // Razorpay requires the RAW request body (unparsed) for signature
 // verification — do not use req.json() before verifying.
@@ -33,10 +33,10 @@ export async function POST(req: NextRequest) {
     crypto.createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET!).update(rawBody).digest('hex');
 
   // ---- Idempotency check (read-only) ----
-  // We only INSERT the webhook_events row AFTER successful processing
-  // (see end of try block). Checking first and inserting last means a
-  // mid-processing crash leaves no row, so Razorpay's retry will
-  // correctly re-attempt fulfilment instead of being silently skipped.
+  // We only INSERT the webhook_events row AFTER successful processing (see
+  // end of try block). Checking first and inserting last means a
+  // mid-processing crash leaves no row, so Razorpay's retry will correctly
+  // re-attempt fulfilment instead of being silently skipped.
   const { data: existingEvent } = await supabaseAdmin
     .from('webhook_events')
     .select('id')
@@ -71,58 +71,26 @@ export async function POST(req: NextRequest) {
         // Already activated via the verify route (the common path) — skip.
         if (payment.status === 'captured') break;
 
+        const now = new Date();
+
         await supabaseAdmin
           .from('payments')
           .update({
             status: 'captured',
             razorpay_payment_id: paymentId ?? payment.razorpay_payment_id,
             raw_webhook_payload: event,
-            updated_at: new Date().toISOString(),
+            updated_at: now.toISOString(),
           })
           .eq('razorpay_order_id', orderId);
 
-        const plan = payment.plan as PlanKey;
-        const cycle = payment.billing_cycle as BillingCycle;
-        const now = new Date();
-
-        let subUpdate: Record<string, unknown>;
-
-        if (payment.is_proration) {
-          // Mid-cycle upgrade: plan changes, period_end stays as-is —
-          // already paid for via the proration charge.
-          subUpdate = {
-            plan,
-            billing_cycle: cycle,
-            pending_plan: null,
-            pending_billing_cycle: null,
-            last_payment_id: paymentId,
-            provider_subscription_id: orderId,
-            updated_at: now.toISOString(),
-          };
-        } else {
-          const { durationDays } = getPlanPricing(plan, cycle);
-          const periodEnd = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
-          subUpdate = {
-            plan,
-            billing_cycle: cycle,
-            status: 'active',
-            current_period_start: now.toISOString(),
-            current_period_end: periodEnd.toISOString(),
-            pending_plan: null,
-            pending_billing_cycle: null,
-            last_payment_id: paymentId,
-            provider_subscription_id: orderId,
-            cancel_at_period_end: false,
-            updated_at: now.toISOString(),
-          };
-        }
-
-        await supabaseAdmin
-          .from('subscriptions')
-          .update(subUpdate)
-          .eq('hotel_id', payment.hotel_id);
-
-        await supabaseAdmin.from('users').update({ plan }).eq('id', payment.user_id);
+        // Shared with the verify route — identical fulfilment logic, so
+        // whichever path (browser redirect vs webhook) lands first, the
+        // resulting subscription state is always the same.
+        await fulfillSubscriptionPayment(
+          { ...payment, razorpay_payment_id: paymentId ?? payment.razorpay_payment_id },
+          paymentId ?? payment.razorpay_payment_id,
+          now
+        );
         break;
       }
 

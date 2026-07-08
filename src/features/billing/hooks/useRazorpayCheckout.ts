@@ -14,6 +14,34 @@ declare global {
 type PlanKey = 'basic' | 'starter' | 'growth' | 'pro';
 type BillingCycle = 'monthly' | 'annual';
 
+export type CheckoutPreviewType =
+  | 'same'
+  | 'trial_blocked'
+  | 'trial_start'
+  | 'downgrade'
+  | 'fresh_purchase'
+  | 'upgrade'
+  | 'cycle_change';
+
+export interface CheckoutPreview {
+  type: CheckoutPreviewType;
+  payable: boolean;
+  plan: PlanKey;
+  billingCycle: BillingCycle;
+  currentPlan: PlanKey | null;
+  currentBillingCycle: BillingCycle | null;
+  originalPricePaise?: number;
+  creditPaise?: number;
+  subtotalPaise?: number;
+  taxPaise: number;
+  taxNote: string;
+  amountPaise?: number;
+  daysRemaining?: number;
+  periodWillReset?: boolean;
+  effectiveAt?: string | null;
+  message?: string;
+}
+
 function loadRazorpayScript(): Promise<boolean> {
   return new Promise((resolve) => {
     if (window.Razorpay) {
@@ -30,10 +58,53 @@ function loadRazorpayScript(): Promise<boolean> {
 
 export function useRazorpayCheckout() {
   const [loading, setLoading] = useState<PlanKey | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const toast = useToast();
 
+  /**
+   * Fetches the read-only checkout breakdown for a plan+cycle WITHOUT
+   * creating a Razorpay order or writing to the DB. Used by the checkout
+   * modal to show the user exactly what they'll be charged before they
+   * confirm.
+   */
+  const getPreview = useCallback(
+    async (
+      plan: PlanKey,
+      billingCycle: BillingCycle,
+      startTrial = false
+    ): Promise<CheckoutPreview | null> => {
+      setPreviewLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/payments/preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan, billingCycle, startTrial }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Could not load checkout preview');
+        }
+        return data as CheckoutPreview;
+      } catch (err: any) {
+        setError(err.message || 'Could not load checkout preview');
+        return null;
+      } finally {
+        setPreviewLoading(false);
+      }
+    },
+    []
+  );
+
+  /**
+   * Confirms the plan+cycle change: calls create-order (which performs the
+   * actual DB writes), then either redirects (for a scheduled downgrade or
+   * a started trial — no payment needed) or opens Razorpay Checkout for a
+   * payable change. Should only be called AFTER the user has reviewed the
+   * checkout preview and explicitly confirmed.
+   */
   const startCheckout = useCallback(
     async (plan: PlanKey, billingCycle: BillingCycle, startTrial = false) => {
       setError(null);
@@ -50,6 +121,19 @@ export function useRazorpayCheckout() {
 
         if (!orderRes.ok) {
           throw new Error(orderData.error || 'Could not start checkout');
+        }
+
+        // Trial path: no payment required, subscription is already active.
+        if (orderData.trialStarted) {
+          toast.success(
+            'Trial Started',
+            `Your free trial is active until ${new Date(orderData.trialEndsAt).toLocaleString('en-IN', {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            })}`
+          );
+          router.push('/console?trialStarted=true');
+          return;
         }
 
         // Downgrade path: scheduled for next renewal, nothing to pay now.
@@ -84,7 +168,7 @@ export function useRazorpayCheckout() {
           order_id: orderData.orderId,
           name: 'Scanify',
           description: orderData.isProration
-            ? `Upgrade to ${plan} — prorated for ${orderData.daysRemaining} remaining day${orderData.daysRemaining === 1 ? '' : 's'}`
+            ? `${plan[0].toUpperCase()}${plan.slice(1)} (${billingCycle}) — prorated for ${orderData.daysRemaining} remaining day${orderData.daysRemaining === 1 ? '' : 's'}`
             : `${plan[0].toUpperCase()}${plan.slice(1)} — ${billingCycle} plan`,
           theme: { color: '#C8622A' },
           handler: async (response: {
@@ -101,7 +185,10 @@ export function useRazorpayCheckout() {
               const verifyData = await verifyRes.json();
 
               if (!verifyRes.ok || !verifyData.success) {
-                setError('Payment succeeded but activation failed. Contact support with your payment ID: ' + response.razorpay_payment_id);
+                setError(
+                  'Payment succeeded but activation failed. Contact support with your payment ID: ' +
+                  response.razorpay_payment_id
+                );
                 return;
               }
 
@@ -132,8 +219,8 @@ export function useRazorpayCheckout() {
         setLoading(null);
       }
     },
-    [router]
+    [router, toast]
   );
 
-  return { startCheckout, loading, error, setError };
+  return { startCheckout, getPreview, loading, previewLoading, error, setError };
 }

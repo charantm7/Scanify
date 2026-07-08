@@ -14,6 +14,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useApp } from '../../context/AppContext';
 import BillingPanel from '../../features/billing/page/BillingPanel';
 import CustomizationPanel from '../../features/customization/components/CustomizationPanel';
+import TransactionHistory from '../../features/billing/components/TransactionHistory';
 
 function ThemeIcon({ dark }) {
     return dark ? (
@@ -65,6 +66,7 @@ function Panel({ id, onNavigate }) {
         case 'settings': return <SettingsPanel />;
         case 'billing': return <BillingPanel />;
         case 'customization': return <CustomizationPanel />
+        case 'transactions': return <TransactionHistory />
         default: return (
             <div className="text-center py-20 text-theme2">
                 <p className="font-syne font-bold text-xl text-theme mb-2">Coming Soon</p>

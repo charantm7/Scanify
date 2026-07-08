@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import {
   LayoutDashboard, QrCode, ScanQrCodeIcon, ImageIcon,
-  Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt, SlidersHorizontal, BarChart3, Sparkles, Palette, Settings2, MessageSquare, CreditCard
+  Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt, SlidersHorizontal, BarChart3, Sparkles, Palette, Settings2, MessageSquare, CreditCard, ArrowUpDown
 } from 'lucide-react';
 import { getSupabaseClient } from '../../lib/supabase/client';
 import { Badge } from '../shared/ui';
@@ -69,6 +69,7 @@ export const NAV_GROUPS = [
     title: "Business",
     items: [
       { id: "billing", label: "Subscription", icon: CreditCard },
+      { id: "transactions", label: "Transactions", icon: Receipt },
       { id: "settings", label: "Settings", icon: Settings2 },
     ],
   },
