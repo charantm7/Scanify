@@ -39,7 +39,7 @@ function ScanifyBadge() {
 export function MenuFooter({ showBadge = true }: MenuFooterProps) {
     return (
         <footer
-            className="border-t px-5 py-6 flex flex-col items-center gap-3 text-center"
+            className="border-t px-5 py-4 flex flex-col items-center gap-3 text-center"
             style={{ borderColor: "var(--color-border)" }}
         >
             <p className="text-xs" style={{ color: "var(--color-muted)" }}>

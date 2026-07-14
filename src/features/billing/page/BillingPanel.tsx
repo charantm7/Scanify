@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { Check, Zap, Crown, Building2, ArrowRight, AlertCircle } from 'lucide-react';
+import { Check, Zap, Crown, Building2, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
 import { AppProvider } from '../../../context/AppContext';
 import CheckoutModal from '../components/CheckoutModal';
@@ -102,7 +102,7 @@ interface CheckoutTarget {
 }
 
 export function BillingPanelInner() {
-  const { planLabel, plan, subscription, isTrialing, isFreeTier, trialHoursLeft, trialDaysLeft } = useApp();
+  const { planLabel, plan, subscription, isTrialing, isFreeTier, trialHoursLeft, trialDaysLeft, loading } = useApp();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [checkoutTarget, setCheckoutTarget] = useState<CheckoutTarget | null>(null);
 
@@ -119,6 +119,14 @@ export function BillingPanelInner() {
     subtitle = 'Trial ended. Choose a plan to continue.';
   } else {
     subtitle = `You're on the ${planLabel} plan`;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 size={28} className="animate-spin" style={{ color: 'var(--accent)' }} />
+      </div>
+    );
   }
 
   return (

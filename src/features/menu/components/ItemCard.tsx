@@ -42,16 +42,16 @@ function ItemImage({ item }: { item: MenuItem }) {
 
     return (
         <div
-            className="w-[78px] h-[78px] rounded-xl overflow-hidden relative flex-shrink-0"
+            className="rounded-md overflow-hidden relative flex-shrink-0"
             style={{ background: "var(--color-border)" }}
         >
             {src && !imgErr ? (
                 <Image
                     src={src}
                     alt={item.name}
-                    fill
-                    sizes="100px"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    height={100}
+                    width={300}
+                    className="object-contain transition-transform duration-300 group-hover:scale-105"
                     onError={() => setImgErr(true)}
                 />
             ) : (
@@ -59,7 +59,7 @@ function ItemImage({ item }: { item: MenuItem }) {
             )}
             {!item.is_available && (
                 <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/55">
-                    <span className="text-[9px] font-extrabold text-white tracking-widest uppercase">
+                    <span className="text-[10px] font-extrabold text-white tracking-widest uppercase">
                         Sold Out
                     </span>
                 </div>
@@ -94,6 +94,7 @@ function CardItem({
 }: ItemCardProps) {
     const unavailable = !item.is_available;
 
+
     return (
         <article
             role="button"
@@ -102,7 +103,7 @@ function CardItem({
             onClick={() => onClick(item.id)}
             onKeyDown={(e) => e.key === "Enter" && onClick(item.id)}
             className={[
-                "group flex items-start gap-4 p-4 rounded-2xl border cursor-pointer",
+                "flex flex-col gap-3  p-4 rounded-2xl border cursor-pointer",
                 "transition-all duration-200 outline-none focus-visible:ring-2",
                 unavailable ? "opacity-55" : "hover:shadow-md hover:-translate-y-px active:scale-[0.99]",
             ].join(" ")}
@@ -115,7 +116,7 @@ function CardItem({
         >
             {showImage && <ItemImage item={item} />}
 
-            <div className="flex-1 min-w-0 py-0.5 space-y-1">
+            <div className="flex-1 min-w-0 py-0.5 space-y-2">
                 {/* Name row */}
                 <div className="flex items-start gap-2">
                     {showDietary && <DietaryIndicator dietaryType={item.dietary_type} />}
@@ -128,7 +129,15 @@ function CardItem({
                 </div>
 
                 {showDescription && item.description && (
-                    <p className="text-xs leading-relaxed line-clamp-2" style={{ color: "var(--color-muted)" }}>
+                    <p
+                        className="mt-1 overflow-hidden text-xs leading-relaxed"
+                        style={{
+                            color: "var(--color-muted)",
+                            display: "-webkit-box",
+                            WebkitBoxOrient: "vertical",
+                            WebkitLineClamp: 1,
+                        }}
+                    >
                         {item.description}
                     </p>
                 )}
@@ -176,23 +185,26 @@ function ListItem({ item, onClick, showImage, showDietary, showTags }: ItemCardP
             className="group flex items-center gap-3 py-3 border-b cursor-pointer transition-opacity duration-200 outline-none focus-visible:ring-2"
             style={{ borderColor: "var(--color-border)", opacity: item.is_available ? 1 : 0.55 }}
         >
-            {showDietary && (
-                <div className="flex-shrink-0">
-                    <DietaryIndicator dietaryType={item.dietary_type} />
-                </div>
-            )}
-            <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm" style={{ color: "var(--color-text)", fontFamily: "var(--font-family)" }}>
-                    {item.name}
-                </p>
-                {showTags && <ItemBadgeRow item={item} />}
-            </div>
-            <Price amount={Number(item.price)} />
             {showImage && (
-                <div className="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden">
+                <div className="flex-shrink-0 w-20 h-20  overflow-hidden">
                     <ItemImage item={item} />
                 </div>
             )}
+
+            <div className="flex flex-1 flex-col gap-2 min-w-0">
+                {showDietary && (
+                    <div className="flex-shrink-0 flex items-center gap-3">
+                        <DietaryIndicator dietaryType={item.dietary_type} />
+                        <p className="font-semibold text-sm" style={{ color: "var(--color-text)", fontFamily: "var(--font-family)" }}>
+                            {item.name}
+                        </p>
+                    </div>
+                )}
+
+                {showTags && <ItemBadgeRow item={item} />}
+            </div>
+            <Price amount={Number(item.price)} />
+
         </article>
     );
 }
@@ -224,8 +236,8 @@ function GridItem({ item, onClick, showImage, showDietary, showTags }: ItemCardP
                         <Image
                             src={src}
                             alt={item.name}
-                            fill
-                            sizes="200px"
+                            width={300}
+                            height={50}
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                             onError={() => setImgErr(true)}
                         />
@@ -270,7 +282,7 @@ export const ItemCard = memo(function ItemCard({
     if (layout === "list") {
         return <ListItem item={item} onClick={onClick} showImage={showImage} showDietary={showDietary} showTags={showTags} />;
     }
-    if (layout === "grid") {
+    if (layout === "compact") {
         return <GridItem item={item} onClick={onClick} showImage={showImage} showDietary={showDietary} showTags={showTags} />;
     }
     return (

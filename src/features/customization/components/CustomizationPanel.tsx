@@ -171,7 +171,7 @@ export default function CustomizationPanel() {
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                             <RangeSlider label="Base Font Size" value={config.base_font_size}
-                                                min={13} max={20} unit="px"
+                                                min={5} max={20} unit="px"
                                                 onChange={v => update('base_font_size', v)} />
                                             <RangeSlider label="Heading Weight" value={config.heading_weight}
                                                 min={400} max={900} step={100}

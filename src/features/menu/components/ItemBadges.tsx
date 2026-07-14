@@ -84,8 +84,8 @@ export function TagBadge({ tag }: { tag: string }) {
     if (meta) {
         return (
             <span
-                className="inline-flex items-center gap-1 px-1.5 py-1 rounded-full text-[9px] font-bold leading-none tracking-wide"
-                style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)" }}
+                className="inline-flex items-center gap-1 px-1.5 py-1 rounded-full font-bold leading-none tracking-wide"
+                style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)", fontSize: "var(--font-size)" }}
             >
                 <span style={{ fontSize: 9 }}>{meta.emoji}</span>
                 {meta.label}

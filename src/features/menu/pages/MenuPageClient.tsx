@@ -30,7 +30,8 @@ export default function MenuPageClient({
     slug,
     qrCodeId,
 }: MenuPageClientProps) {
-    const { hotel, categories, customization } = data;
+    console.log(data);
+    const { categories, customization, hotel } = data;
     const [accesstype, setAccesstype] = useState("page_view")
 
     if (qrCodeId) setAccesstype('qr_scan');
@@ -106,6 +107,7 @@ export default function MenuPageClient({
         },
         [hotel.id, openItemModal]
     );
+    console.log(customization)
 
     return (
         <div
@@ -137,7 +139,7 @@ export default function MenuPageClient({
             )}
 
             <main
-                className="max-w-[680px] mx-auto px-5 pb-24 pt-7"
+                className="max-w-[680px] mx-auto px-5 pb-24 pt-9"
                 id="menu-content"
                 aria-label="Menu"
             >
@@ -207,7 +209,7 @@ export default function MenuPageClient({
                             key="menu"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col gap-10"
+                            className="flex flex-col gap-8"
                         >
                             {categories.map((cat) => (
                                 <CategorySection

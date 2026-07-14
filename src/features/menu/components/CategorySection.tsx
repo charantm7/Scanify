@@ -23,7 +23,7 @@ export const CategorySection = memo(function CategorySection({
     const ordered = [...available, ...unavailable];
 
     const gridClass =
-        customization.menu_layout === "grid"
+        customization.menu_layout === 'card'
             ? "grid grid-cols-2 gap-3"
             : customization.menu_layout === "list"
                 ? "flex flex-col"

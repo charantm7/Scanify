@@ -58,6 +58,7 @@ export function buildThemeTokens(c: Partial<DBMenuCustomization>): ThemeTokens {
         "--shadow-sm": shadows.sm,
         "--shadow-md": shadows.md,
         "--shadow-lg": shadows.lg,
+        "--font-size": `${cfg.base_font_size}px`,
 
         // ── Legacy aliases (globals.css utilities: .bg-theme, .text-accent-t, etc.) ──
         "--bg": cfg.background_color,
