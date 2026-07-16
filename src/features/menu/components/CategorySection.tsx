@@ -27,7 +27,7 @@ export const CategorySection = memo(function CategorySection({
             ? "grid grid-cols-2 gap-3"
             : customization.menu_layout === "list"
                 ? "flex flex-col"
-                : "grid gap-3 sm:grid-cols-2";
+                : "flex flex-col gap-3";
 
     return (
         <section

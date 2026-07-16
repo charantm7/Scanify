@@ -20,7 +20,7 @@ export default function AuthPanelPage() {
             <AuthNavbar />
 
             <div className="relative min-h-screen flex items-center justify-center px-2 py-20">
-                <div className="w-full h- max-w-6xl grid grid-cols-2 gap-12 items-center">
+                <div className="w-full max-w-6xl grid md:grid-cols-2 sm:grid-cols-2 gap-12 items-center">
                     <div>
                         <div className="flex rounded-xl overflow-hidden border bg-theme border-theme mb-6">
                             <button

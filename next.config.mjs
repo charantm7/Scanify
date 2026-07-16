@@ -2,7 +2,8 @@
 const nextConfig = {
   allowedDevOrigins: [
     '10.147.190.104',
-    '10.46.35.104'
+    '10.46.35.104',
+    '10.19.224.104'
   ],
 
   images: {

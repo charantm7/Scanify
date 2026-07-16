@@ -26,7 +26,7 @@ function Price({ amount, currency = "₹" }: { amount: number; currency?: string
             className="font-bold text-base tabular-nums"
             style={{ color: "var(--color-accent)", fontFamily: "var(--font-family)" }}
         >
-            <span className="text-xs align-top mt-0.5 inline-block">{currency}</span>
+            <span className="align-top  inline-block">{currency}</span>
             {amount.toFixed(0)}
         </span>
     );
@@ -103,7 +103,7 @@ function CardItem({
             onClick={() => onClick(item.id)}
             onKeyDown={(e) => e.key === "Enter" && onClick(item.id)}
             className={[
-                "flex flex-col gap-3  p-4 rounded-2xl border cursor-pointer",
+                "flex flex-col gap-3  p-2 rounded-2xl border cursor-pointer",
                 "transition-all duration-200 outline-none focus-visible:ring-2",
                 unavailable ? "opacity-55" : "hover:shadow-md hover:-translate-y-px active:scale-[0.99]",
             ].join(" ")}
@@ -118,7 +118,7 @@ function CardItem({
 
             <div className="flex-1 min-w-0 py-0.5 space-y-2">
                 {/* Name row */}
-                <div className="flex items-start gap-2">
+                <div className="flex items-center gap-2">
                     {showDietary && <DietaryIndicator dietaryType={item.dietary_type} />}
                     <p
                         className="font-semibold text-sm leading-snug flex-1"
@@ -230,38 +230,23 @@ function GridItem({ item, onClick, showImage, showDietary, showTags }: ItemCardP
                 opacity: unavailable ? 0.6 : 1,
             }}
         >
-            {showImage && (
-                <div className="relative w-full aspect-[4/3] overflow-hidden">
-                    {src && !imgErr ? (
-                        <Image
-                            src={src}
-                            alt={item.name}
-                            width={300}
-                            height={50}
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            onError={() => setImgErr(true)}
-                        />
-                    ) : (
-                        <ItemPlaceholder name={item.name} />
-                    )}
-                    {unavailable && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/55">
-                            <span className="text-[9px] font-extrabold text-white tracking-widest uppercase">
-                                Sold Out
-                            </span>
-                        </div>
-                    )}
+            <div className="flex justify-between items-center">
+                <div className="p-3 space-y-2">
+
+                    <div className="flex items-center gap-2">
+                        {showDietary && <DietaryIndicator dietaryType={item.dietary_type} />}
+                        <p className="font-semibold text-sm line-clamp-1" style={{ color: "var(--color-text)", fontFamily: "var(--font-family)" }}>
+                            {item.name}
+                        </p>
+                    </div>
+
+
+                    {showTags && <ItemBadgeRow item={item} />}
+
                 </div>
-            )}
-            <div className="p-3 space-y-1">
-                <div className="flex items-start gap-1.5">
-                    {showDietary && <DietaryIndicator dietaryType={item.dietary_type} />}
-                    <p className="font-semibold text-sm line-clamp-1" style={{ color: "var(--color-text)", fontFamily: "var(--font-family)" }}>
-                        {item.name}
-                    </p>
+                <div className="text-start w-14 max-w-24">
+                    <Price amount={Number(item.price)} />
                 </div>
-                {showTags && <ItemBadgeRow item={item} />}
-                <Price amount={Number(item.price)} />
             </div>
         </article>
     );

@@ -257,7 +257,12 @@ export function RestaurantHeader({
                                 <span
                                     key={c}
                                     className="text-[11px]  border px-1.5 py-1 rounded-md font-semibold"
-                                    style={{ color: "var(--color-accent)", background: "rgba(245,158,11,0.07)", borderColor: "rgba(245,158,11,0.25)", }}
+                                    style={{
+                                        background: "var(--color-surface)",
+                                        color: "var(--color-muted)",
+                                        borderColor: "var(--color-border)",
+                                        boxShadow: "none",
+                                    }}
                                 >
                                     {c}
                                 </span>
