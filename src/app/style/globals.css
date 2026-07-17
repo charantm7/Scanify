@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Concert+One&family=Kaushan+Script&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,78 +9,129 @@
 
 
 :root {
-  --bg: #FAF7F2;
+  /* ── Backgrounds ─────────────────────────────── */
+  --bg: #F7F8FA;
+  /* page canvas — cool off-white */
   --bg1: #0000000a;
+  /* subtle tint overlays */
   --bg2: #FFFFFF;
-  --bg3: #F2EDE4;
-  --text: #1C1008;
-  --text2: #6B5040;
-  --text3: #A08870;
-  --accent: #C8622A;
-  --accent2: #9E3F12;
-  --accentlt: #FDEBD9;
-  --border: rgba(0, 0, 0, 0.07);
-  --border2: rgba(0, 0, 0, 0.13);
-  --card: #FFFFFF;
-  --nav: rgba(250, 247, 242, 0.88);
-  --shadow: 0 2px 24px rgba(0, 0, 0, 0.07);
-  --shadow2: 0 8px 40px rgba(0, 0, 0, 0.11);
-  --qr-dot: #1C1008;
-  --phone-border: #1C1008;
-  --phone-notch: #1C1008;
-  --step-num-color: rgba(0, 0, 0, 0.12);
-  --grid-r: rgba(0, 0, 0, 0.025);
-  --grid-b: rgba(0, 0, 0, 0.025);
-  --radial: rgba(0, 0, 0, 0.04);
-  --input: #ffffff79;
-  --hover: rgba(0, 0, 0, 0.057);
+  /* elevated surfaces */
+  --bg3: #EDF0F5;
+  /* recessed wells, sidebar fill */
 
-  /* utils theme */
+  /* ── Text ────────────────────────────────────── */
+  --text: #0D1117;
+  /* near-black, never pure */
+  --text2: #525E72;
+  /* secondary labels */
+  --text3: #8E9BB0;
+  /* placeholders, disabled */
+
+  /* ── Accent (indigo) ─────────────────────────── */
+  --accent: #4461E8;
+  --accent2: #2F46C0;
+  /* pressed / hover-dark */
+  --accentlt: #EEF1FD;
+  /* accent tint — badges, highlights */
+
+  /* ── Borders ─────────────────────────────────── */
+  --border: rgba(0, 0, 0, 0.06);
+  --border2: rgba(0, 0, 0, 0.11);
+  --border3: rgba(0, 0, 0, 0.16);
+
+  /* ── Surfaces ────────────────────────────────── */
+  --card: #FFFFFF;
+  --nav: rgba(247, 248, 250, 0.90);
+
+  /* ── Shadows ─────────────────────────────────── */
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow2: 0 4px 8px rgba(0, 0, 0, 0.06), 0 16px 48px rgba(0, 0, 0, 0.10);
+
+  /* ── Inputs ──────────────────────────────────── */
+  --input: rgba(255, 255, 255, 0.72);
+  --hover: rgba(0, 0, 0, 0.045);
+
+  /* ── Grid / Radial ───────────────────────────── */
+  --grid-r: rgba(68, 97, 232, 0.035);
+  --grid-b: rgba(68, 97, 232, 0.035);
+  --radial: rgba(68, 97, 232, 0.055);
+
+  /* ── Misc ────────────────────────────────────── */
+  --qr-dot: #0D1117;
+  --phone-border: #0D1117;
+  --phone-notch: #0D1117;
+  --step-num-color: rgba(0, 0, 0, 0.09);
+  --muted: 220 14% 96%;
+  --a: #4461E8;
+
+  /* ── Utils ───────────────────────────────────── */
   --utils-text: #000000;
   --utils-text-2: #00000094;
   --utils-text-3: #3e3e3e94;
-  --utils-bg: #ffffff;
+  --utils-bg: #FFFFFF;
   --utils-border: #0000001e;
   --utils-border-2: #00000054;
-  --divider: #e5e5e5;
+  --divider: #E4E8EF;
 }
 
 [data-theme='dark'] {
-  --bg: #120C08;
-  --bg1: #00000033;
-  --bg2: #1C1410;
-  --bg3: #241A14;
-  --text: #F5EDE5;
-  --text2: #A89080;
-  --text3: #6B5A50;
-  --accent: #E07844;
-  --accent2: #C8622A;
-  --accentlt: #2D160A;
-  --border: rgba(255, 255, 255, 0.07);
-  --border2: rgba(255, 255, 255, 0.12);
-  --card: #1C1410;
-  --nav: rgba(18, 12, 8, 0.88);
-  --shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
-  --shadow2: 0 8px 40px rgba(0, 0, 0, 0.55);
-  --qr-dot: #F5EDE5;
-  --phone-border: #2D1A10;
-  --phone-notch: #2D1A10;
-  --step-num-color: rgba(255, 255, 255, 0.10);
-  --grid-r: rgba(255, 255, 255, 0.02);
-  --grid-b: rgba(255, 255, 255, 0.02);
-  --radial: rgba(255, 255, 255, 0.03);
-  --input: #ffffff33;
-  --hover: #ffffff1c;
+  /* ── Backgrounds ─────────────────────────────── */
+  --bg: #0C0E12;
+  /* near-black slate */
+  --bg1: rgba(0, 0, 0, 0.28);
+  --bg2: #13161D;
+  /* elevated panels */
+  --bg3: #1A1E28;
+  /* sidebar, recessed */
 
-  /* utils theme */
-  --utils-text: #ffffff;
-  --utils-text-2: #ffffff94;
+  /* ── Text ────────────────────────────────────── */
+  --text: #E4E8F0;
+  --text2: #7A859A;
+  --text3: #48526A;
+
+  /* ── Accent — same hue, slightly brighter ────── */
+  --accent: #6B84F8;
+  --accent2: #4461E8;
+  --accentlt: #141828;
+
+  /* ── Borders ─────────────────────────────────── */
+  --border: rgba(255, 255, 255, 0.06);
+  --border2: rgba(255, 255, 255, 0.10);
+  --border3: rgba(255, 255, 255, 0.15);
+
+  /* ── Surfaces ────────────────────────────────── */
+  --card: #13161D;
+  --nav: rgba(12, 14, 18, 0.90);
+
+  /* ── Shadows ─────────────────────────────────── */
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.40), 0 4px 16px rgba(0, 0, 0, 0.36);
+  --shadow2: 0 4px 8px rgba(0, 0, 0, 0.45), 0 16px 48px rgba(0, 0, 0, 0.55);
+
+  /* ── Inputs ──────────────────────────────────── */
+  --input: rgba(255, 255, 255, 0.07);
+  --hover: rgba(255, 255, 255, 0.06);
+
+  /* ── Grid / Radial ───────────────────────────── */
+  --grid-r: rgba(107, 132, 248, 0.04);
+  --grid-b: rgba(107, 132, 248, 0.04);
+  --radial: rgba(107, 132, 248, 0.07);
+
+  /* ── Misc ────────────────────────────────────── */
+  --qr-dot: #E4E8F0;
+  --phone-border: #1A1E28;
+  --phone-notch: #1A1E28;
+  --step-num-color: rgba(255, 255, 255, 0.07);
+  --muted: 220 14% 96%;
+  --a: #6B84F8;
+
+  /* ── Utils ───────────────────────────────────── */
+  --utils-text: #FFFFFF;
+  --utils-text-2: #FFFFFF94;
   --utils-text-3: #c1c1c1a7;
-  --utils-bg: #000000;
-  --utils-border: #ffffff1e;
-  --utils-border-2: #ffffff53;
-  --divider: #1f1f1f;
-
+  --utils-bg: #0C0E12;
+  --utils-border: #FFFFFF1e;
+  --utils-border-2: #FFFFFF53;
+  --divider: #1C2030;
 }
 
 
@@ -123,6 +175,20 @@ body {
 .reveal:nth-child(3) {
   transition-delay: 0.2s;
 }
+
+.kaushan-script-regular {
+  font-family: "Kaushan Script", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.concert-one-regular {
+  font-family: "Concert One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
 
 @keyframes badgePulse {
 

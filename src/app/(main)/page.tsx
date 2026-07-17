@@ -36,12 +36,11 @@ function HomeInner() {
   return (
     <>
       <Hero />
-      <LogoStrip />
+      <CTASection />
       <HowItWorks />
       <Benefits />
       <Pricing />
       <WhySwitch />
-      <CTASection />
       <Footer />
     </>
   )

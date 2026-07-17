@@ -11,7 +11,7 @@ export default function CTASection() {
                 padding: 'clamp(72px, 8vw, 100px) 20px',
             }}
         >
-            <div className="max-w-[1200px] mx-auto">
+            <div className="max-w-[1460px] mx-auto">
                 <div
                     className="relative rounded-3xl overflow-hidden text-center px-6 py-16 md:py-20"
                     style={{

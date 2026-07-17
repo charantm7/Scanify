@@ -48,13 +48,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-12 mb-12">
 
           <div className="sm:col-span-2 md:col-span-1">
-            <Link href="#" className="inline-flex items-center gap-2 font-syne text-[17px] font-extrabold text-theme no-underline tracking-tight">
-              <Image
-                src="/scanify_logo.png"
-                alt="Logo"
-                width={50}
-                height={50}
-              />
+            <Link href="#" className="inline-flex items-center gap-2 kaushan-script-regular text-[20px] font-extrabold text-theme no-underline tracking-tight">
+
               Scanify
             </Link>
             <p className="text-sm text-theme3 mt-3 leading-[1.65] max-w-[240px]">

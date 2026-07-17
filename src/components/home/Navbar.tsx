@@ -87,18 +87,12 @@ export default function Navbar({ user: initialUser }) {
   return (
     <div className="relative profile-wrapper">
       <Toaster position="top-center" />
-      <div className="fixed top-3 left-0 right-0 z-50 w-full px-3  flex justify-center pointer-events-none">
-        <nav className={`pointer-events-auto w-full max-w-[1360px] px-5 sm:px-5 py-1 rounded-full border border-white/10 backdrop-blur-xl shadow-lg transition-all z-50 duration-300 ${scrolled ? 'shadow-xl' : ''}`}
-          style={{ background: scrolled ? 'var(--nav)' : 'var(--nav)' }}>
+      <div className={`fixed left-0 right-0 z-50 w-full  backdrop-blur-xl  flex justify-center pointer-events-none ${scrolled ? 'shadow-lg' : ''}`}>
+        <nav className={`pointer-events-auto w-full max-w-[1365]  px-5 sm:px-5 pb-1 pt-4  transition-all z-50 duration-300 `}
+        >
           <div className="h-14 flex items-center justify-between gap-2">
-            <Link href="/" className="flex items-center gap-2 font-syne font-base sm:text-lg font-extrabold text-theme no-underline tracking-wide flex-shrink-0">
-              <Image
-                loading="eager"
-                src="/scanify_logo.png"
-                alt="Logo"
-                width={40}
-                height={40}
-              />
+            <Link href="/" className="flex items-center gap-2 kaushan-script-regular sm:text-lg   text-theme no-underline tracking-wide flex-shrink-0" style={{ fontSize: "1.5rem", fontWeight: '600' }}>
+
               Scanify
             </Link>
 
@@ -133,12 +127,20 @@ export default function Navbar({ user: initialUser }) {
 
                 </>
               ) : (
-                <Link
-                  href="/login"
-                  className="hidden md:inline-flex px-4 py-2 text-sm rounded-full text-white bg-[var(--accent)] hover:bg-[var(--accent2)] transition"
-                >
-                  Get Started
-                </Link>
+                <div className='flex gap-2 border rounded-lg border-[var(--border)] p-1'>
+                  <Link
+                    href="/login"
+                    className="hidden md:inline-flex px-4 py-2 text-sm rounded-lg text-theme hover:bg-[var(--accent)] hover:text-white transition"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="hidden md:inline-flex px-4 py-2 text-sm rounded-lg text-white bg-[var(--accent)] hover:bg-[var(--accent2)] transition"
+                  >
+                    Get Started
+                  </Link>
+                </div>
               )}
               <button
                 className="md:hidden w-9 h-9 rounded-[10px] border border-theme2 bg-card text-theme2 flex items-center justify-center hover:bg-theme3 transition-all duration-200 z-50"

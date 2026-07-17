@@ -239,8 +239,6 @@ function GridItem({ item, onClick, showImage, showDietary, showTags }: ItemCardP
                             {item.name}
                         </p>
                     </div>
-
-
                     {showTags && <ItemBadgeRow item={item} />}
 
                 </div>
