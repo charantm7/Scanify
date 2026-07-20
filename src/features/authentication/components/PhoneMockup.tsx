@@ -8,10 +8,10 @@ export default function PhoneMockup() {
         <div className="hidden md:flex justify-center items-center" style={{ animation: 'slideIn 0.8s ease-out' }}>
             <div className="relative w-[280px]">
                 <div
-                    className="w-[280px] h-[560px] rounded-[44px] bg-card border-[10px] overflow-hidden relative"
+                    className="w-[280px] h-[460px] rounded-[44px] bg-card border-[10px] overflow-hidden relative"
                     style={{ borderColor: 'var(--phone-border)', boxShadow: 'var(--shadow2), 0 0 0 1px var(--border)' }}
                 >
-                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-[22px] rounded-xl z-10" style={{ background: 'var(--phone-notch)' }} />
+                    <div className="absolute  top-3 left-1/2 -translate-x-1/2 w-20 h-[22px] rounded-xl z-10" style={{ background: 'var(--phone-notch)' }} />
                     <div className="w-full h-full bg-theme flex flex-col">
                         <div className="pt-11 pb-4 px-4" style={{ background: 'var(--accent)' }}>
                             <h4 className="font-syne text-base font-bold text-white">Grand Palace Hotel</h4>
@@ -43,7 +43,7 @@ export default function PhoneMockup() {
                     </div>
                 </div>
                 {/* QR Badge */}
-                <div className="absolute -bottom-4 -right-8 bg-card border border-theme2 rounded-[18px] p-3.5 flex items-center gap-3.5" style={{ boxShadow: 'var(--shadow2)' }}>
+                <div className="absolute -bottom-4 -right-8 bg-card border border-theme2 rounded-lg p-3.5 flex items-center gap-3.5" style={{ boxShadow: 'var(--shadow2)' }}>
                     <svg width="52" height="52" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
                         <rect x="2" y="2" width="20" height="20" rx="2" fill="none" className="qr-stroke" strokeWidth="2" />
                         <rect x="7" y="7" width="10" height="10" rx="1" className="qr-fill" />

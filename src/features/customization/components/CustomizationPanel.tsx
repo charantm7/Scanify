@@ -67,7 +67,7 @@ export default function CustomizationPanel() {
             </div>
 
             {/* ── Body: settings left, preview right ───────────────────────────── */}
-            <div className="flex-1 grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-0 overflow-hidden">
+            <div className="flex-1 grid grid-cols-1 gap-0 overflow-hidden">
 
                 {/* Left: editor */}
                 <div className="overflow-y-auto">

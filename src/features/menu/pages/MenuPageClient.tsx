@@ -30,7 +30,7 @@ export default function MenuPageClient({
     slug,
     qrCodeId,
 }: MenuPageClientProps) {
-    console.log(data);
+
     const { categories, customization, hotel } = data;
     const [accesstype, setAccesstype] = useState("page_view")
 
@@ -107,7 +107,7 @@ export default function MenuPageClient({
         },
         [hotel.id, openItemModal]
     );
-    console.log(customization)
+
 
     return (
         <div

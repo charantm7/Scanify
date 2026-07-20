@@ -13,21 +13,8 @@ import Image from 'next/image';
 
 function Logo() {
   return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center flex-shrink-0"
-      >
-        <Image
-          loading="eager"
-          src="/scanify_logo.png"
-          alt="Logo"
-          width={40}
-          height={40}
-        />
-      </div>
-      <span className="font-syne font-bold text-theme text-lg">Scanify</span>
-      <span className='font-blog text-[12px] ml-1 border border-orange-200 text-orange-700 bg-orange-100 px-2 rounded-full'>Beta</span>
-    </div>
+
+    <span className="kaushan-script-regular tracking-wide ml-4 font-bold text-theme text-2xl">Scanify</span>
   );
 }
 
@@ -88,7 +75,7 @@ function PlanBadge({ plan }) {
 
 export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
   const [signingOut, setSigningOut] = useState(false);
-  const { user, plan, profile, isTrialing } = useApp()
+  const { user, plan, profile, isTrialing, isTrialExpired } = useApp()
   const supabase = getSupabaseClient();
 
   async function handleSignOut() {
@@ -191,7 +178,7 @@ export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
         </nav>
 
         {/* Upgrade nudge for free users */}
-        {isTrialing && (
+        {(isTrialing && !isTrialExpired) && (
           <div className="px-3 mb-2">
             <div
               className="rounded-xl p-3 flex items-start gap-2.5"
@@ -201,6 +188,31 @@ export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
               <div>
                 <p className="text-xs font-bold mb-0.5" style={{ color: 'var(--accent)' }}>
                   You&apos;re on Trial
+                </p>
+                <p className="text-xs text-theme2 leading-snug">
+                  Upgrade to Starter or Growth to unlock featured items.
+                </p>
+                <button
+                  className="mt-2 text-xs font-bold underline"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  See plans →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isTrialExpired && (
+          <div className="px-3 mb-2">
+            <div
+              className="rounded-xl p-3 flex items-start gap-2.5"
+              style={{ background: 'var(--accentlt)' }}
+            >
+              <Zap size={15} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 1 }} />
+              <div>
+                <p className="text-xs font-bold mb-0.5" style={{ color: 'var(--accent)' }}>
+                  You&apos;re Trial Ended
                 </p>
                 <p className="text-xs text-theme2 leading-snug">
                   Upgrade to Starter or Growth to unlock featured items.

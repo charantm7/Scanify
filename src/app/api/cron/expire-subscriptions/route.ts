@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     // ------------------------------------------------------------------
     const { data: expiredTrials, error: expiredTrialsErr } = await supabaseAdmin
       .from('subscriptions')
-      .select('id')
+      .select('id, user_id')
       .eq('status', 'trialing')
       .lt('trial_ends_at', nowIso);
 
@@ -59,10 +59,20 @@ export async function GET(req: NextRequest) {
       console.error('Failed to fetch expired trials:', expiredTrialsErr);
     } else if (expiredTrials?.length) {
       const trialIds = expiredTrials.map((s) => s.id);
+      const userIds = expiredTrials.map((s) => s.user_id);
       const { error } = await supabaseAdmin
         .from('subscriptions')
         .update({ status: 'expired', updated_at: nowIso })
         .in('id', trialIds);
+
+      const { error: hotelError } = await supabaseAdmin
+        .from('hotel')
+        .update({ is_active: false })
+        .in('owner_id', userIds)
+
+      if (hotelError) {
+        console.log(hotelError)
+      }
 
       if (error) {
         console.error('Failed to expire trials:', error);

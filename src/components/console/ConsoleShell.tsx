@@ -131,42 +131,6 @@ function ConsoleShellInner() {
 
 
 
-                    <div className="relative w-[50%]">
-                        <Search
-                            size={14}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                            style={{ color: 'var(--text2)' }}
-                        />
-                        <input
-                            value={search}
-                            onChange={() => { }}
-                            placeholder="Search anything…"
-                            className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm outline-none transition-all"
-                            style={{
-                                border: '1.5px solid var(--border2)',
-                                background: 'var(--card)',
-                                color: 'var(--text)',
-                                fontSize: '13px',
-                            }}
-                            onFocus={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--accent)';
-                                e.currentTarget.style.boxShadow = '0 0 0 3px var(--accentlt)';
-                            }}
-                            onBlur={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--border)';
-                                e.currentTarget.style.boxShadow = 'none';
-                            }}
-                        />
-                        {search && (
-                            <button
-                                onClick={() => { }}
-                                className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center transition"
-                                style={{ background: 'var(--border)', color: 'var(--text2)' }}
-                            >
-                                <X size={11} />
-                            </button>
-                        )}
-                    </div>
 
                     <div className='flex gap-6'>
 

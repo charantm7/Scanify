@@ -270,7 +270,7 @@ function TransactionDetail({ tx }: { tx: Transaction }) {
   const { date, time } = formatDateTime(tx.created_at);
 
   return (
-    <div className="space-y-5 max-w-lg">
+    <div className="space-y-5 ">
       <div className="flex items-center justify-between">
         <div>
           <p className="font-syne font-bold text-2xl text-theme">{formatRupees(tx.amount_paise)}</p>

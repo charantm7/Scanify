@@ -74,7 +74,7 @@ export default function DashboardPanel({ onNavigate }) {
   return (
     <div className="space-y-6">
 
-      {isTrialing && (
+      {(isTrialing && !isTrialExpired) && (
         <Alert
           type="info"
           title={`Free Trial · ${trialHoursLeft}h left`}

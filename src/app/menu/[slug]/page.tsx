@@ -45,7 +45,7 @@ export default async function MenuPage({ params, searchParams }: PageProps) {
     } catch {
         notFound();
     }
-    console.log(data);
+
 
     const themeTokens = buildThemeTokens(data.customization);
     const themeStyle = buildThemeStyleTag(themeTokens);

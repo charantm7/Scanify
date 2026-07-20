@@ -14,7 +14,7 @@ export default function ResetPasswordPage() {
             <AuthNavbar />
 
             <div className="relative min-h-screen flex items-center justify-center px-2 py-20">
-                <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-12 items-center">
+                <div className="w-full max-w-6xl grid md:grid-cols-2 gap-12 items-center">
                     <PasswordResetForm />
                     <PhoneMockup />
 

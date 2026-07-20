@@ -21,7 +21,7 @@ export function useCustomization() {
     const [saving, setSaving] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
 
-    console.log(config);
+
     useEffect(() => {
         if (!hotel?.id) return;
 
