@@ -25,8 +25,11 @@ export async function POST(req: NextRequest) {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
-    if (expectedSignature !== razorpay_signature) {
-      // Mark the payment row failed if it exists, but never fulfil it.
+    const signatureValid =
+      expectedSignature.length === razorpay_signature.length &&
+      crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(razorpay_signature));
+
+    if (!signatureValid) {
       await supabaseAdmin
         .from('payments')
         .update({ status: 'failed', failure_reason: 'signature_mismatch' })
@@ -46,22 +49,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unknown order' }, { status: 404 });
     }
 
-    // Ownership check — this payment must belong to the calling user.
     if (payment.user_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Idempotency — if the webhook already processed this, don't double-apply.
-    if (payment.status === 'captured') {
-      return NextResponse.json({ alreadyProcessed: true, success: true });
-    }
-
-    // ---- Step 3: mark payment captured ----
+    // ---- Step 3: record signature verified (NOT yet fulfilled) ----
     const now = new Date();
     await supabaseAdmin
       .from('payments')
       .update({
-        status: 'captured',
+        status: 'verified',
         razorpay_payment_id,
         razorpay_signature,
         updated_at: now.toISOString(),
@@ -69,11 +66,27 @@ export async function POST(req: NextRequest) {
       .eq('razorpay_order_id', razorpay_order_id);
 
     // ---- Step 4: activate the subscription (shared with the webhook path) ----
-    const { subUpdate } = await fulfillSubscriptionPayment(payment, razorpay_payment_id, now);
+    // Idempotent via processed_fulfilments — safe to call even if the
+    // webhook already fulfilled this exact payment.
+    const { subUpdate, alreadyProcessed } = await fulfillSubscriptionPayment(
+      payment,
+      razorpay_payment_id,
+      now
+    );
+
+    // Only flip to 'captured' once fulfilment has actually gone through —
+    // if fulfillSubscriptionPayment threw above, we never reach this line,
+    // and the row is left at 'verified' so a retry/webhook can still fulfil it.
+    if (!alreadyProcessed) {
+      await supabaseAdmin
+        .from('payments')
+        .update({ status: 'captured', updated_at: new Date().toISOString() })
+        .eq('razorpay_order_id', razorpay_order_id);
+    }
 
     // A same-cycle, mid-period upgrade doesn't touch current_period_end, so
     // subUpdate won't carry it — fetch the live value to report back accurately.
-    let periodEnd = (subUpdate.current_period_end as string | undefined) ?? null;
+    let periodEnd = subUpdate?.current_period_end ?? null;
     if (!periodEnd) {
       const { data: liveSub } = await supabaseAdmin
         .from('subscriptions')

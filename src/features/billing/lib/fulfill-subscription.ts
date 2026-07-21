@@ -5,6 +5,13 @@
 // browser-driven path) and /api/payments/webhook (the durable, Razorpay-
 // driven fallback), so the two fulfilment paths can never drift apart.
 //
+// Both the subscriptions row and the denormalized users.plan column are
+// written atomically via a single Postgres RPC (fulfill_subscription_payment)
+// so they can never go out of sync with each other. Idempotency is enforced
+// inside that RPC via a unique constraint on processed_fulfilments
+// (razorpay_payment_id) — if verify and the webhook both reach this function
+// for the same payment, the second call is a safe no-op.
+//
 // Correctness note on current_period_end:
 //   - A same-cycle plan-tier upgrade (e.g. starter-monthly -> growth-monthly)
 //     keeps the existing current_period_end — the user already paid (via
@@ -24,9 +31,11 @@ import { supabaseAdmin } from './supabase-admin';
 import { getPlanPricing, PlanKey, BillingCycle } from './plans';
 import { PaymentRow, SubscriptionUpdate } from '../../../types/supabase';
 
+
 export interface FulfilmentResult {
-  subUpdate: SubscriptionUpdate;
+  subUpdate: SubscriptionUpdate | null;
   periodReset: boolean;
+  alreadyProcessed?: boolean;
 }
 
 export async function fulfillSubscriptionPayment(
@@ -87,24 +96,49 @@ export async function fulfillSubscriptionPayment(
     };
   }
 
-  const { error: subUpdateErr } = await supabaseAdmin
-    .from('subscriptions')
-    .update(subUpdate)
-    .eq('hotel_id', payment.hotel_id);
+  // Single atomic write: subscriptions + users.plan + idempotency record,
+  // all inside one Postgres function. See migration for the SQL body.
+  const { error: rpcError } = await supabaseAdmin.rpc('fulfill_subscription_payment', {
+    p_hotel_id: payment.hotel_id,
+    p_user_id: payment.user_id,
+    p_razorpay_payment_id: razorpayPaymentId,
+    p_plan: subUpdate.plan,
+    p_billing_cycle: subUpdate.billing_cycle,
+    p_status: subUpdate.status,
+    p_current_period_start: subUpdate.current_period_start ?? null,
+    p_current_period_end: subUpdate.current_period_end ?? null,
+    p_needs_fresh_period: needsFreshPeriod,
+    p_last_payment_id: subUpdate.last_payment_id,
+    p_provider_subscription_id: subUpdate.provider_subscription_id,
+    p_now: now.toISOString(),
+  });
 
-  if (subUpdateErr) {
-    // Payment is captured in Razorpay & our `payments` table — this is now
-    // a support/reconciliation case, not something to surface to the user
-    // as a failed payment. Log loudly so it can be manually fixed.
-    console.error(
-      `[fulfillSubscriptionPayment] Failed to update subscription for hotel ${payment.hotel_id} after payment ${razorpayPaymentId}:`,
-      subUpdateErr
+  if (rpcError) {
+    // The unique-violation case (Postgres code 23505) means this payment was
+    // already fulfilled by the other path (verify vs webhook race) — that's
+    // expected and safe, not a failure.
+    if (rpcError.code === '23505') {
+      return { subUpdate: null, periodReset: false, alreadyProcessed: true };
+    }
+
+    // Anything else: Razorpay has the money, our DB write failed. This is
+    // a "customer paid, got nothing" incident — record it durably and page
+    // a human immediately, don't just log and hope someone greps for it.
+    await supabaseAdmin.from('failed_fulfilments').insert({
+      hotel_id: payment.hotel_id,
+      user_id: payment.user_id,
+      razorpay_payment_id: razorpayPaymentId,
+      payload: subUpdate,
+      error_message: rpcError.message,
+      status: 'pending_retry',
+      created_at: now.toISOString(),
+    });
+
+
+    throw new Error(
+      `[fulfillSubscriptionPayment] Failed to fulfil payment ${razorpayPaymentId} for hotel ${payment.hotel_id}: ${rpcError.message}`
     );
   }
-
-  // Keep users.plan (the denormalized convenience column used across the
-  // rest of the app for plan-gating) in sync.
-  await supabaseAdmin.from('users').update({ plan }).eq('id', payment.user_id);
 
   return { subUpdate, periodReset: needsFreshPeriod };
 }

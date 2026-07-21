@@ -218,8 +218,8 @@ export function buildComparison(
     const count = (arr: MenuScansWithItem[], type: string) =>
         arr.filter(s => s.event_type === type).length;
     const cs = count(current, 'qr_scan'), ps = count(previous, 'qr_scan');
-    const cm = count(current, 'page_view'), pm = count(previous, 'menu_view');
-    const ci = count(current, 'item_modal_open'), pi = count(previous, 'item_view');
+    const cm = count(current, 'page_view'), pm = count(previous, 'page_view');
+    const ci = count(current, 'item_modal_open'), pi = count(previous, 'item_modal_open');
     return {
         scans: { current: cs, previous: ps, changePct: pctChange(cs, ps) },
         menuViews: { current: cm, previous: pm, changePct: pctChange(cm, pm) },

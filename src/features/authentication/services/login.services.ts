@@ -216,6 +216,6 @@ export async function AuthResendEmail(
     await resendEmailVerification(supabase, savedEmail)
 
     setResendCount((c) => c + 1);
-    setCooldown(Number(process.env.COOLDOWN_SECONDS) ?? 60);
+    setCooldown(Number(process.env.NEXT_PUBLIC_COOLDOWN_SECONDS) ?? 60);
 
 }

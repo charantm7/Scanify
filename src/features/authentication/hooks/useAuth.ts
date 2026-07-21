@@ -3,7 +3,6 @@
 import { useState, useCallback, Dispatch, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '../../../lib/supabase/client';
-import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { useApp } from '../../../context/AppContext';
 
 import { SignInPayload, SignUpPayload, PasswordResetPayload, UseAuthReturn, FormErrors, UpdatePasswordError, UpdatePasswordReturn } from '../types';

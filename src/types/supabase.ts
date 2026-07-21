@@ -32,6 +32,7 @@ export type SubscriptionRow = Row<'subscriptions'>;
 export type PlanLimitsRow = Row<'plan_limits'>;
 export type MenuThemesRow = Row<'menu_themes'>
 export type MenuCustomizationRow = Row<'menu_customizations'>
+export type PaymentRow = Row<'payments'>
 
 
 // Named Update Row Types
@@ -53,6 +54,8 @@ export type PlanLimitsUpdate = Update<'plan_limits'>;
 
 export type MenuThemesUpdate = Update<'menu_themes'>
 export type MenuCustomizationUpdate = Update<'menu_customizations'>
+export type PaymentUpdate = Update<'payments'>
+
 
 
 // Named Insert Row Types
@@ -74,6 +77,8 @@ export type PlanLimitsInsert = Insert<'plan_limits'>;
 
 export type MenuThemesInsert = Insert<'menu_themes'>
 export type MenuCustomizationInsert = Insert<'menu_customizations'>
+export type PaymentInsert = Insert<'payments'>
+
 
 
 // ENUMS Types
