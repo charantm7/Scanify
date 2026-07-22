@@ -9,7 +9,7 @@ import {
 import toast from 'react-hot-toast';
 import { getSupabaseClient } from '../../../lib/supabase/client';
 import { useApp } from '../../../context/AppContext';
-import { Section, Button, Input, Textarea, Card, Badge, Alert } from '../../shared/ui';
+import { Section, Button, Input, Textarea } from '../../shared/ui';
 
 interface FieldRowProps {
     label: string;

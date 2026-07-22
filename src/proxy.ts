@@ -11,8 +11,14 @@ const matchesRoute = (
 
 const redirect = (
     request: NextRequest,
-    path: string
-): NextResponse => NextResponse.redirect(new URL(path, request.url))
+    path: string,
+    reason?: string
+): NextResponse => {
+    const redirectUrl = new URL(path, request.url);
+    if (reason) redirectUrl.searchParams.set('reason', reason);
+    return NextResponse.redirect(redirectUrl);
+};
+
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
     const url = request.nextUrl
@@ -63,26 +69,51 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         const hasRecoveryCookie = request.cookies.get('recovery_flow')
 
         if (!user || !hasRecoveryCookie) {
-            return redirect(request, '/login')
+            return redirect(request, '/login', 'reset_password_cookie_failed')
         }
         return response;
     }
 
-
     const isProtected = matchesRoute(pathname, PROTECTED_ROUTES);
     const isAuthRoute = matchesRoute(pathname, AUTH_ROUTES);
 
-    if (isProtected && !user) {
-        const loginUrl = request.nextUrl.clone();
-        loginUrl.pathname = '/login';
-        loginUrl.searchParams.set('next', pathname);
-        return NextResponse.redirect(loginUrl);
+    if (!user) {
+        if (isProtected) {
+            const loginUrl = request.nextUrl.clone();
+            loginUrl.pathname = '/login';
+            loginUrl.searchParams.set('next', pathname);
+            return NextResponse.redirect(loginUrl);
+        }
+        return response;
     }
 
     // Authenticated user on auth pages → bounce to console
-    if (user && isAuthRoute) {
+    if (isAuthRoute) {
         return redirect(request, '/console');
     }
+
+    const { data: hotelData, error: hotelError } = await supabase
+        .from('hotels')
+        .select('id, is_active, deleted_at')
+        .eq('owner_id', user.id)
+        .maybeSingle();
+
+    if (hotelError) {
+        return redirect(request, '/login', 'hotel_lookup_failed');
+    }
+
+    if (!hotelData) {
+        if (pathname.startsWith('/onboarding')) {
+            return response;
+        }
+        return redirect(request, '/onboarding');
+    }
+
+    if (hotelData.deleted_at) {
+        await supabase.auth.signOut();
+        return redirect(request, '/login', 'account_deleted');
+    }
+
 
     return response;
 }

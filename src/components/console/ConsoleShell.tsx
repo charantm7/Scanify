@@ -7,7 +7,7 @@ import DashboardPanel from './panels/DashboardPanel';
 import { MenuPanel } from '../../features/menu_builder';
 import QRPanel from './panels/QrPanel';
 import AnalyticsPanel from '../../features/analytics/components/AnalyticsPanel';
-import SettingsPanel from './panels/SettingsPanel';
+import { SettingsPanel } from '../../features/settings';
 import { getSupabaseClient } from '../../lib/supabase/client';
 import { AppProvider } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';

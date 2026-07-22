@@ -1,5 +1,6 @@
 import AuthPanelPage from "../../../features/authentication/pages/AuthPanelPage";
-import { Suspense } from "react";
+import { getLoginReasonMessage } from "../../../features/authentication/components/LoginFailReason";
+import { LoginNoticeModal } from "../../../features/authentication/components/LoginNoticeModal";
 import "../../style/globals.css"
 
 export const metadata = {
@@ -7,9 +8,28 @@ export const metadata = {
     description: "Get Started with Scanify",
 };
 
-export default function Authentication() {
-    return (
+type SearchParams = Promise<{
+    reason?: string;
+    next?: string;
+}>;
 
-        <AuthPanelPage />
+export default async function Authentication({ searchParams }: { searchParams: SearchParams }) {
+
+    const params = await searchParams;
+
+    const reasonMessage = getLoginReasonMessage(params.reason ?? null);
+
+    return (
+        <div>
+            {reasonMessage && (
+                <LoginNoticeModal
+                    reason={params.reason}
+                    title={reasonMessage.title}
+                    body={reasonMessage.body}
+                    tone={reasonMessage.tone}
+                />
+            )}
+            <AuthPanelPage />
+        </div>
     );
 }
