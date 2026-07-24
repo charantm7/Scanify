@@ -76,6 +76,8 @@ function QRCard({ qr, onDelete }) {
         </button>
       </div>
 
+
+
       <Image
         src={qrUrl(qrTargetUrl)}
         width={200}
