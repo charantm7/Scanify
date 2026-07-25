@@ -57,6 +57,12 @@ export async function signUp(
             }
         })
 
+    console.log("Origin:", window.location.origin);
+    console.log(
+        "Redirect:",
+        `${window.location.origin}/${process.env.NEXT_PUBLIC_SIGNUP_EMAIL_REDIRECT_TO}`
+    );
+
     if (error) {
         throw new Error(`Sign Up error: ${error.message}`)
     }

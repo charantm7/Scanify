@@ -50,7 +50,7 @@ export function useOnboarding(): UseOnboardingReturn {
         } catch (err) {
             const msg = err instanceof Error ? err.message + err.name : 'Something went wrong.';
 
-            toast.error(getFriendlyError(err));
+            toast.error(getFriendlyError(msg));
         } finally {
             setLoading(false);
         }
