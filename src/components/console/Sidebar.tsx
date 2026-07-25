@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
-  LayoutDashboard, MenuIcon, QrCode, BarChart2,
-  Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt
+  LayoutDashboard, QrCode, ScanQrCodeIcon, ImageIcon,
+  Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt, SlidersHorizontal, BarChart3, Sparkles, Palette, Settings2, MessageSquare, CreditCard, ArrowUpDown
 } from 'lucide-react';
 import { getSupabaseClient } from '../../lib/supabase/client';
 import { Badge } from '../shared/ui';
@@ -13,31 +13,53 @@ import Image from 'next/image';
 
 function Logo() {
   return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center flex-shrink-0"
-      >
-        <Image
-          loading="eager"
-          src="/scanify_logo.png"
-          alt="Logo"
-          width={40}
-          height={40}
-        />
-      </div>
-      <span className="font-syne font-bold text-theme text-lg">Scanify</span>
-    </div>
+
+    <span className="kaushan-script-regular tracking-wide ml-4 font-bold text-theme text-2xl">Scanify</span>
   );
 }
 
-export const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'menu', label: 'Menu Builder', icon: ChefHat },
-  { id: 'qr-codes', label: 'QR Codes', icon: QrCode },
-  { id: 'analytics', label: 'Analytics', icon: BarChart2 },
-  { id: 'settings', label: 'Settings', icon: Settings },
-  { id: 'billing', label: 'Subscription', icon: Receipt },
 
+export const NAV_GROUPS = [
+  {
+    title: "Overview",
+    items: [
+      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { id: "analytics", label: "Analytics", icon: BarChart3 },
+    ],
+  },
+
+  {
+    title: "Menu",
+    items: [
+      { id: "menu", label: "Menu Builder", icon: ChefHat },
+      { id: "today-special", label: "Today's Special", icon: Sparkles },
+      { id: "customization", label: "Customization", icon: Palette },
+    ],
+  },
+
+  {
+    title: "Marketing",
+    items: [
+      { id: "qr-codes", label: "QR Codes", icon: QrCode },
+      { id: "cutomize-codes", label: "QR Customization", icon: ScanQrCodeIcon },
+      { id: "reviews", label: "Reviews", icon: MessageSquare },
+    ],
+  },
+  {
+    title: "Assets",
+    items: [
+      { id: "media-library", label: "Media Library", icon: ImageIcon },
+    ],
+  },
+
+  {
+    title: "Business",
+    items: [
+      { id: "billing", label: "Subscription", icon: CreditCard },
+      { id: "transactions", label: "Transactions", icon: Receipt },
+      { id: "settings", label: "Settings", icon: Settings2 },
+    ],
+  },
 ];
 
 const COMING_SOON = new Set(['orders']);
@@ -47,12 +69,13 @@ function PlanBadge({ plan }) {
   if (plan === 'growth') return <Badge variant="success">Growth</Badge>;
   if (plan === 'starter') return <Badge>Starter</Badge>;
   if (plan === 'basic') return <Badge>Basic</Badge>;
+
   return <Badge variant="warning">Trial</Badge>;
 }
 
 export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
   const [signingOut, setSigningOut] = useState(false);
-  const { user, plan, profile, isTrialing } = useApp()
+  const { user, plan, profile, isTrialing, isTrialExpired } = useApp()
   const supabase = getSupabaseClient();
 
   async function handleSignOut() {
@@ -100,43 +123,62 @@ export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-            const active = activeTab === id;
-            const comingSoon = COMING_SOON.has(id);
+        <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.title} className="mb-5">
+              <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-theme3">
+                {group.title}
+              </p>
 
-            return (
-              <button
-                key={id}
-                onClick={() => {
-                  if (comingSoon) return;
-                  setActiveTab(id);
-                  setOpen(false);
-                }}
-                disabled={comingSoon}
-                aria-current={active ? 'page' : undefined}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${active ? 'text-white' : comingSoon ? 'text-theme2 opacity-40 cursor-not-allowed' : 'text-theme2 hover:bg-theme3 hover:text-theme'}`}
-                style={active ? { background: 'var(--accent)' } : {}}
-              >
-                <span className="flex items-center gap-3">
-                  <Icon size={16} />
-                  {label}
-                </span>
-                {comingSoon && (
-                  <span
-                    className="text-[10px] px-1.5 py-0.5 rounded-full border"
-                    style={{ borderColor: 'var(--border)', color: 'var(--text2)' }}
-                  >
-                    Soon
-                  </span>
-                )}
-              </button>
-            );
-          })}
+              <div className="">
+                {group.items.map(({ id, label, icon: Icon }) => {
+                  const active = activeTab === id;
+                  const comingSoon = COMING_SOON.has(id);
+
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => {
+                        if (comingSoon) return;
+                        setActiveTab(id);
+                        setOpen(false);
+                      }}
+                      disabled={comingSoon}
+                      aria-current={active ? "page" : undefined}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active
+                        ? "text-white"
+                        : comingSoon
+                          ? "text-theme2 opacity-40 cursor-not-allowed"
+                          : "text-theme2 hover:bg-theme3 hover:text-theme"
+                        }`}
+                      style={active ? { background: "var(--accent)" } : {}}
+                    >
+                      <span className="flex items-center gap-3">
+                        <Icon size={16} />
+                        {label}
+                      </span>
+
+                      {comingSoon && (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full border"
+                          style={{
+                            borderColor: "var(--border)",
+                            color: "var(--text2)",
+                          }}
+                        >
+                          Soon
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Upgrade nudge for free users */}
-        {isTrialing && (
+        {(isTrialing && !isTrialExpired) && (
           <div className="px-3 mb-2">
             <div
               className="rounded-xl p-3 flex items-start gap-2.5"
@@ -146,6 +188,31 @@ export default function Sidebar({ activeTab, setActiveTab, open, setOpen }) {
               <div>
                 <p className="text-xs font-bold mb-0.5" style={{ color: 'var(--accent)' }}>
                   You&apos;re on Trial
+                </p>
+                <p className="text-xs text-theme2 leading-snug">
+                  Upgrade to Starter or Growth to unlock featured items.
+                </p>
+                <button
+                  className="mt-2 text-xs font-bold underline"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  See plans →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isTrialExpired && (
+          <div className="px-3 mb-2">
+            <div
+              className="rounded-xl p-3 flex items-start gap-2.5"
+              style={{ background: 'var(--accentlt)' }}
+            >
+              <Zap size={15} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 1 }} />
+              <div>
+                <p className="text-xs font-bold mb-0.5" style={{ color: 'var(--accent)' }}>
+                  You&apos;re Trial Ended
                 </p>
                 <p className="text-xs text-theme2 leading-snug">
                   Upgrade to Starter or Growth to unlock featured items.

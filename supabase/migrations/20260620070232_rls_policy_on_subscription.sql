@@ -1,0 +1,1 @@
+CREATE POLICY "Users can create their own subscription" ON "public"."subscriptions" FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);

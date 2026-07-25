@@ -18,13 +18,15 @@ import { useApp } from '../../../context/AppContext';
 
 import { Card, Button, EmptyState, Alert, Badge, Select } from '../../shared/ui';
 
-function qrUrl(text, size = 256) {
+function qrUrl(text: string, size = 256) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&color=000000&bgcolor=ffffff&qzone=2&format=png`;
 }
 
 function QRCard({ qr, onDelete }) {
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const qrTargetUrl = `${qr.target_url}?qr=${qr.id}`
 
   async function copy() {
     try {
@@ -38,7 +40,7 @@ function QRCard({ qr, onDelete }) {
 
   async function download() {
     try {
-      const res = await fetch(qrUrl(qr.target_url, 512));
+      const res = await fetch(qrUrl(qrTargetUrl, 512));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -77,12 +79,12 @@ function QRCard({ qr, onDelete }) {
 
 
       <Image
-        src={qrUrl(qr.target_url)}
-        width={250}
-        height={250}
-        alt="QR Code"
+        src={qrUrl(qrTargetUrl)}
+        width={200}
+        height={200}
         unoptimized
-        className="rounded-xl border"
+        alt="QR Code"
+        className="rounded-lg border"
         style={{ borderColor: 'var(--border)' }}
       />
 
@@ -138,6 +140,8 @@ export default function QRPanel({ onNavigate }) {
     }; loadQRs();
   }, [hotel?.id, supabase]);
 
+
+
   async function generate() {
     if (!menuUrl) { toast.error('No menu URL found — complete onboarding first'); return; }
     if (isAtLimit) { toast.error(`QR code limit reached for ${plan} plan`); return; }
@@ -164,7 +168,7 @@ export default function QRPanel({ onNavigate }) {
     }
   }
 
-  async function deleteQR(id) {
+  async function deleteQR(id: string) {
     try {
       const { error } = await supabase.from('qr_codes').delete().eq('id', id);
       if (error) throw error;

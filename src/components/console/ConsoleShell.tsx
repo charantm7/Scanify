@@ -1,19 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Menu, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
-import { Toaster } from 'react-hot-toast';
-import Sidebar, { NAV_ITEMS } from './Sidebar';
+import { Menu, Loader2, AlertTriangle, RefreshCw, Search, X, Bell } from 'lucide-react';
+import Sidebar, { NAV_GROUPS } from './Sidebar';
 import DashboardPanel from './panels/DashboardPanel';
-import MenuPanel from './panels/MenuPanel';
+import { MenuPanel } from '../../features/menu_builder';
 import QRPanel from './panels/QrPanel';
-import AnalyticsPanel from './panels/AnalyticsPanel';
-import SettingsPanel from './panels/SettingsPanel';
+import AnalyticsPanel from '../../features/analytics/components/AnalyticsPanel';
+import { SettingsPanel } from '../../features/settings';
 import { getSupabaseClient } from '../../lib/supabase/client';
 import { AppProvider } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useApp } from '../../context/AppContext';
-import BillingPanel from './panels/BillingPanel';
+import BillingPanel from '../../features/billing/page/BillingPanel';
+import CustomizationPanel from '../../features/customization/components/CustomizationPanel';
+import TransactionHistory from '../../features/billing/components/TransactionHistory';
 
 function ThemeIcon({ dark }) {
     return dark ? (
@@ -33,18 +34,7 @@ function ThemeIcon({ dark }) {
     );
 }
 
-function ConsoleLoader() {
-    return (
-        <div className="min-h-screen grid-bg flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'var(--accent)' }}>
-                    <Loader2 size={28} color="white" className="animate-spin" />
-                </div>
-                <p className="text-theme2 text-sm font-medium">Loading your console…</p>
-            </div>
-        </div>
-    );
-}
+
 
 function ConsoleError({ error }) {
     return (
@@ -75,6 +65,8 @@ function Panel({ id, onNavigate }) {
         case 'analytics': return <AnalyticsPanel onNavigate={onNavigate} />;
         case 'settings': return <SettingsPanel />;
         case 'billing': return <BillingPanel />;
+        case 'customization': return <CustomizationPanel />
+        case 'transactions': return <TransactionHistory />
         default: return (
             <div className="text-center py-20 text-theme2">
                 <p className="font-syne font-bold text-xl text-theme mb-2">Coming Soon</p>
@@ -100,25 +92,17 @@ function ConsoleShellInner() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [error, setError] = useState(null)
+    const [search, setSearch] = useState('');
 
     const { theme, toggleTheme } = useTheme();
-    const { loading } = useApp()
 
 
-    if (loading) return <ConsoleLoader />;
     if (error) return <ConsoleError error={error} />;
 
-    const activeLabel = NAV_ITEMS.find((n) => n.id === activeTab)?.label ?? '';
+    const activeLabel = NAV_GROUPS.flatMap(group => group.items).find(item => item.id === activeTab)?.label ?? "";
 
     return (
         <div className="min-h-screen grid-bg flex">
-            <Toaster
-                position="top-right"
-                toastOptions={{
-                    duration: 3500,
-                    style: { background: 'var(--card)', color: 'var(--text)', border: '1px solid var(--border)' },
-                }}
-            />
 
             <Sidebar
                 activeTab={activeTab}
@@ -144,21 +128,35 @@ function ConsoleShellInner() {
                         </button>
                         <h2 className="font-syne font-bold text-theme text-lg">{activeLabel}</h2>
                     </div>
-                    <button
-                        onClick={toggleTheme}
-                        className="w-9 h-9 rounded-xl border text-theme2 flex items-center justify-center hover:bg-theme3 transition-all"
-                        style={{ borderColor: 'var(--border)' }}
-                        aria-label="Toggle theme"
-                    >
-                        <ThemeIcon dark={theme === 'dark'} />
-                    </button>
+
+
+
+
+                    <div className='flex gap-6'>
+
+                        <button className="w-9 h-9 rounded-xl border text-theme2 flex items-center justify-center hover:bg-theme3 transition-all"
+                            style={{ borderColor: 'var(--border)' }}>
+                            <Bell size={16} />
+                        </button>
+
+                        <button
+                            onClick={toggleTheme}
+                            className="w-9 h-9 rounded-xl border text-theme2 flex items-center justify-center hover:bg-theme3 transition-all"
+                            style={{ borderColor: 'var(--border)' }}
+                            aria-label="Toggle theme"
+                        >
+                            <ThemeIcon dark={theme === 'dark'} />
+                        </button>
+
+                    </div>
+
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 p-5 sm:p-6 max-w-5xl w-full mx-auto">
+                <main className="flex-1 p-5 sm:p-6 max-w-6xl w-full mx-auto">
                     <Panel id={activeTab} onNavigate={setActiveTab} />
                 </main>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

@@ -4,14 +4,27 @@ import Hero from "../../components/home/Hero";
 import HowItWorks from "../../components/home/HowItWorks";
 import Pricing from "../../components/home/Pricing";
 import WhySwitch from "../../components/home/WhySwitch";
+import LogoStrip from "../../components/home/LogoStrip";
 import { AppProvider } from "../../context/AppContext";
+import { createClient } from "../../lib/supabase/server";
+import { redirect } from "next/navigation";
+import CTASection from "../../components/home/CTAsection";
 
 export const metadata = {
   title: "Scanify",
   description: "Replace printed menus with a smart digital solution. Customers scan a QR code and instantly browse your full menu — contactless, fast, and always up to date.",
 };
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+
+  const { data: { session }, } = await supabase.auth.getSession();
+
+
+  if (session) {
+    redirect('/onboarding')
+  }
+
   return (
     <AppProvider>
       <HomeInner />
@@ -23,6 +36,7 @@ function HomeInner() {
   return (
     <>
       <Hero />
+      <CTASection />
       <HowItWorks />
       <Benefits />
       <Pricing />

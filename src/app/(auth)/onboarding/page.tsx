@@ -1,4 +1,4 @@
-import OnboardingPage from "../../../components/authentication/Onboarding";
+import OnboardingPage from "../../../features/onboarding/page";
 import { redirect } from "next/navigation";
 import { createClient } from "../../../lib/supabase/server";
 

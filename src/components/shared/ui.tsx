@@ -162,7 +162,7 @@ export function Button({
     ...props
 }: ButtonProps) {
     const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed';
-    const sizes = { sm: 'px-3 py-1.5 text-xs', md: 'px-4 py-2.5 text-sm', lg: 'px-6 py-3 text-sm' };
+    const sizes = { sm: 'px-3 py-1.5 text-xs', md: 'px-3 py-2.5 text-sm', lg: 'px-6 py-3 text-sm' };
     const variants = {
         primary: 'text-white hover:opacity-90',
         secondary: 'border text-theme hover:bg-theme3',
@@ -401,7 +401,18 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
             <div
-                className="relative w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden"
+                className="
+                    relative
+                    w-full
+                    max-w-5xl
+                    max-h-[90vh]
+                    rounded-2xl
+                    border
+                    shadow-2xl
+                    flex
+                    flex-col
+                    overflow-auto
+                "
                 style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
             >
                 <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>

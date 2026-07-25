@@ -1,6 +1,8 @@
 import "./style/globals.css";
 import Script from "next/script";
 import { ThemeProvider } from "../context/ThemeContext";
+import { ToasterConfig } from "../components/shared/ToasterConfig";
+import Providers from "./providers";
 
 
 export default async function RootLayout({ children }) {
@@ -28,9 +30,12 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body>
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider>
+            <ToasterConfig />
+            {children}
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

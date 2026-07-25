@@ -1,0 +1,118 @@
+// features/menu/components/ItemBadges.tsx
+"use client";
+
+// ── Source of truth: reuse menu_builder constants & types ────────────────────
+// The tags[] column stores ItemTag values ("bestseller", "chefs_special", etc.)
+// The dietary_type column stores DietaryType values ("veg", "non_veg", etc.)
+// These match exactly what the menu builder writes — so we import from there.
+import { DIETARY_META, TAG_META, SPICE_LEVEL_META } from "../../menu_builder/constants";
+import type { DietaryType, ItemTag, SpiceLevel } from "../../menu_builder/types";
+import type { MenuItem } from "../types";
+
+export function DietaryIndicator({ dietaryType }: { dietaryType: string | null }) {
+    if (!dietaryType) return null;
+    const meta = DIETARY_META[dietaryType as DietaryType];
+    if (!meta) return null;
+
+    return (
+        <span
+            className="inline-flex items-center justify-center rounded-sm border flex-shrink-0"
+            title={meta.label}
+            aria-label={meta.label}
+            style={{
+                width: 14,
+                height: 14,
+                borderColor: meta.ring,
+                borderWidth: 1.7,
+                padding: 2,
+            }}
+        >
+            <span
+                className="block rounded-full"
+                style={{ width: "65%", height: "65%", background: meta.dot }}
+            />
+        </span>
+    );
+}
+
+
+export function VariantIndicator({
+    item,
+    i,
+}: {
+    item: { id: string; label: string; price: number } | null;
+    i: number;
+}) {
+    if (!item) return null;
+
+    return (
+        <div
+            key={i}
+            className="flex items-center gap-3 bg-[var(--color-accent-lt)] rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 shadow-sm"
+        >
+
+            <span className="text-sm ">
+                {item.label}
+            </span>
+
+            <span className="text-sm font-semibold">
+                ₹{item.price}
+            </span>
+        </div>
+    );
+}
+
+export function SpiceIndicator({ level }: { level: string | null }) {
+    if (!level || level === "none") return null;
+    const meta = SPICE_LEVEL_META[level as SpiceLevel];
+    if (!meta) return null;
+
+    return (
+        <span
+            className="text-[10px] leading-none px-1.5 py-1 rounded-full"
+            title={meta.label}
+            style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)" }}
+            aria-label={`Spice: ${meta.label}`}
+        >
+            spice: {meta.label} {meta.emoji}
+        </span>
+    );
+}
+
+export function TagBadge({ tag }: { tag: string }) {
+    const meta = TAG_META[tag as ItemTag];
+    if (meta) {
+        return (
+            <span
+                className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md font-bold leading-none tracking-wide"
+                style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)", fontSize: "var(--font-size)" }}
+            >
+
+                {meta.label}
+            </span>
+        );
+    }
+    // Unknown/custom tag — render as plain pill
+    return (
+        <span
+            className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold leading-none tracking-wide uppercase"
+            style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)" }}
+        >
+            {tag}
+        </span>
+    );
+}
+
+
+export function ItemBadgeRow({ item }: { item: MenuItem }) {
+    const tags = item.tags ?? [];
+    if (tags.length === 0) return null;
+
+    return (
+        <div className="flex items-center gap-1 flex-wrap">
+            {tags.slice(0, 3).map((tag) => (
+                <TagBadge key={tag} tag={tag} />
+            ))}
+        </div>
+    );
+}

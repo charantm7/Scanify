@@ -74,7 +74,7 @@ export default function DashboardPanel({ onNavigate }) {
   return (
     <div className="space-y-6">
 
-      {isTrialing && (
+      {(isTrialing && !isTrialExpired) && (
         <Alert
           type="info"
           title={`Free Trial · ${trialHoursLeft}h left`}
@@ -147,7 +147,9 @@ export default function DashboardPanel({ onNavigate }) {
             Your Live Menu URL
           </p>
           <div className="flex items-center justify-between gap-3">
-            <code className="text-sm font-bold text-theme break-all">{menuUrl}</code>
+            <code className="block text-sm font-bold text-theme truncate">
+              {menuUrl}
+            </code>
             <Link
               href={menuUrl}
               target="_blank"

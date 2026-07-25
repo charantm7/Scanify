@@ -3,12 +3,9 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { getSupabaseClient } from "../lib/supabase/client";
 
-export const PLAN_LABELS = {
-    basic: "Basic",
-    starter: "Starter",
-    growth: "Growth",
-    pro: "Pro",
-};
+import type { AppContextValue } from "../types/app.types";
+import { PLAN_LABELS } from "../types/app.types";
+
 
 export const isUnlimited = (val) => val === -1;
 export const displayLimit = (val) => (isUnlimited(val) ? "∞" : val);
@@ -132,6 +129,7 @@ export function AppProvider({ children }) {
     const trialHoursLeft = Math.ceil(trialMsLeft / 3_600_000);
     const trialDaysLeft = Math.max(isTrialing ? 1 : 0, Math.ceil(trialMsLeft / 86_400_000));
     const isTrialExpired = isTrialing && trialMsLeft === 0;
+    const isFreeTier = !isSubscriptionOk && isTrialExpired;
 
 
     // Menu
@@ -211,6 +209,7 @@ export function AppProvider({ children }) {
         subStatus,
 
         isTrialing,
+        isFreeTier,
         isActive,
         isCancelled,
         isExpired,

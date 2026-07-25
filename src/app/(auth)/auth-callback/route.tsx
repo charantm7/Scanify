@@ -1,6 +1,8 @@
 // app/auth-callback/route.js
 import { createClient } from '../../../lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { createUserProfile, getUserProfile, getUserProfileWithOnboarding } from '../../../lib/queries/user';
+import { UserInsert, UserRow } from '../../../types/supabase';
 
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
@@ -8,6 +10,7 @@ export async function GET(request) {
   const type = searchParams.get('type');
 
   if (!code) {
+    console.log("code: ", code)
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
@@ -35,19 +38,16 @@ export async function GET(request) {
     return response;
   }
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('onboarding_complete')
-    .eq('id', user.id)
-    .maybeSingle();
+  const profile = await getUserProfileWithOnboarding(supabase, user?.id)
 
   if (!profile) {
-    await supabase.from('users').insert({
+    const payload: UserInsert = {
       id: user.id,
       onboarding_complete: false,
       email: user.email,
       is_verified: true,
-    });
+    }
+    await createUserProfile(supabase, payload);
 
     return NextResponse.redirect(`${origin}/onboarding`);
   }
