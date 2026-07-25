@@ -3,17 +3,13 @@ import { createClient } from '../../../lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { createUserProfile, getUserProfile, getUserProfileWithOnboarding } from '../../../lib/queries/user';
 import { UserInsert, UserRow } from '../../../types/supabase';
+import { error } from 'node:console';
 
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const type = searchParams.get('type');
 
-  console.log({
-    url: request.url,
-    code: searchParams.get('code'),
-    type: searchParams.get('type'),
-  });
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
@@ -21,6 +17,9 @@ export async function GET(request) {
 
   const supabase = await createClient();
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+  console.log("main Error", error)
+  console.log("Exchange Error", exchangeError);
 
   if (exchangeError) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
