@@ -18,7 +18,8 @@ export async function GET(request) {
   const supabase = await createClient();
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-  console.log("Exchange Error", error)
+  console.log("main Error", error)
+  console.log("Exchange Error", exchangeError);
 
   if (exchangeError) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
