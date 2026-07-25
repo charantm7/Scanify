@@ -9,8 +9,13 @@ export async function GET(request) {
   const code = searchParams.get('code');
   const type = searchParams.get('type');
 
+  console.log({
+    url: request.url,
+    code: searchParams.get('code'),
+    type: searchParams.get('type'),
+  });
+
   if (!code) {
-    console.log("code: ", code)
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
@@ -22,6 +27,11 @@ export async function GET(request) {
   }
 
   const { data: { user } } = await supabase.auth.getUser();
+
+  console.log({
+    userId: user?.id,
+    email: user?.email,
+  });
 
   if (!user) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
@@ -39,6 +49,7 @@ export async function GET(request) {
   }
 
   const profile = await getUserProfileWithOnboarding(supabase, user?.id)
+  console.log(profile);
 
   if (!profile) {
     const payload: UserInsert = {
@@ -47,7 +58,9 @@ export async function GET(request) {
       email: user.email,
       is_verified: true,
     }
-    await createUserProfile(supabase, payload);
+    const result = await createUserProfile(supabase, payload);
+
+    console.log(result);
 
     return NextResponse.redirect(`${origin}/onboarding`);
   }

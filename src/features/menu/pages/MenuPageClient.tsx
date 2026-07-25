@@ -32,10 +32,8 @@ export default function MenuPageClient({
 }: MenuPageClientProps) {
 
     const { categories, customization, hotel } = data;
-    const [accesstype, setAccesstype] = useState("page_view")
 
-    if (qrCodeId) setAccesstype('qr_scan');
-
+    const accesstype = qrCodeId ? "qr_scan" : "page_view";
     const qc = useQueryClient();
     useEffect(() => {
         qc.setQueryData(QUERY_KEYS.menuPage(slug), data);
