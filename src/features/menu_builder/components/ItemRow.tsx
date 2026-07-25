@@ -9,6 +9,7 @@ import { ChefHat, Pencil, Trash2, Eye, EyeOff, Loader2, GripVertical } from 'luc
 import { DietaryDot } from './shared/DietaryDot';
 import { SpiceBadge, TagBadge } from './shared/TagBadge';
 import type { MenuItem } from '../types';
+import { ItemImage } from './ItemCard';
 
 interface ItemRowProps {
   item: MenuItem;
@@ -85,16 +86,7 @@ export function ItemRow({ item, onEdit, onDelete, onToggle, isAdvanceCategory }:
           }}
         >
           {item.image_url ? (
-            <Image
-              src={item.image_url}
-              alt={item.name}
-              height={100}
-              width={50}
-              className="object-cover w-full h-full"
-              onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+            <ItemImage item={item} variant={'list'} />
           ) : (
             <ChefHat size={16} style={{ color: 'var(--accent)' }} />
           )}

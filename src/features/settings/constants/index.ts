@@ -23,13 +23,30 @@ export const EMPTY_RESTAURANT_FORM = {
     restaurant_type: [],
 };
 
+
 export const CUISINE_OPTIONS = [
-    'North Indian', 'South Indian', 'Chinese', 'Continental',
-    'Italian', 'Mexican', 'Fast Food', 'Bakery', 'Multi-Cuisine',
+    'South Indian', 'North Indian', 'Karnataka', 'Andhra', 'Kerala',
+    'Tamil Nadu', 'Hyderabadi', 'Punjabi', 'Gujarati', 'Rajasthani',
+    'Bengali', 'Maharashtrian', 'Goan',
+    'Chinese', 'Indo-Chinese', 'Japanese', 'Korean', 'Thai', 'Vietnamese',
+    'Italian', 'French', 'Spanish', 'Greek',
+    'American', 'Mexican',
+    'Arabic', 'Lebanese', 'Turkish', 'Persian',
+    'Biryani', 'Seafood',
+    'Vegetarian', 'Vegan', 'Jain',
+    'Street Food', 'BBQ & Grill', 'Bakery', 'Desserts',
+    'Cafe', 'Juice Bar', 'Fast Food', 'Multi-Cuisine',
 ];
 
-export const SERVICE_TYPE_OPTIONS = ['Dine-in', 'Takeaway', 'Delivery', 'Buffet'];
+export const RESTAURANT_TYPE_OPTIONS = [
+    'Casual Dining', 'Fine Dining', 'Fast Food', 'Cafe',
+    'Cloud Kitchen', 'Bakery', 'Buffet', 'Bar',
+    'Restaurant & Bar', 'Food Truck', 'Canteen', 'Pizzeria',
+    'Seafood Restaurant', 'BBQ Restaurant', 'Multi-Outlet Chain', 'Hotel Restaurant',
+];
 
-export const RESTAURANT_TYPE_OPTIONS = ['Casual Dining', 'Fine Dining', 'Cafe', 'Cloud Kitchen', 'QSR', 'Bar & Lounge'];
+export const SERVICE_TYPE_OPTIONS = [
+    'Dine-In', 'Takeaway', 'Delivery', 'Drive-Thru', 'Curbside Pickup',
+];
 
 export type SettingsTabDef = (typeof SETTINGS_TABS)[number];

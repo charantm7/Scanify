@@ -30,7 +30,7 @@ export function SuccessScreen({ url, onGoToConsole }: SuccessScreenProps) {
                     Your menu URL
                 </p>
                 <div className="flex items-center justify-between gap-3">
-                    <code className="text-sm font-bold text-theme break-all">{url}</code>
+                    <code className="text-sm truncate font-bold text-theme break-all">{url}</code>
                     <a
                         href={url}
                         target="_blank"

@@ -9,15 +9,9 @@ export default function AuthNavbar() {
     const { theme, toggleTheme } = useTheme();
 
     return (
-        <nav className={`fixed top-7 w-full z-50 transition-all duration-300 `}>
+        <nav className={`fixed top-0 pt-5 w-full z-50 transition-all backdrop-blur-xl duration-300 `}>
             <div className="md:w-[66%] md:mr-[21%] mx-auto px-7 h-16 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2.5 font-syne text-xl font-extrabold text-theme no-underline tracking-tight">
-                    <Image
-                        src="/scanify_logo.png"
-                        alt="Logo"
-                        width={50}
-                        height={50}
-                    />
+                <Link href="/" className=" kaushan-script-regular ml-5 text-3xl font-extrabold text-theme no-underline tracking-tight">
                     Scanify
                 </Link>
                 <button onClick={toggleTheme}

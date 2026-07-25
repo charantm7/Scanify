@@ -49,7 +49,8 @@ export function useCustomization() {
             }
         })();
         return () => { mounted = false };
-    }, [supabase, hotelId, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [supabase, hotelId]);
 
     const update = useCallback(<K extends keyof CustomizationDraft>(
         key: K,

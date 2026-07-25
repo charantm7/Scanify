@@ -46,22 +46,22 @@ export default function CustomizationPanel() {
             >
                 <div>
                     <h2 className="font-syne font-bold text-base text-theme">Menu Appearance</h2>
-                    <p className="text-xs text-theme2 mt-0.5">Customize how your digital menu looks to customers</p>
+                    <p className="hidden md:block text-xs text-theme2 mt-0.5">Customize how your digital menu looks to customers</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={resetToDefault}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition hover:bg-theme3"
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-semibold border transition hover:bg-theme3"
                         style={{ borderColor: 'var(--border)', color: 'var(--text2)' }}>
                         <RotateCcw size={12} /> Reset
                     </button>
                     <button
                         onClick={save}
                         disabled={!isDirty || saving}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-white transition disabled:opacity-50"
                         style={{ background: isDirty ? 'var(--accent)' : 'var(--text3)' }}>
                         {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
-                        {saving ? 'Saving…' : 'Save Changes'}
+                        {saving ? 'Saving…' : 'Save'}
                     </button>
                 </div>
             </div>
@@ -92,7 +92,7 @@ export default function CustomizationPanel() {
                         })}
                     </div>
 
-                    <div className="p-6 space-y-8 pb-24">
+                    <div className="py-6 px-2 space-y-8 pb-24">
 
                         {/* ── THEMES TAB ────────────────────────────────────────────── */}
                         {activeTab === 'themes' && (
@@ -324,13 +324,13 @@ export default function CustomizationPanel() {
                 </div>
 
                 {/* Right: live preview */}
-                <div className="block border-l p-5 overflow-y-auto">
+                <div className="block overflow-y-auto">
                     <LivePreview config={config} hotelName={hotel?.name ?? 'Your Restaurant'} />
                 </div>
             </div>
 
             {/* ── Mobile: floating preview toggle ──────────────────────────────── */}
-            <div className="xl:hidden fixed bottom-6 right-6 z-50">
+            <div className=" fixed bottom-6 right-6 z-50">
                 <a
                     href={`/menu/${hotel?.slug ?? ''}`}
                     target="_blank"

@@ -48,14 +48,14 @@ export function VariantIndicator({
     return (
         <div
             key={i}
-            className="flex items-center gap-3 bg-[var(--color-accent-lt)] rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 shadow-sm"
+            className="flex items-center gap-3 rounded-md border px-3 py-1.5 shadow-sm transition-colors"
+            style={{ background: "var(--color-bg)", borderColor: "var(--color-border)" }}
         >
-
-            <span className="text-sm ">
+            <span className="text-sm " style={{ color: "var(--color-text)" }}>
                 {item.label}
             </span>
 
-            <span className="text-sm font-semibold">
+            <span className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
                 ₹{item.price}
             </span>
         </div>

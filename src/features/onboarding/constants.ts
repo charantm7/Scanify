@@ -7,7 +7,7 @@ export const STEPS: StepConfig[] = [
         label: 'Basic Info',
         sublabel: 'Restaurant identity',
         icon: Store,
-        description: 'Tell us about your restaurant — name, vibe, and how guests see you.',
+        description: 'Tell us about your restaurant.',
     },
     {
         id: 2,
