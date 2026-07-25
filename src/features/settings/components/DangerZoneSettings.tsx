@@ -79,7 +79,7 @@ function DeleteConfirmModal({
                         <li>Sign you out of this account</li>
                         <li>Remove access to your console and analytics</li>
                     </ul>
-                    <p className="text-xs">This action cannot be reversed. Contact support first if you're unsure.</p>
+                    <p className="text-xs">This action cannot be reversed. Contact support first if you&apos;re unsure.</p>
                 </div>
 
                 <label className="block mb-4">

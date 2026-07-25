@@ -25,60 +25,66 @@ export function useAuth(): UseAuthReturn {
     const clearError = useCallback(() => { setError(null); setUpdatePasswordError(null) }, []);
 
     // wraps all async function inside this and run
-    async function run(action: () => Promise<void>): Promise<void> {
-        setLoading(true);
-        setError(null);
-        try {
-            await action();
-        } catch (err) {
-            const msg = err instanceof Error ? err.message : 'Something went wrong.';
-            toast.error(msg);
-            return;
-        } finally {
-            setLoading(false);
-        }
-    }
+    const run = useCallback(
+        async <T,>(action: () => Promise<T>): Promise<T | undefined> => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                return await action();
+            } catch (err) {
+                const msg =
+                    err instanceof Error ? err.message : "Something went wrong.";
+
+                toast.error(msg);
+                return undefined;
+            } finally {
+                setLoading(false);
+            }
+        },
+        [toast]
+    );
 
 
     const signUp = useCallback(async (payload: SignUpPayload) => {
         await run(async () => {
             await AuthSignUp(supabase, payload, router, toast, setError)
         });
-    }, [supabase, router]);
+    }, [supabase, router, run, toast]);
 
 
     const signIn = useCallback(async (payload: SignInPayload) => {
         await run(async () => {
             await AuthSignIn(supabase, payload, router, toast)
         });
-    }, [supabase, router]);
+    }, [supabase, router, run, toast]);
 
 
     const signInWithGoogle = useCallback(async () => {
         await run(async () => {
             await oauthSignIn(supabase)
         });
-    }, [supabase]);
+    }, [supabase, run]);
 
 
     const signOut = useCallback(async () => {
         await run(async () => {
             await AuthSignOut(supabase, router, toast)
         });
-    }, [supabase, router]);
+    }, [supabase, router, run, toast]);
 
 
     const sendPasswordReset = useCallback(async (email: string, setSent: Dispatch<SetStateAction<boolean>>, setCooldown: Dispatch<SetStateAction<number>>) => {
         await run(async () => {
             await AuthResetPassword(supabase, email, toast, setError, setSent, setCooldown)
         });
-    }, [supabase]);
+    }, [supabase, run, toast]);
 
     const resendEmail = useCallback(async (setResendCount: Dispatch<SetStateAction<number>>, setCooldown: Dispatch<SetStateAction<number>>) => {
         await run(async () => {
             await AuthResendEmail(supabase, toast, setResendCount, setCooldown)
         });
-    }, [supabase]);
+    }, [supabase, run, toast]);
 
     // Handels from link and settings panel
     const updatePassword = useCallback(async (payload: PasswordResetPayload) => {
@@ -89,7 +95,7 @@ export function useAuth(): UseAuthReturn {
 
         return result;
 
-    }, [supabase, user?.email]);
+    }, [supabase, user?.email, run, toast]);
 
 
     //Upadte Email Supabase sends confirmation to both old + new address before switching.
@@ -97,7 +103,7 @@ export function useAuth(): UseAuthReturn {
         await run(async () => {
             await AuthUpdateEmail(supabase, newEmail, toast);
         })
-    }, [supabase]);
+    }, [supabase, run, toast]);
 
 
     return {

@@ -366,7 +366,7 @@ export function ItemForm({ initial = null, onSubmit, loading, isAdvanceCategory 
                 Available for ordering
               </p>
               <p className="text-xs mt-0.5" style={{ color: 'var(--text2)' }}>
-                Hidden items won't appear on the customer menu
+                Hidden items won&apos;t appear on the customer menu
               </p>
             </div>
             <Toggle

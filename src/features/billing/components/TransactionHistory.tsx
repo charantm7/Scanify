@@ -122,32 +122,83 @@ export default function TransactionHistory() {
   const [hasMore, setHasMore] = useState(false);
   const [selected, setSelected] = useState<Transaction | null>(null);
 
-  const fetchPage = useCallback(async (cursor: string | null, append: boolean) => {
-    append ? setLoadingMore(true) : setLoading(true);
-    setError(null);
-    try {
-      const url = new URL('/api/payments/transactions', window.location.origin);
-      url.searchParams.set('limit', '20');
-      if (cursor) url.searchParams.set('cursor', cursor);
+  const loadTransactions = useCallback(async (cursor: string | null) => {
+    const url = new URL("/api/payments/transactions", window.location.origin);
+    url.searchParams.set("limit", "20");
 
-      const res = await fetch(url.toString());
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || 'Could not load transaction history');
-
-      setTransactions((prev) => (append ? [...prev, ...data.transactions] : data.transactions));
-      setNextCursor(data.nextCursor);
-      setHasMore(Boolean(data.hasMore));
-    } catch (err: any) {
-      setError(err.message || 'Could not load transaction history');
-    } finally {
-      append ? setLoadingMore(false) : setLoading(false);
+    if (cursor) {
+      url.searchParams.set("cursor", cursor);
     }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Could not load transaction history");
+    }
+
+    return data;
   }, []);
 
+  const fetchPage = useCallback(
+    async (cursor: string | null, append: boolean) => {
+      append ? setLoadingMore(true) : setLoading(true);
+      setError(null);
+
+      try {
+        const data = await loadTransactions(cursor);
+
+        setTransactions(prev =>
+          append
+            ? [...prev, ...data.transactions]
+            : data.transactions
+        );
+
+        setNextCursor(data.nextCursor);
+        setHasMore(Boolean(data.hasMore));
+      } catch (err: any) {
+        setError(err.message || "Could not load transaction history");
+      } finally {
+        append ? setLoadingMore(false) : setLoading(false);
+      }
+    },
+    [loadTransactions]
+  );
+
+
   useEffect(() => {
-    fetchPage(null, false);
-  }, [fetchPage]);
+    let cancelled = false;
+
+    async function initialLoad() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await loadTransactions(null);
+
+        if (!cancelled) {
+          setTransactions(data.transactions);
+          setNextCursor(data.nextCursor);
+          setHasMore(Boolean(data.hasMore));
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(err.message || "Could not load transaction history");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    initialLoad();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadTransactions]);
+
 
   return (
     <Card padding="p-0" className="overflow-hidden">

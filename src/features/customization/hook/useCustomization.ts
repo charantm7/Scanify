@@ -20,15 +20,16 @@ export function useCustomization() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
+    const hotelId = hotel?.id
 
 
     useEffect(() => {
-        if (!hotel?.id) return;
+        if (!hotelId) return;
 
         let mounted = true;
         (async () => {
             try {
-                const data = await loadCustomization(supabase, hotel.id);
+                const data = await loadCustomization(supabase, hotelId);
 
                 if (data && mounted) {
                     const { id: _id, hotel_id: _hid, created_at: _c, updated_at: _u, ...rest } = data;
@@ -48,7 +49,7 @@ export function useCustomization() {
             }
         })();
         return () => { mounted = false };
-    }, [supabase, hotel?.id]);
+    }, [supabase, hotelId, toast]);
 
     const update = useCallback(<K extends keyof CustomizationDraft>(
         key: K,
@@ -77,11 +78,11 @@ export function useCustomization() {
 
     // Save to DB
     const save = useCallback(async () => {
-        if (!hotel?.id) return;
+        if (!hotelId) return;
         setSaving(true);
 
         try {
-            const data = await saveCustomization(supabase, hotel.id, config);
+            const data = await saveCustomization(supabase, hotelId, config);
             setExistingId(data.id);
 
             toast.success('Menu customization saved!');
@@ -91,9 +92,7 @@ export function useCustomization() {
         } finally {
             setSaving(false);
         }
-    }, [supabase, hotel?.id, config]);
-
-
+    }, [supabase, hotelId, config, toast]);
 
 
     return {

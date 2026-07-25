@@ -11,31 +11,30 @@ export default function LoginForm() {
     const { signIn, error, clearError, loading } = useAuth();
 
     const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState<boolean>(false);
-    const [formData, setFormData] = useState<FormData>({
-        email: "",
-        password: "",
+    const [rememberMe, setRememberMe] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return false;
+        return !!localStorage.getItem('remember_me')
+    });
+    const [formData, setFormData] = useState<FormData>(() => {
+        if (typeof window === 'undefined') {
+            return {
+                email: "",
+                password: "",
+            }
+        }
+
+        return {
+            email: localStorage.getItem('remember_email') || "",
+            password: ""
+        }
     });
 
-    useEffect(() => {
-        const storedRememberMe = localStorage.getItem("remember_me");
-        setRememberMe(!!storedRememberMe);
-    }, []);
-
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            setFormData((prev) => ({
-                ...prev,
-                email: localStorage.getItem("remember_email") || "",
-            }));
-        }
-    }, []);
 
     function handleSubmit() {
         signIn({ email: formData.email, password: formData.password, rememberMe: rememberMe });
     }
 
-    function handleKeyDown(e) {
+    function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === 'Enter' && !loading) {
             handleSubmit();
         }

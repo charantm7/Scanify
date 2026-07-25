@@ -35,10 +35,6 @@ export function LoginNoticeModal({ reason, title, body, tone }: LoginNoticeModal
     const [dismissed, setDismissed] = useState(false);
     const { icon: Icon, iconColor, badge, border } = TONE_STYLES[tone];
 
-    useEffect(() => {
-        setDismissed(false);
-    }, [reason]);
-
 
     if (dismissed) return null;
 

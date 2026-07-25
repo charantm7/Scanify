@@ -26,8 +26,7 @@ import {
     buildTopItems,
     isAdvancedStats
 } from '../services/analytics.service';
-import { buildBasicStats } from '../utils/build-basic-stats';
-import { fetchItemsQuery } from '../../menu_builder/queries/menu.queries';
+
 
 
 
@@ -45,9 +44,9 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-
+    const hotelId = hotel?.id;
     const fetchAll = useCallback(async () => {
-        if (!hotel?.id || !canViewBasicAnalytics) {
+        if (!hotelId || !canViewBasicAnalytics) {
             setLoading(false);
             return;
         }
@@ -64,7 +63,7 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
         try {
 
             // current scans
-            const scans = await getMenuScans(supabase, hotel.id, since);
+            const scans = await getMenuScans(supabase, hotelId, since);
 
             const currentScans: MenuScansWithItem[] = scans ?? [];
 
@@ -87,10 +86,10 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
             // Advance prevMenu scan and ordering in parallel
             const [prevRes, ordersRes] = await Promise.all([
 
-                getPrevMenuScan(supabase, hotel.id, prevSince, since),
+                getPrevMenuScan(supabase, hotelId, prevSince, since),
 
                 canUseOrdering
-                    ? getOrders(supabase, hotel.id, since)
+                    ? getOrders(supabase, hotelId, since)
                     : Promise.resolve({ data: [], error: null }),
             ]);
 
@@ -136,9 +135,10 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
         } finally {
             setLoading(false);
         }
-    }, [hotel?.id, period, canViewBasicAnalytics, canViewAdvancedAnalytics, canUseOrdering]);
+    }, [hotelId, period, canViewBasicAnalytics, canViewAdvancedAnalytics, canUseOrdering, supabase]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchAll();
     }, [fetchAll]);
 

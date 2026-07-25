@@ -87,7 +87,7 @@ export default function MenuPageClient({
 
             }),
         }).catch(() => {/* fire and forget */ });
-    }, [hotel.id, qrCodeId]);
+    }, [hotel.id, qrCodeId, accesstype]);
 
     // track Item click and save it in menuscan
     const handleItemClick = useCallback(

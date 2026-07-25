@@ -22,8 +22,6 @@ function ImageGallery({ item }: { item: MenuItem }) {
     const [activeIdx, setActiveIdx] = useState(0);
     const [imgErr, setImgErr] = useState(false);
 
-    // Reset to first image whenever a new item opens
-    useEffect(() => { setActiveIdx(0); setImgErr(false); }, [item.id]);
 
     const allImages = [
         ...(item.image_url ? [{ url: item.image_url, alt_text: item.name }] : []),
@@ -241,7 +239,7 @@ function ModalContent({
                 </button>
 
                 <div className="px-5 pb-16 space-y-5">
-                    <ImageGallery item={item} />
+                    <ImageGallery key={item.id} item={item} />
 
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -359,10 +357,7 @@ function ModalContent({
 
 // ── Main export: portal wrapper ───────────────────────────────────────────────
 export function DishModal({ item, isOpen, onClose, currency = "₹" }: DishModalProps) {
-    const [mounted, setMounted] = useState(false);
 
-    // Only mount on client (createPortal is client-only)
-    useEffect(() => { setMounted(true); }, []);
 
     // Keyboard: close on Escape
     const handleKeyDown = useCallback(
@@ -374,9 +369,10 @@ export function DishModal({ item, isOpen, onClose, currency = "₹" }: DishModal
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [isOpen, handleKeyDown]);
 
-    if (!mounted) return null;
+    if (typeof document === 'undefined') {
+        return null;
+    }
 
-    console.log(item)
     return createPortal(
         <AnimatePresence>
             {isOpen && item && (

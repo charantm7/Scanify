@@ -165,11 +165,11 @@ export function useOnboarding(): UseOnboardingReturn {
                 throw err;
             }
         });
-    }, [form, userId, supabase, toast, run, validateStep]);
+    }, [form, userId, supabase, toast, run, validateStep, email]);
 
     const goToConsole = useCallback(() => {
         window.location.href = `https://${window.location.host}/console`;
-    }, [router, createdSlug]);
+    }, []);
 
     const completedFields: Record<number, number> = {
         1: [form.restaurant_name, form.description].filter(Boolean).length,

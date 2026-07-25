@@ -23,6 +23,7 @@ export default async function Authentication({ searchParams }: { searchParams: S
         <div>
             {reasonMessage && (
                 <LoginNoticeModal
+                    key={params.reason}
                     reason={params.reason}
                     title={reasonMessage.title}
                     body={reasonMessage.body}

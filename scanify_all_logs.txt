@@ -1,0 +1,67 @@
+a2d03c141d814f0bd4d3bf71a349d4c0d86a743f | 2026-07-22 23:36:10 +0530 | feat: updated the settings panel and soft account deletion
+1ed83d8b8ba1749ec2203887582ff863b196749b | 2026-07-22 02:54:31 +0530 | feat: updated the subscription system with idempotency
+3ee2ffd1af6edb0a60171ac7d4690491c05274c4 | 2026-07-20 23:37:12 +0530 | checked working condition of scanify
+7f6ed86d09f27822df5971263fbf3ebfdef3ea48 | 2026-07-17 23:24:10 +0530 | updated home pGW UI
+0d2ba52b2a903dddde624091a8230306cef8a241 | 2026-07-16 22:52:57 +0530 | updated ui of menu client
+73a558698b84efe9e04ac8ef61434e2fdc212f0e | 2026-07-14 22:25:59 +0530 | updated ui of menu client page
+09f9862e378d2fa1a3b4b4e87333b38d19c729b5 | 2026-07-08 15:40:01 +0530 | feat: updated create order and added transaction panel
+1d3fd0f5da95dee45ad65854473db795eac132d3 | 2026-07-07 23:47:50 +0530 | feat: updated billing api
+727935e1d9875fcb05e4999e355e49b2298e4fc7 | 2026-07-06 23:28:46 +0530 | feat: updated billing
+7672878c1e1319929650cdeb7fb3ef69a4543036 | 2026-07-01 23:47:22 +0530 | feat: updated the subscription system
+0e7e1fd98162b6ff35475a9baffeb337cf6397ad | 2026-06-28 19:25:15 +0530 | feat: updated customization panel
+2d7ba7120ec968c724ea348095ba0500825d95b4 | 2026-06-27 23:21:47 +0530 | feat: creating new version of customization panel
+f9247f6600b8b93353c941cb31450dfc922ea161 | 2026-06-26 23:18:26 +0530 | feat: updating menu page
+b563c65cf3f1a0ec78b6c96b441cd137fc519899 | 2026-06-25 23:51:56 +0530 | feat: added customization panel
+02ab80670f8f0a543abf39c6f96d5b84f06ea029 | 2026-06-24 23:18:08 +0530 | feat: fixing menu qr update track
+22f349d82df3ae8ad5316c4b3ee0b5e0be896f94 | 2026-06-24 17:58:04 +0530 | feat: fixing menu page
+99feabc4fbab98fce38f47dbb65adde9bd9067e2 | 2026-06-22 17:27:57 +0530 | feat: updated item clickable
+776b84c414f570f58a143c8bc1d8ef60e81f4202 | 2026-06-22 12:15:39 +0530 | updated client menu side
+1cc3a5d50a97490fda421a269b406751296c39ae | 2026-06-21 14:10:11 +0530 | updated menu builder additem form
+a56f7f12794282872cc6d40a95447822bd778df5 | 2026-06-21 02:09:08 +0530 | updated menu builder
+0479139a233e1d6aa82ec341dfc11177f977fc80 | 2026-06-20 17:07:08 +0530 | updated onboarding and menu
+1ac9ecfe99451951b0954512531d8647a0cdbeef | 2026-06-20 12:03:25 +0530 | updating main 1
+c32e589bfe98ba447818e0c6a2a2cafcbcd624da | 2026-06-20 11:11:09 +0530 | updating main
+5a796dce875adabc5bf50f74ba41da98021c8bb4 | 2026-06-19 23:17:07 +0530 | updating the Image part with uptimised
+a4a03eed30eda45706745b9e54d8760eec0e2991 | 2026-06-19 23:04:56 +0530 | updating the Image part
+299b4cbc4ff292918180d09da338ae3cb190ef48 | 2026-06-08 19:25:10 +0530 | feat: updated the onboarding new schemaa
+5b43194f3a46d9c103adc30f812a7a7bb81995d6 | 2026-06-05 22:51:57 +0530 | feat: updated the onboarding
+b8501664ef3143ed59021dd40785a689b52af4ae | 2026-06-02 19:21:41 +0530 | feat: updated password reset link and update password
+79bef84abcbf3ffe9e29682d55f90d6f04711a93 | 2026-06-01 22:59:53 +0530 | updating password reset
+61c92baf02068f5667a64db3a7ee28e613eb14a4 | 2026-05-29 16:03:03 +0530 | feat: updated the authentication with good structure 1
+2534dd9520e3e84a4ee3e735bcafa75c5d627343 | 2026-05-28 21:51:12 +0530 | feat: updated the authentication with good structure
+354d1e1b1ba854c693cc6721c6344348bb81c652 | 2026-05-27 14:40:15 +0530 | feat: updated the analytics panel ui
+8017a60f02bca3c225d529fa9fd963b86b4db22e | 2026-05-25 02:59:01 +0530 | updated the analytics code and dir structure
+f8f2bccf9f2c614f86e65ae48a6c3c144f88fe18 | 2026-05-23 03:31:27 +0530 | feat: added advance analytics
+ae7b3227524841ca29544e8c75dbbc22c3b48b98 | 2026-05-22 15:01:24 +0530 | feat: updating analytics
+af2582546c6bf3821b90d4ca70d15ba51440916c | 2026-05-21 00:20:24 +0530 | feat: added appcontextvalue types and queries repository for each tables
+8d2ba9693ca324c2e47bb5f24c77c8fe9b0cc9b5 | 2026-05-19 20:59:32 +0530 | Merge pull request #1 from charantm7/dev
+2c662ce1402d499c0c96bb343ccf46ad0814deea | 2026-05-19 20:57:20 +0530 | updated middleware and check mail
+69e252e8ea0aae10a45f25f8b1c2c048a410aceb | 2026-05-19 20:41:07 +0530 | Merge pull request #4 from charantm7/charantm7-patch-1
+8c410771b66a63394d8b04856a7739f0f13443aa | 2026-05-19 20:40:12 +0530 | Update GitHub Actions workflow with Supabase secrets
+a9ab1050850d152b95c94d3c24b39267c36170ee | 2026-05-19 20:30:32 +0530 | Update dev.yml
+7217254cdd0fa4dc26c0a6c95949f94298d4000e | 2026-05-19 20:23:43 +0530 | Update dev.yml
+bd5a381fee4b4352d1ec539f55b92848d03fa468 | 2026-05-19 20:15:47 +0530 | cleared lint problems
+429980264019d417b465ee71695e7c36174d2e32 | 2026-05-19 20:11:02 +0530 | Create dev.yml
+03861d49cce5241c28b4331292ba1c5040120676 | 2026-05-19 11:21:19 +0530 | Create main.yml
+dcb5ba434fff624b33171105a43d36b0c670aab2 | 2026-05-19 10:35:21 +0530 | migrated from js to ts
+b939a69da342b4617d3448da49e33ba3ce78e65d | 2026-05-09 22:42:49 +0530 | feat: updated billing panel
+6ca8ba0d9d7332742f3542cba6d2f4ea1555461d | 2026-05-09 21:37:52 +0530 | added dev branched new changes will be updated here
+b62a4c310a72d5feab18b9ae8479f6071b7802ce | 2026-05-08 23:52:27 +0530 | feat: added order columns at new migration
+19e0debd0d74b7486f6a7b1919a64e0f93f29ba6 | 2026-05-08 17:26:47 +0530 | feat added migrations
+e2f8735bbbb8e8cc5e86fcf310ab505ac2f1102a | 2026-05-05 01:46:22 +0530 | updated the menu page
+3e9a7e9ed1d461110369b405da6dae4b847fe923 | 2026-05-05 01:12:25 +0530 | updated the menu routing and proxy
+93715046d0344171cd4fe9cc3495ae4b8c90e81a | 2026-05-05 00:57:53 +0530 | updated callback
+44db118845a3c118626895a816d04a15fce1b354 | 2026-05-05 00:51:51 +0530 | updated menu page
+7fa8d060fc3fd73fa703d94ea35dd1f0c3ccd27d | 2026-05-05 00:33:32 +0530 | updated plan based access
+d634079c21070326284744ebdda95ac7f706c164 | 2026-05-04 19:34:26 +0530 | adding billing
+cce637a5359d120163bc3be179252746cbc1678f | 2026-05-03 01:37:51 +0530 | added suspense in login page
+5a28532a59772817966a833a8e245b8b47459635 | 2026-05-03 01:29:11 +0530 | removed cookies import
+30b18678267d82f971b8852c2dacea2951f154d8 | 2026-05-03 01:10:12 +0530 | updated the console
+2a4f1b489756816aa238621923ee8b66f25aa8ef | 2026-05-01 23:18:22 +0530 | updating cotext
+bb0ea637f2429c982f01853e38823e6e7b518273 | 2026-04-30 23:05:01 +0530 | updating console
+0b8ecf5608b7fc2566a08f181e154556ebb65c43 | 2026-04-27 23:32:25 +0530 | Update Readme
+1968c33679cdf4ed531ad8b4819e6e78b5aee1d9 | 2026-04-27 23:18:27 +0530 | Merge branch 'main' of https://github.com/charantm7/Scanify
+5831d59c16e6aa0d15f7f0f2796d4bb4cc48555f | 2026-04-27 23:15:44 +0530 | Delete .gitignore
+35b13bb4865f1462325363c19cbdbb01263f4452 | 2026-04-27 23:15:11 +0530 | Initial commit
+c8114d913733845bb5b8121f9e5c21160d122a04 | 2026-04-27 23:13:18 +0530 | Initial commit
+d45ee77fbf8da21ec31bdd4c1615d1f41c817024 | 2026-04-25 02:56:14 +0530 | Initial commit from Create Next App

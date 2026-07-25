@@ -51,12 +51,14 @@ export default function CheckoutModal({
   const [preview, setPreview] = useState<CheckoutPreview | null>(null);
   const [confirming, setConfirming] = useState(false);
 
+  const handleClose = () => {
+    setPreview(null);
+    setError(null);
+    onClose();
+  }
+
   useEffect(() => {
-    if (!open) {
-      setPreview(null);
-      setError(null);
-      return;
-    }
+    if (!open) return;
     let cancelled = false;
     (async () => {
       const data = await getPreview(plan, billingCycle, startTrial);
@@ -86,7 +88,7 @@ export default function CheckoutModal({
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ background: 'rgba(15, 15, 15, 0.45)' }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="w-[50%] sm:max-w-md rounded-2xl sm:rounded-2xl overflow-hidden"
@@ -105,7 +107,7 @@ export default function CheckoutModal({
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center transition"
             style={{ background: 'var(--accentlt)' }}
             aria-label="Close checkout"
@@ -208,7 +210,7 @@ export default function CheckoutModal({
         <div className="px-5 py-4 flex items-center gap-3" style={{ borderTop: '1px solid var(--border)' }}>
           <ShieldCheck size={15} style={{ color: 'var(--text2)' }} className="hidden sm:block" />
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-sm font-semibold transition"
             style={{ border: '1px solid var(--border)', color: 'var(--text2)' }}
           >
