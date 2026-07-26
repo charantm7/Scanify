@@ -33,32 +33,39 @@ function Price({ amount, currency = "₹" }: { amount: number; currency?: string
 }
 
 // ─── Item image block ─────────────────────────────────────────────────────────
-function ItemImage({ item }: { item: MenuItem }) {
+type ItemImageVariant = 'card' | 'list';
+
+function ItemImage({ item, variant = 'list' }: { item: MenuItem; variant?: ItemImageVariant }) {
     const [imgErr, setImgErr] = useState(false);
 
     const src = item.image_url ??
         item.images.find((i) => i.is_primary)?.url ??
         item.images[0]?.url;
 
+    const sizeClasses =
+        variant === 'card'
+            ? 'w-full aspect-[4/3]'      // fills card width, consistent 4:3 top image
+            : 'w-20 h-20 sm:w-24 sm:h-24'; // fixed square thumbnail for list rows
+
     return (
         <div
-            className="rounded-md overflow-hidden relative flex-shrink-0"
+            className={`relative flex-shrink-0 rounded-md overflow-hidden ${sizeClasses}`}
             style={{ background: "var(--color-border)" }}
         >
             {src && !imgErr ? (
                 <Image
                     src={src}
                     alt={item.name}
-                    height={100}
-                    width={300}
-                    className="object-contain transition-transform duration-300 group-hover:scale-105"
+                    fill
+                    sizes={variant === 'card' ? '(max-width: 640px) 100vw, 33vw' : '(max-width: 640px) 80px, 96px'}
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={() => setImgErr(true)}
                 />
             ) : (
                 <ItemPlaceholder name={item.name} />
             )}
             {!item.is_available && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/55">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/55">
                     <span className="text-[10px] font-extrabold text-white tracking-widest uppercase">
                         Sold Out
                     </span>
@@ -67,7 +74,6 @@ function ItemImage({ item }: { item: MenuItem }) {
         </div>
     );
 }
-
 // ─── Shared props interface ───────────────────────────────────────────────────
 interface ItemCardProps {
     item: MenuItem;
@@ -114,7 +120,7 @@ function CardItem({
                 boxShadow: "var(--shadow-sm)",
             }}
         >
-            {showImage && <ItemImage item={item} />}
+            {showImage && <ItemImage item={item} variant={'card'} />}
 
             <div className="flex-1 min-w-0 py-0.5 space-y-2">
                 {/* Name row */}
@@ -187,7 +193,7 @@ function ListItem({ item, onClick, showImage, showDietary, showTags }: ItemCardP
         >
             {showImage && (
                 <div className="flex-shrink-0 w-20 h-20  overflow-hidden">
-                    <ItemImage item={item} />
+                    <ItemImage item={item} variant={'list'} />
                 </div>
             )}
 

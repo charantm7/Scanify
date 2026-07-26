@@ -19,7 +19,7 @@ export default function TopItemsTable({
     const maxViews = Math.max(...items.map(i => i.views), 1);
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-6">
             {items.map((item, idx) => (
                 <div key={item.item_id} className="flex items-center gap-3">
                     <span

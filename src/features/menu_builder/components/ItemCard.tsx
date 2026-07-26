@@ -17,6 +17,32 @@ interface ItemCardProps {
   onToggle: (item: MenuItem) => void;
   isAdvanceCategory: boolean;
 }
+type ItemImageVariant = 'card' | 'list';
+
+export function ItemImage({ item, variant = 'list' }: { item: MenuItem; variant?: ItemImageVariant }) {
+  const [imgErr, setImgErr] = useState(false);
+
+  const sizeClasses =
+    variant === 'card'
+      ? 'w-full aspect-[4/3]'
+      : 'w-20 h-20 sm:w-24 sm:h-24';
+
+  return (
+    <div
+      className={`relative flex-shrink-0 rounded-md overflow-hidden ${sizeClasses}`}
+      style={{ background: "var(--color-border)" }}
+    >
+      <Image
+        src={item.image_url}
+        alt={item.name}
+        fill
+        sizes={variant === 'card' ? '(max-width: 640px) 100vw, 33vw' : '(max-width: 640px) 80px, 96px'}
+        className="object-cover"
+        onError={() => setImgErr(true)}
+      />
+    </div>
+  );
+}
 
 export function ItemCard({ item, onEdit, onDelete, onToggle, isAdvanceCategory }: ItemCardProps) {
   const [deleting, setDeleting] = useState(false);
@@ -52,16 +78,8 @@ export function ItemCard({ item, onEdit, onDelete, onToggle, isAdvanceCategory }
         style={{ background: 'var(--accentlt)' }}
       >
         {item.image_url ? (
-          <Image
-            src={item.image_url}
-            alt={item.name}
-            height={500}
-            width={500}
-            className="object-cover"
-            onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
+          <ItemImage item={item} variant={'card'} />
+
         ) : (
           <ChefHat size={200} style={{ color: 'var(--accent)', opacity: 0.4 }} />
         )}

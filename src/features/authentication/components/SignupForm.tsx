@@ -47,6 +47,13 @@ export default function SignUpForm() {
                     </p>
                 </div>
 
+                {error?.server && (
+                    <div className="flex items-center gap-3 rounded-lg border mb-5 border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                        <p>{error.server}</p>
+                    </div>
+                )}
+
                 {/* Auth Error Banner */}
                 {urlAuthError && (
                     <div className="flex items-start gap-2 rounded-xl px-4 py-3 mb-4 bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800">

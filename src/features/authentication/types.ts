@@ -8,7 +8,9 @@ export interface FormErrors {
     email?: string;
     password?: string;
     terms?: string;
+    server?: string;
 }
+
 
 export interface FormData {
     email: string;

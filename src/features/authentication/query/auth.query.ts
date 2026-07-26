@@ -37,7 +37,7 @@ export async function signInWithPassword(
 
     if (error) {
 
-        throw new Error(`SignIn With Password  error: ${error.message}`)
+        throw new Error(error.message)
     }
 
     return data;

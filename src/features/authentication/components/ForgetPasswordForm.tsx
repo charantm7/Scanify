@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Mail, CheckCircle, Loader2 } from 'lucide-react';
+import { Mail, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 
@@ -39,6 +39,13 @@ export default function ForgetPasswordForm() {
                     <h2 className="text-4xl text-theme font-syne font-bold mb-2">Reset Password</h2>
                     <p className="text-theme2 font-light">We&apos;ll send a secure reset link to your inbox.</p>
                 </div>
+
+                {error?.server && (
+                    <div className="flex items-center gap-3 rounded-lg border mb-5 border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                        <p>{error.server}</p>
+                    </div>
+                )}
 
                 <div className="space-y-5">
                     {/* Email field */}

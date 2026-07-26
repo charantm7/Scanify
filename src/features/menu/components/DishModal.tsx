@@ -101,7 +101,7 @@ function ImageGallery({ item }: { item: MenuItem }) {
 function InfoChip({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
         <div
-            className="flex items-center gap-2 p-2.5 rounded-xl border"
+            className="flex items-start gap-2 p-2.5 rounded-md border"
             style={{ background: "var(--color-bg)", borderColor: "var(--color-border)" }}
         >
             <div style={{ color: "var(--color-accent)" }}>{icon}</div>
@@ -109,7 +109,7 @@ function InfoChip({ icon, label, value }: { icon: React.ReactNode; label: string
                 <p className="text-[10px] uppercase tracking-wide font-semibold" style={{ color: "var(--color-muted)" }}>
                     {label}
                 </p>
-                <p className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
+                <p className="text-sm font-semibold " style={{ color: "var(--color-text)" }}>
                     {value}
                 </p>
             </div>
@@ -275,8 +275,8 @@ function ModalContent({
                     {/* Dietary banner */}
                     {dietaryMeta && (
                         <div
-                            className="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-xl"
-                            style={{ background: "var(--color-accent-lt)", color: dietaryMeta.dot }}
+                            className="flex items-center gap-2 text-sm border font-medium px-3 py-2 rounded-md"
+                            style={{ background: "var(--color-bg)", color: dietaryMeta.dot, borderColor: "var(--color-border)" }}
                         >
                             <DietaryIndicator dietaryType={item.dietary_type} />
                             {dietaryMeta.label}
@@ -288,12 +288,8 @@ function ModalContent({
                         <div className="flex items-center gap-2">
                             {item.variants.map((variant, i) => {
                                 const item = JSON.parse(variant)
-
-
                                 return (
-
                                     <VariantIndicator key={i} item={item} i={i} />
-
                                 )
                             })}
                         </div>
@@ -321,7 +317,7 @@ function ModalContent({
                                 {item.ingredients.map((ing, i) => (
                                     <span
                                         key={i}
-                                        className="text-xs px-2.5 py-1 rounded-full border"
+                                        className="text-xs px-2.5 py-1 rounded-md border"
                                         style={{
                                             color: "var(--color-text)",
                                             borderColor: "var(--color-border)",

@@ -29,20 +29,19 @@ export function useAuth(): UseAuthReturn {
         async <T,>(action: () => Promise<T>): Promise<T | undefined> => {
             setLoading(true);
             setError(null);
-
             try {
                 return await action();
             } catch (err) {
                 const msg =
                     err instanceof Error ? err.message : "Something went wrong.";
 
-                toast.error(msg);
+                setError({ server: msg })
                 return undefined;
             } finally {
                 setLoading(false);
             }
         },
-        [toast]
+        []
     );
 
 

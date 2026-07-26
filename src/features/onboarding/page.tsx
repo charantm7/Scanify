@@ -39,13 +39,13 @@ export default function OnboardingPage() {
                 <div className={`w-full ${done ? 'max-w-2xl' : 'max-w-6xl grid lg:grid-cols-[1fr_380px] gap-8 items-start'}`}>
 
                     {done ? (
-                        <div className="bg-theme3 rounded-3xl border border-theme p-8 shadow-2xl" style={{ animation: 'fadeInUp 0.5s ease-out' }}>
+                        <div className="md:bg-theme3 sm:bg-theme3  rounded-xl md:border md:border-theme md:p-8 sm:border sm:border-theme sm:p-8 p-2 md:shadow-2xl" style={{ animation: 'fadeInUp 0.5s ease-out' }}>
                             <SuccessScreen url={menuUrl} onGoToConsole={goToConsole} />
                         </div>
                     ) : (
                         <>
                             {/* ── LEFT: Form ── */}
-                            <div className="bg-theme3 backdrop-blur-xl rounded-3xl shadow-2xl border border-theme p-8 min-h-[520px] flex flex-col" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
+                            <div className="md:bg-theme3 md:backdrop-blur-xl sm:bg-theme3 sm:backdrop-blur-xl rounded-xl md:shadow-2xl md:border md:border-theme sm:shadow-2xl sm:border sm:border-theme md:p-8 sm:p-8 p-4 min-h-[520px] flex flex-col" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
 
                                 <div className="mb-7">
                                     <div className="flex items-center gap-2 mb-2">
@@ -153,7 +153,7 @@ export default function OnboardingPage() {
                                         </button>
                                     ) : (
                                         <button onClick={handleSubmit} disabled={loading} className="flex-1 py-3 rounded-xl text-white font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-sm" style={{ background: 'var(--accent)' }}>
-                                            {loading ? <><Loader2 size={17} className="animate-spin" /> Saving…</> : <><Sparkles size={17} /> Launch my restaurant</>}
+                                            {loading ? <><Loader2 size={17} className="animate-spin" /> Saving…</> : <><Sparkles size={17} /> Launch</>}
                                         </button>
                                     )}
                                 </div>

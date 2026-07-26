@@ -91,8 +91,22 @@ export default function CheckoutModal({
       onClick={handleClose}
     >
       <div
-        className="w-[50%] sm:max-w-md rounded-2xl sm:rounded-2xl overflow-hidden"
-        style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+        className="
+          w-[95vw]
+          max-w-[900px]
+          sm:w-[90vw]
+          md:w-[80vw]
+          lg:w-[70vw]
+          xl:w-[60vw]
+          rounded-2xl
+          overflow-hidden
+          max-h-[90vh]
+          overflow-y-auto
+        "
+        style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

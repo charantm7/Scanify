@@ -46,13 +46,6 @@ export const NAV_GROUPS = [
     ],
   },
   {
-    title: "Assets",
-    items: [
-      { id: "media-library", label: "Media Library", icon: ImageIcon },
-    ],
-  },
-
-  {
     title: "Business",
     items: [
       { id: "billing", label: "Subscription", icon: CreditCard },

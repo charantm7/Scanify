@@ -9,54 +9,36 @@
 
 
 :root {
-  /* ── Backgrounds ─────────────────────────────── */
   --bg: #F7F8FA;
-  /* page canvas — cool off-white */
   --bg1: #0000000a;
-  /* subtle tint overlays */
   --bg2: #FFFFFF;
-  /* elevated surfaces */
   --bg3: #EDF0F5;
-  /* recessed wells, sidebar fill */
 
-  /* ── Text ────────────────────────────────────── */
   --text: #0D1117;
-  /* near-black, never pure */
   --text2: #525E72;
-  /* secondary labels */
   --text3: #8E9BB0;
-  /* placeholders, disabled */
 
-  /* ── Accent (indigo) ─────────────────────────── */
   --accent: #4461E8;
   --accent2: #2F46C0;
-  /* pressed / hover-dark */
   --accentlt: #EEF1FD;
-  /* accent tint — badges, highlights */
 
-  /* ── Borders ─────────────────────────────────── */
   --border: rgba(0, 0, 0, 0.06);
   --border2: rgba(0, 0, 0, 0.11);
   --border3: rgba(0, 0, 0, 0.16);
 
-  /* ── Surfaces ────────────────────────────────── */
   --card: #FFFFFF;
   --nav: rgba(247, 248, 250, 0.90);
 
-  /* ── Shadows ─────────────────────────────────── */
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.06);
   --shadow2: 0 4px 8px rgba(0, 0, 0, 0.06), 0 16px 48px rgba(0, 0, 0, 0.10);
 
-  /* ── Inputs ──────────────────────────────────── */
   --input: rgba(255, 255, 255, 0.72);
   --hover: rgba(0, 0, 0, 0.045);
 
-  /* ── Grid / Radial ───────────────────────────── */
   --grid-r: rgba(68, 97, 232, 0.035);
   --grid-b: rgba(68, 97, 232, 0.035);
   --radial: rgba(68, 97, 232, 0.055);
 
-  /* ── Misc ────────────────────────────────────── */
   --qr-dot: #0D1117;
   --phone-border: #0D1117;
   --phone-notch: #0D1117;
@@ -64,7 +46,6 @@
   --muted: 220 14% 96%;
   --a: #4461E8;
 
-  /* ── Utils ───────────────────────────────────── */
   --utils-text: #000000;
   --utils-text-2: #00000094;
   --utils-text-3: #3e3e3e94;
@@ -75,48 +56,36 @@
 }
 
 [data-theme='dark'] {
-  /* ── Backgrounds ─────────────────────────────── */
   --bg: #0C0E12;
-  /* near-black slate */
   --bg1: rgba(0, 0, 0, 0.28);
   --bg2: #13161D;
-  /* elevated panels */
   --bg3: #1A1E28;
-  /* sidebar, recessed */
 
-  /* ── Text ────────────────────────────────────── */
   --text: #E4E8F0;
   --text2: #7A859A;
   --text3: #48526A;
 
-  /* ── Accent — same hue, slightly brighter ────── */
   --accent: #6B84F8;
   --accent2: #4461E8;
   --accentlt: #141828;
 
-  /* ── Borders ─────────────────────────────────── */
   --border: rgba(255, 255, 255, 0.06);
   --border2: rgba(255, 255, 255, 0.10);
   --border3: rgba(255, 255, 255, 0.15);
 
-  /* ── Surfaces ────────────────────────────────── */
   --card: #13161D;
   --nav: rgba(12, 14, 18, 0.90);
 
-  /* ── Shadows ─────────────────────────────────── */
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.40), 0 4px 16px rgba(0, 0, 0, 0.36);
   --shadow2: 0 4px 8px rgba(0, 0, 0, 0.45), 0 16px 48px rgba(0, 0, 0, 0.55);
 
-  /* ── Inputs ──────────────────────────────────── */
   --input: rgba(255, 255, 255, 0.07);
   --hover: rgba(255, 255, 255, 0.06);
 
-  /* ── Grid / Radial ───────────────────────────── */
   --grid-r: rgba(107, 132, 248, 0.04);
   --grid-b: rgba(107, 132, 248, 0.04);
   --radial: rgba(107, 132, 248, 0.07);
 
-  /* ── Misc ────────────────────────────────────── */
   --qr-dot: #E4E8F0;
   --phone-border: #1A1E28;
   --phone-notch: #1A1E28;
@@ -124,7 +93,6 @@
   --muted: 220 14% 96%;
   --a: #6B84F8;
 
-  /* ── Utils ───────────────────────────────────── */
   --utils-text: #FFFFFF;
   --utils-text-2: #FFFFFF94;
   --utils-text-3: #c1c1c1a7;

@@ -212,7 +212,7 @@ export default function Pricing() {
   }, [])
 
   return (
-    <section id="pricing" className="py-24 px-7 bg-theme2">
+    <section id="pricing" className="pt-24 pb-16 px-7 bg-theme2">
       <div className="max-w-[1560px] mx-auto">
         <div className="text-xs font-semibold tracking-[1.2px] uppercase text-accent-t mb-3">Pricing</div>
         <h2 className="font-syne font-extrabold text-theme mb-4 tracking-tight" style={{ fontSize: 'clamp(30px, 3.5vw, 44px)' }}>
