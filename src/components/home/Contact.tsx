@@ -38,7 +38,7 @@ export default function ContactPage() {
     }
 
     return (
-        <main className="bg-theme font-syne min-h-screen">
+        <main id='contact' className="bg-theme font-syne min-h-screen">
             <section className="max-w-[1200px] mx-auto px-6 md:px-8 pt-24 md:pt-32 pb-24">
 
                 {/* Header */}
