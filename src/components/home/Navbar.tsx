@@ -127,7 +127,7 @@ export default function Navbar({ user: initialUser }) {
 
                 </>
               ) : (
-                <div className='flex gap-2 border rounded-lg border-[var(--border)] p-1'>
+                <div className='hidden sm:flex md:flex gap-2 border rounded-lg border-[var(--border)] p-1'>
                   <Link
                     href="/login"
                     className="hidden md:inline-flex px-4 py-2 text-sm rounded-lg text-theme hover:bg-[var(--accent)] hover:text-white transition"

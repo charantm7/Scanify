@@ -36,7 +36,7 @@ export default function Hero() {
 
   return (
 
-    <section id="home" className="relative min-h-screen pt-36 md:pt-34 pb-24 grid-bg overflow-x-hidden">
+    <section id="home" className="relative min-h-screen pt-28  md:pt-32 pb-24 grid-bg overflow-x-hidden">
       <style>{`
         @keyframes float {
           0%, 100% { transform: translate(0, 0) rotate(0deg); }
@@ -183,21 +183,21 @@ export default function Hero() {
             No app download required
           </div>
 
-          <h1 className="kaushan-script-regular text-center font-extrabold text-theme text-[4rem] sm:text-[6rem] leading-[1.05] tracking-[-1.5px] mb-5"
+          <h1 className="kaushan-script-regular text-center font-extrabold text-theme text-[62px] sm:text-[6rem]  leading-[1.05] tracking-[-1.5px] mb-5"
           >
             Your Menu,<br />
             <span style={{ color: 'var(--accent)' }}>One Scan Away.</span>
 
           </h1>
 
-          <p className="text-[17px] leading-relaxed text-theme2 mb-9 mt-5 font-light text-center max-w-[560px]">
+          <p className="text-sm sm:text-[16px]  leading-relaxed text-theme2 mb-9 mt-5 font-light text-center max-w-[560px]">
             Replace printed menus with a smart digital experience. Scan a QR code and browse instantly.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-5">
+          <div className="flex flex-wrap items-center justify-center sm:gap-5 gap-2 md:gap-5">
             <Link
               href="/login"
-              className="btn-primary inline-flex items-center gap-3 pl-2 pr-5 py-2.5 rounded-[10px] text-sm font-semibold text-white border hover:bg-[var(--accent2)] transition border-theme2 bg-submit no-underline"
+              className="btn-primary inline-flex items-center gap-3 pl-2 pr-5 py-2.5 rounded-md text-[13px] font-semibold text-white border hover:bg-[var(--accent2)] transition border-theme2 bg-submit no-underline"
             >
               <span className="flex items-center relative">
 
@@ -221,7 +221,7 @@ export default function Hero() {
 
             <Link
               href="#how"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[10px] text-sm font-semibold text-theme border border-theme2 no-underline hover:bg-[var(--bg3)] transition-all duration-200 z-20"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-[13px] font-semibold text-theme border border-theme2 no-underline hover:bg-[var(--bg3)] transition-all duration-200 z-20"
             >
               See How It Works
             </Link>
