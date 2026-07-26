@@ -86,6 +86,72 @@ export type Database = {
           },
         ]
       }
+      contact_form: {
+        Row: {
+          business: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: number
+        }
+        Insert: {
+          business?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          phone: number
+        }
+        Update: {
+          business?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: number
+        }
+        Relationships: []
+      }
+      failed_fulfilments: {
+        Row: {
+          created_at: string
+          error_message: string
+          hotel_id: string
+          id: string
+          payload: Json
+          razorpay_payment_id: string
+          resolved_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message: string
+          hotel_id: string
+          id?: string
+          payload: Json
+          razorpay_payment_id: string
+          resolved_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string
+          hotel_id?: string
+          id?: string
+          payload?: Json
+          razorpay_payment_id?: string
+          resolved_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       hotel_tables: {
         Row: {
           created_at: string
@@ -902,6 +968,24 @@ export type Database = {
         }
         Relationships: []
       }
+      processed_fulfilments: {
+        Row: {
+          created_at: string
+          id: string
+          razorpay_payment_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          razorpay_payment_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          razorpay_payment_id?: string
+        }
+        Relationships: []
+      }
       qr_codes: {
         Row: {
           created_at: string
@@ -949,8 +1033,8 @@ export type Database = {
           last_payment_id: string | null
           payment_provider: string | null
           pending_billing_cycle:
-            | Database["public"]["Enums"]["billing_cycle_type"]
-            | null
+          | Database["public"]["Enums"]["billing_cycle_type"]
+          | null
           pending_plan: Database["public"]["Enums"]["plan_type"] | null
           plan: Database["public"]["Enums"]["plan_type"]
           provider_subscription_id: string | null
@@ -971,8 +1055,8 @@ export type Database = {
           last_payment_id?: string | null
           payment_provider?: string | null
           pending_billing_cycle?:
-            | Database["public"]["Enums"]["billing_cycle_type"]
-            | null
+          | Database["public"]["Enums"]["billing_cycle_type"]
+          | null
           pending_plan?: Database["public"]["Enums"]["plan_type"] | null
           plan?: Database["public"]["Enums"]["plan_type"]
           provider_subscription_id?: string | null
@@ -993,8 +1077,8 @@ export type Database = {
           last_payment_id?: string | null
           payment_provider?: string | null
           pending_billing_cycle?:
-            | Database["public"]["Enums"]["billing_cycle_type"]
-            | null
+          | Database["public"]["Enums"]["billing_cycle_type"]
+          | null
           pending_plan?: Database["public"]["Enums"]["plan_type"] | null
           plan?: Database["public"]["Enums"]["plan_type"]
           provider_subscription_id?: string | null
@@ -1091,11 +1175,11 @@ export type Database = {
           advanced_category_management: boolean | null
           advanced_customization: boolean | null
           analytics_level:
-            | Database["public"]["Enums"]["analytics_level_type"]
-            | null
+          | Database["public"]["Enums"]["analytics_level_type"]
+          | null
           billing_cycle:
-            | Database["public"]["Enums"]["billing_cycle_type"]
-            | null
+          | Database["public"]["Enums"]["billing_cycle_type"]
+          | null
           cancel_at_period_end: boolean | null
           current_period_end: string | null
           custom_branding: boolean | null
@@ -1140,6 +1224,23 @@ export type Database = {
       }
     }
     Functions: {
+      fulfill_subscription_payment: {
+        Args: {
+          p_billing_cycle: string
+          p_current_period_end: string
+          p_current_period_start: string
+          p_hotel_id: string
+          p_last_payment_id: string
+          p_needs_fresh_period: boolean
+          p_now: string
+          p_plan: string
+          p_provider_subscription_id: string
+          p_razorpay_payment_id: string
+          p_status: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
@@ -1148,55 +1249,56 @@ export type Database = {
       billing_cycle_type: "monthly" | "annual"
       category_style: "pill" | "underline" | "card"
       dietary_flag:
-        | "veg"
-        | "non_veg"
-        | "vegan"
-        | "jain"
-        | "gluten_free"
-        | "dairy"
-        | "egg"
+      | "veg"
+      | "non_veg"
+      | "vegan"
+      | "jain"
+      | "gluten_free"
+      | "dairy"
+      | "egg"
       font_family:
-        | "inter"
-        | "poppins"
-        | "syne"
-        | "outfit"
-        | "playfair"
-        | "dm_sans"
-        | "instrument_sans"
+      | "inter"
+      | "poppins"
+      | "syne"
+      | "outfit"
+      | "playfair"
+      | "dm_sans"
+      | "instrument_sans"
       menu_layout: "card" | "list" | "compact"
       order_status:
-        | "pending"
-        | "accepted"
-        | "preparing"
-        | "ready"
-        | "served"
-        | "cancelled"
+      | "pending"
+      | "accepted"
+      | "preparing"
+      | "ready"
+      | "served"
+      | "cancelled"
       payment_status:
-        | "pending"
-        | "paid"
-        | "failed"
-        | "refunded"
-        | "created"
-        | "authorized"
-        | "captured"
+      | "pending"
+      | "paid"
+      | "failed"
+      | "refunded"
+      | "created"
+      | "authorized"
+      | "captured"
+      | "verified"
       plan_type: "basic" | "starter" | "growth" | "pro"
       restaurant_type:
-        | "restaurant"
-        | "cafe"
-        | "bakery"
-        | "food_court"
-        | "cloud_kitchen"
-        | "bar_restaurant"
-        | "hotel_restaurant"
+      | "restaurant"
+      | "cafe"
+      | "bakery"
+      | "food_court"
+      | "cloud_kitchen"
+      | "bar_restaurant"
+      | "hotel_restaurant"
       shadow_intensity: "none" | "soft" | "medium" | "strong"
       spice_level: "none" | "mild" | "medium" | "hot" | "extra_hot"
       subscription_status:
-        | "trialing"
-        | "active"
-        | "cancelled"
-        | "expired"
-        | "past_due"
-        | "expiring"
+      | "trialing"
+      | "active"
+      | "cancelled"
+      | "expired"
+      | "past_due"
+      | "expiring"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1210,116 +1312,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Enums"]
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["CompositeTypes"]
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
 
 export const Constants = {
   graphql_public: {
@@ -1365,6 +1467,7 @@ export const Constants = {
         "created",
         "authorized",
         "captured",
+        "verified",
       ],
       plan_type: ["basic", "starter", "growth", "pro"],
       restaurant_type: [

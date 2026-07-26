@@ -2,9 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useToast } from '../../hooks/useToast'
+import { AlertCircle } from 'lucide-react'
 import { FaLinkedin } from 'react-icons/fa'
 import { SiGmail } from 'react-icons/si'
 import { FaXTwitter } from 'react-icons/fa6'
+import UtilsNavbar from '../utils/Navbar'
+import { getSupabaseClient } from '../../lib/supabase/client'
 
 const contactPoints = [
     {
@@ -14,15 +18,18 @@ const contactPoints = [
     },
     {
         label: 'Call us',
-        value: '+91 98765 43210',
-        href: 'tel:+919876543210',
+        value: '+91 8971096814',
+        href: 'tel:+918971096814',
     },
 
 ]
 
 export default function ContactPage() {
     const [status, setStatus] = useState<'idle' | 'submitting' | 'sent'>('idle')
-    const [form, setForm] = useState({ name: '', email: '', business: '', message: '' })
+    const [form, setForm] = useState({ name: '', email: '', business: '', message: '', phone: '' })
+    const supabase = getSupabaseClient();
+    const [error, setError] = useState<string | null>(null)
+    const toast = useToast();
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         const { name, value } = e.target
@@ -31,15 +38,50 @@ export default function ContactPage() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
+        setError(null)
         setStatus('submitting')
-        // TODO: wire up to your API route / Supabase table
+
+        try {
+            const payload: any = {
+                name: form.name,
+                email: form.email,
+                business: form.business,
+                phone: form.phone ? parseInt(form.phone.replace(/[^0-9]/g, ''), 10) : null,
+                message: form.message,
+            }
+
+            const { error } = await supabase.from('contact_form').insert(payload);
+            if (error) throw error
+        } catch (err) {
+            setStatus('idle')
+            if (err instanceof Error) {
+                toast.error(err.message)
+            } else {
+                toast.error('Something went wrong.')
+
+            }
+            return
+        }
+
         await new Promise((r) => setTimeout(r, 900))
         setStatus('sent')
     }
 
     return (
         <main id='contact' className="bg-theme font-syne min-h-screen">
-            <section className="max-w-[1200px] mx-auto px-6 md:px-8 pt-24 md:pt-32 pb-24">
+
+
+
+            {error && (
+                <div className="max-w-[1200px] mx-auto px-6 md:px-8 mt-6">
+                    <div className="flex items-center gap-3 rounded-lg border mb-5 border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                        <p>{error}</p>
+                    </div>
+                </div>
+            )}
+
+            <section className="max-w-[1200px] mx-auto px-6 md:px-8 pt-24 md:pt-14 pb-24">
 
                 {/* Header */}
                 <div className="max-w-[640px] mb-16 md:mb-20">
@@ -137,6 +179,17 @@ export default function ContactPage() {
                                         />
                                     </Field>
                                 </div>
+                                <Field label="Phone">
+                                    <input
+                                        required
+                                        type="tel"
+                                        name="phone"
+                                        value={form.phone}
+                                        onChange={handleChange}
+                                        placeholder="+91 9906572933"
+                                        className="input-field"
+                                    />
+                                </Field>
 
                                 <Field label="Restaurant / business name">
                                     <input

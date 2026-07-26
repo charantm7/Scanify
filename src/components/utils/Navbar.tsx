@@ -19,19 +19,15 @@ export default function UtilsNavbar() {
         { href: '/blog', label: 'Blog' },
         { href: '/careers', label: 'Careers' },
         { href: '/help', label: 'Help' },
+        { href: '/contact', label: 'contact' },
+
     ];
     return (
         <nav className="sticky top-0 z-50 backdrop-blur-md utils-bg utils-border-b">
 
             <div className="max-w-[1100px] mx-auto px-8 h-[60px] flex items-center justify-between">
 
-                <Link href={"/"} className="flex items-center gap-3 font-syne text-base sm:text-lg font-extrabold utils-text-theme tracking-tight shrink-0">
-                    <Image
-                        src={theme === "dark" ? "/scanify_logo_dark.png" : "/scanify_logo_light.png"}
-                        alt="Logo"
-                        width={40}
-                        height={40}
-                    />
+                <Link href={"/"} className="flex items-center gap-3 kaushan-script-regular text-2xl sm:text-2xl font-extrabold utils-text-theme tracking-tight shrink-0">
                     Scanify
                 </Link>
 

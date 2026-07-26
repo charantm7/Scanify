@@ -46,13 +46,8 @@ export default function UtilsFooter() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-12 mb-12">
 
                     <div className="sm:col-span-2 md:col-span-1">
-                        <Link href="#" className="inline-flex items-center gap-2 font-syne text-[17px] font-extrabold utils-text-theme no-underline tracking-tight">
-                            <Image
-                                src={theme === "dark" ? "/scanify_logo_dark.png" : "/scanify_logo_light.png"}
-                                alt="Logo"
-                                width={40}
-                                height={40}
-                            />
+                        <Link href="#" className="inline-flex items-center gap-2 kaushan-script-regular text-2xl font-extrabold utils-text-theme no-underline tracking-tight">
+
                             Scanify
                         </Link>
                         <p className="text-sm utils-text-theme-2 mt-3 leading-[1.65] max-w-[240px]">
