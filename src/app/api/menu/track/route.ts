@@ -10,6 +10,7 @@ const ALLOWED_EVENTS: MenuScanEvent["event_type"][] = [
     "category_click",
     "item_view",
     "item_modal_open",
+    "qr_scan",
 ];
 
 export async function POST(req: NextRequest) {
@@ -25,10 +26,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid event_type" }, { status: 400 });
         }
 
-        console.log(body.qr_code_id)
 
         const supabase = await createClient();
-        const { data, error } = await supabase
+        await supabase
             .from("menu_scans")
             .insert({
                 hotel_id: body.hotel_id,
@@ -42,8 +42,6 @@ export async function POST(req: NextRequest) {
                 referrer: req.headers.get("referer"),
             });
 
-        console.log("DATA:", data);
-        console.log("ERROR:", error);
 
         return NextResponse.json({ ok: true });
     } catch (err) {

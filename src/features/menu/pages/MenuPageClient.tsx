@@ -33,6 +33,7 @@ export default function MenuPageClient({
 
     const { categories, customization, hotel } = data;
 
+
     const accesstype = qrCodeId ? "qr_scan" : "page_view";
     const qc = useQueryClient();
     useEffect(() => {

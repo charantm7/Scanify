@@ -183,7 +183,8 @@ export type MenuEventType =
     | "search"
     | "category_click"
     | "item_view"
-    | "item_modal_open";
+    | "item_modal_open"
+    | "qr_scan";
 
 export interface MenuScanEvent {
     hotel_id: string;

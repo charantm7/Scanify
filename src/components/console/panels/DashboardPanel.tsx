@@ -140,6 +140,15 @@ export default function DashboardPanel({ onNavigate }) {
         </div>
       </div>
 
+      {hotel?.slug && (
+        <Card className="border-[var(--accent)] bg-[var(--accentlt)]">
+          <p>{hotel.slug}</p>
+
+        </Card>
+      )}
+
+
+
       {/* ── Live menu URL ─────────────────────────────────────────────────── */}
       {menuUrl && (
         <Card className="border-[var(--accent)] bg-[var(--accentlt)]">
