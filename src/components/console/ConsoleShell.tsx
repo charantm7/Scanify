@@ -3,15 +3,13 @@
 import { useEffect, useState } from 'react';
 import { Menu, Loader2, AlertTriangle, RefreshCw, Search, X, Bell } from 'lucide-react';
 import Sidebar, { NAV_GROUPS } from './Sidebar';
-import DashboardPanel from './panels/DashboardPanel';
+import DashboardPanel from '../../features/dashboard/DashboardPanel';
 import { MenuPanel } from '../../features/menu_builder';
 import QRPanel from './panels/QrPanel';
 import AnalyticsPanel from '../../features/analytics/components/AnalyticsPanel';
 import { SettingsPanel } from '../../features/settings';
-import { getSupabaseClient } from '../../lib/supabase/client';
 import { AppProvider } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
-import { useApp } from '../../context/AppContext';
 import BillingPanel from '../../features/billing/page/BillingPanel';
 import CustomizationPanel from '../../features/customization/components/CustomizationPanel';
 import TransactionHistory from '../../features/billing/components/TransactionHistory';

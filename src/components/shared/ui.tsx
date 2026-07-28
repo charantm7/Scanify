@@ -296,20 +296,35 @@ export function Alert({ type = 'info', title, message, action, onDismiss }: Aler
 
     return (
         <div
-            className="flex items-start gap-3 rounded-xl px-4 py-3 border text-sm"
+            className="rounded-xl border px-4 py-3 sm:px-5 sm:py-3.5 text-sm"
             style={{ background: cfg.bg, borderColor: cfg.border + '40', color: cfg.color }}
         >
-            <Icon size={16} className="flex-shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-                {title && <p className="font-semibold mb-0.5">{title}</p>}
-                {message && <p className="opacity-80 text-xs">{message}</p>}
+            <div className="flex items-start gap-3">
+                <Icon size={16} className="flex-shrink-0 mt-0.5" />
+
+                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                        {title && <p className="font-semibold leading-snug">{title}</p>}
+                        {message && <p className="opacity-80 text-xs mt-0.5 leading-relaxed">{message}</p>}
+                    </div>
+
+                    {action && (
+                        <div className="flex-shrink-0">
+                            {action}
+                        </div>
+                    )}
+                </div>
+
+                {onDismiss && (
+                    <button
+                        onClick={onDismiss}
+                        aria-label="Dismiss"
+                        className="flex-shrink-0 opacity-60 hover:opacity-100 transition p-1 -mr-1 -mt-0.5"
+                    >
+                        <X size={14} />
+                    </button>
+                )}
             </div>
-            {action}
-            {onDismiss && (
-                <button onClick={onDismiss} className="flex-shrink-0 opacity-60 hover:opacity-100 transition">
-                    <X size={14} />
-                </button>
-            )}
         </div>
     );
 }

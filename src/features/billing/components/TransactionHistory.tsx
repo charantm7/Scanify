@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Card, Badge, Modal, EmptyState, Skeleton, Alert, Button } from '../../../components/shared/ui';
 
-type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'created' | 'authorized' | 'captured';
+type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'created' | 'authorized' | 'captured' | 'verified' | 'cancelled';
 
 interface Transaction {
   id: string;
@@ -57,12 +57,16 @@ function statusMeta(status: PaymentStatus): { label: string; variant: 'success' 
     case 'captured':
     case 'paid':
       return { label: 'Paid', variant: 'success' };
+    case 'verified':
+      return { label: 'Verified', variant: 'success' };
     case 'created':
     case 'pending':
     case 'authorized':
       return { label: 'Processing', variant: 'warning' };
     case 'failed':
       return { label: 'Failed', variant: 'error' };
+    case 'cancelled':
+      return { label: 'Cancelled', variant: 'error' };
     case 'refunded':
       return { label: 'Refunded', variant: 'neutral' };
     default:
