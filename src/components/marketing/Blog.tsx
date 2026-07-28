@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from "react";
-import UtilsNavbar from "./Navbar";
-import UtilsFooter from "./Footer";
+import UtilsNavbar from "./MarketingNavbar";
+import UtilsFooter from "./MarketingFooter";
 
 const categories = ["All", "Product", "Restaurant Tips", "Industry", "Engineering", "Company"];
 

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import PhoneMockup from '../components/PhoneMockup';
 import LoginForm from '../components/LoginForm';
 import SignUpForm from '../components/SignupForm';
-import AuthNavbar from '../../../components/ui/AuthNavbar';
+import AuthNavbar from '../../../components/shared/AuthNavbar';
 import KeyFrames from '../../../components/ui/KeyFrames';
 
 

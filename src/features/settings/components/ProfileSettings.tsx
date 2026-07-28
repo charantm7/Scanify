@@ -1,5 +1,5 @@
 import { AlertCircle } from 'lucide-react';
-import { Section } from '../../../components/shared/ui';
+import { Section } from '../../../components/shared/UiComponents';
 import { useProfileSettings } from '../hooks/useProfileSettings';
 import { EditableField } from './shared/EditableField';
 

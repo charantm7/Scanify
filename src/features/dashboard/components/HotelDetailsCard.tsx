@@ -1,7 +1,7 @@
 'use client';
 
 import { Building2, Link2, Globe, Calendar, Copy, Check, ExternalLink } from 'lucide-react';
-import { Card } from '../../../components/shared/ui';
+import { Card } from '../../../components/shared/UiComponents';
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 import type { Hotel } from '../types';
 

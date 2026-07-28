@@ -6,7 +6,7 @@ import {
   Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt, SlidersHorizontal, BarChart3, Sparkles, Palette, Settings2, MessageSquare, CreditCard, ArrowUpDown
 } from 'lucide-react';
 import { getSupabaseClient } from '../../lib/supabase/client';
-import { Badge } from '../shared/ui';
+import { Badge } from '../shared/UiComponents';
 import toast from 'react-hot-toast';
 import { useApp } from '../../context/AppContext';
 import Image from 'next/image';

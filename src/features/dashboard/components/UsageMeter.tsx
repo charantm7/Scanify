@@ -1,4 +1,4 @@
-import { Card } from "../../../components/shared/ui";
+import { Card } from "../../../components/shared/UiComponents";
 
 export function UsageMeter({
     menuItemCount, maxMenuItems, planLabel,

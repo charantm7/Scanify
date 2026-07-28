@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Loader2, ChevronDown, GripVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Button } from '../../../components/shared/ui';
+import { Button } from '../../../components/shared/UiComponents';
 import { InlineEdit } from './InlineEdit';
 import { IconPicker } from './shared/IconPicker';
 import { ItemRow } from './ItemRow';

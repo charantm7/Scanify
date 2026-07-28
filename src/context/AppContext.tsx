@@ -2,8 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { getSupabaseClient } from "../lib/supabase/client";
-
-import type { AppContextValue } from "../types/app.types";
 import { PLAN_LABELS } from "../types/app.types";
 
 

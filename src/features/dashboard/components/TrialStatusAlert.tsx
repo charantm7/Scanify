@@ -1,5 +1,5 @@
 import { Zap } from 'lucide-react';
-import { Alert } from '../../../components/shared/ui';
+import { Alert } from '../../../components/shared/UiComponents';
 
 function UpgradeButton({ onClick }: { onClick: () => void }) {
     return (

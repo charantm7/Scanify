@@ -1,5 +1,5 @@
 import "../../style/utils.css"
-import BlogPage from "../../../components/utils/Blog";
+import BlogPage from "../../../components/marketing/Blog";
 
 export const metadata = {
     title: "Blog | Scanify",

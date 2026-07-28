@@ -2,8 +2,8 @@
 // There is no interactivity here; removing "use client" reduces JS sent to browser.
 
 import Link from "next/link";
-import UtilsNavbar from "../utils/Navbar";
-import UtilsFooter from "../utils/Footer";
+import UtilsNavbar from "../marketing/MarketingNavbar";
+import UtilsFooter from "../marketing/MarketingFooter";
 
 export default function LegalLayout({ title, lastUpdated, children }) {
     return (

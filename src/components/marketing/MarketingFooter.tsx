@@ -1,7 +1,6 @@
 'use client';
 
 import Link from "next/link";
-import Image from "next/image";
 import { useTheme } from "../../context/ThemeContext";
 import { FaLinkedin } from 'react-icons/fa'
 import { SiGmail } from "react-icons/si";

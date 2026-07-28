@@ -6,7 +6,7 @@ import {
     ChevronRight, ChevronLeft, Loader2, Image as ImageIcon, Globe, Sparkles,
 } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
-import AuthNavbar from '../../components/ui/AuthNavbar';
+import AuthNavbar from '../../components/shared/AuthNavbar';
 
 import { Field, Input, Textarea } from './components/FormControls';
 import { PillSelect } from './components/PillSelect';

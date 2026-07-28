@@ -16,9 +16,9 @@ import {
 } from 'lucide-react';
 
 import { UpgradeGate } from './UpgradeGate';
-import { usePlan } from '../../hooks/usePlan';
 import Link from 'next/link';
 import { AnalyticsLevel } from '../../features/analytics/constants';
+import { useApp } from '../../context/AppContext';
 
 
 interface NoticeProps {
@@ -96,7 +96,7 @@ function NoticeCTA({ href, label }: { href: string; label: string }) {
 
 
 export function TrialActiveNotice() {
-    const { isTrialing, trialDaysLeft, trialHoursLeft } = usePlan();
+    const { isTrialing, trialDaysLeft, trialHoursLeft } = useApp();
     if (!isTrialing) return null;
 
     const timeLabel = trialDaysLeft > 1
@@ -121,7 +121,7 @@ export function TrialActiveNotice() {
 
 
 export function TrialExpiredNotice() {
-    const { isTrialExpired } = usePlan();
+    const { isTrialExpired } = useApp();
     if (!isTrialExpired) return null;
 
     return (
@@ -140,7 +140,7 @@ export function TrialExpiredNotice() {
 
 
 export function PaymentFailedNotice() {
-    const { isPastDue } = usePlan();
+    const { isPastDue } = useApp();
     if (!isPastDue) return null;
 
     return (
@@ -160,7 +160,7 @@ export function PaymentFailedNotice() {
 
 
 export function CancelledNotice() {
-    const { isCancelled } = usePlan();
+    const { isCancelled } = useApp();
     if (!isCancelled) return null;
 
     return (
@@ -181,7 +181,7 @@ export function CancelledNotice() {
 
 
 export function MenuLimitNotice() {
-    const { isAtMenuLimit, maxMenuItems, isSubscriptionOk } = usePlan();
+    const { isAtMenuLimit, maxMenuItems, isSubscriptionOk } = useApp();
     if (!isAtMenuLimit || !isSubscriptionOk) return null;
 
     return (
@@ -208,7 +208,7 @@ interface AnalyticsLockedNoticeProps {
 
 
 export function AnalyticsLockedNotice({ level, onNavigate }: AnalyticsLockedNoticeProps) {
-    const { canViewBasicAnalytics, canViewAdvancedAnalytics } = usePlan();
+    const { canViewBasicAnalytics, canViewAdvancedAnalytics } = useApp();
 
     const locked = level === 'basic' ? !canViewBasicAnalytics : !canViewAdvancedAnalytics;
 
@@ -269,7 +269,7 @@ export function FeatureGateNotice({
 
 
 export function ConsoleNotices() {
-    const { isTrialExpired, isPastDue, isCancelled, isTrialing } = usePlan();
+    const { isTrialExpired, isPastDue, isCancelled, isTrialing } = useApp();
 
     if (isTrialExpired) return <TrialExpiredNotice />;
     if (isPastDue) return <PaymentFailedNotice />;

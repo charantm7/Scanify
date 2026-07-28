@@ -1,5 +1,5 @@
 import { Building2, Globe, MapPin, Phone } from 'lucide-react';
-import { Input, Textarea, Button } from '../../../components/shared/ui';
+import { Input, Textarea, Button } from '../../../components/shared/UiComponents';
 import { Check } from 'lucide-react';
 import { useRestaurantSettings } from '../hooks/useRestaurantSettings';
 import { CUISINE_OPTIONS, SERVICE_TYPE_OPTIONS, RESTAURANT_TYPE_OPTIONS } from '../constants';

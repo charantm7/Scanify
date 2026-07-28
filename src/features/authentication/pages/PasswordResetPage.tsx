@@ -1,6 +1,6 @@
 'use client';
 
-import AuthNavbar from '../../../components/ui/AuthNavbar';
+import AuthNavbar from '../../../components/shared/AuthNavbar';
 import KeyFrames from '../../../components/ui/KeyFrames';
 import PasswordResetForm from '../components/PasswordResetForm';
 import PhoneMockup from '../components/PhoneMockup';

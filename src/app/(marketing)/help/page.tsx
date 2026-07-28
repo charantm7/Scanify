@@ -1,5 +1,5 @@
 import "../../style/utils.css"
-import HelpCenterPage from "../../../components/utils/Help";
+import HelpCenterPage from "../../../components/marketing/Help";
 
 export const metadata = {
     title: "Help | Scanify",

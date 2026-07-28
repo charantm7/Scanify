@@ -1,5 +1,5 @@
 import "../../style/utils.css"
-import CareersPage from "../../../components/utils/Careers";
+import CareersPage from "../../../components/marketing/Careers";
 
 export const metadata = {
     title: "Careers | Scanify",

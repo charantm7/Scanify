@@ -3,7 +3,7 @@
 // src/features/menu/components/CategoryList.tsx
 
 import { ChefHat, Plus } from 'lucide-react';
-import { EmptyState, Button } from '../../../components/shared/ui';
+import { EmptyState, Button } from '../../../components/shared/UiComponents';
 import { CategoryBlock } from './CategoryBlock';
 import { useReorderableList } from '../hooks/useReorderableList';
 import type { Category, MenuItem, MenuViewMode } from '../types';
