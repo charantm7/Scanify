@@ -12,7 +12,7 @@ import {
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
-import { Card, Badge, Modal, EmptyState, Skeleton, Alert, Button } from '../../../components/shared/UiComponents';
+import { Card, Badge, Modal, EmptyState, Skeleton, Alert, Button } from '../../../components/ui/UiComponents';
 
 type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'created' | 'authorized' | 'captured' | 'verified' | 'cancelled';
 

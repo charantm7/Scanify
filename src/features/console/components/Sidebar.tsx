@@ -2,14 +2,12 @@
 
 import { useState } from 'react';
 import {
-  LayoutDashboard, QrCode, ScanQrCodeIcon, ImageIcon,
-  Settings, X, LogOut, Loader2, Zap, ChefHat, Receipt, SlidersHorizontal, BarChart3, Sparkles, Palette, Settings2, MessageSquare, CreditCard, ArrowUpDown
+  LayoutDashboard, QrCode, ScanQrCodeIcon, X, LogOut, Loader2, Zap, ChefHat, Receipt, BarChart3, Sparkles, Palette, Settings2, MessageSquare, CreditCard
 } from 'lucide-react';
-import { getSupabaseClient } from '../../lib/supabase/client';
-import { Badge } from '../shared/UiComponents';
+import { getSupabaseClient } from '../../../lib/supabase/client';
+import { Badge } from '../../../components/ui/UiComponents';
 import toast from 'react-hot-toast';
-import { useApp } from '../../context/AppContext';
-import Image from 'next/image';
+import { useApp } from '../../../context/AppContext';
 
 function Logo() {
   return (

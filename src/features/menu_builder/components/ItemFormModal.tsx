@@ -2,7 +2,7 @@
 
 // src/features/menu/components/ItemFormModal.tsx
 
-import { Modal } from '../../../components/shared/UiComponents';
+import { Modal } from '../../../components/ui/UiComponents';
 import { ItemForm } from './ItemForm';
 import type { ItemModalState, ItemFormValues } from '../types';
 

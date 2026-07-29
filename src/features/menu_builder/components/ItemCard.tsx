@@ -9,6 +9,7 @@ import { ChefHat, Pencil, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { DietaryDot } from './shared/DietaryDot';
 import { SpiceBadge, TagBadge } from './shared/TagBadge';
 import type { MenuItem } from '../types';
+import { normalizeImageUrl } from '../../../components/shared/ImageUrlNormalization';
 
 interface ItemCardProps {
   item: MenuItem;
@@ -33,7 +34,7 @@ export function ItemImage({ item, variant = 'list' }: { item: MenuItem; variant?
       style={{ background: "var(--color-border)" }}
     >
       <Image
-        src={item.image_url}
+        src={normalizeImageUrl(item.image_url)}
         alt={item.name}
         fill
         sizes={variant === 'card' ? '(max-width: 640px) 100vw, 33vw' : '(max-width: 640px) 80px, 96px'}

@@ -7,7 +7,6 @@ import {
     CreditCard,
     Zap,
     X,
-    ArrowRight,
     ChefHat,
     BarChart2, PanelTop, ScanBarcode,
     DollarSign,
@@ -16,7 +15,6 @@ import {
 } from 'lucide-react';
 
 import { UpgradeGate } from './UpgradeGate';
-import Link from 'next/link';
 import { AnalyticsLevel } from '../../features/analytics/constants';
 import { useApp } from '../../context/AppContext';
 
@@ -59,11 +57,19 @@ function NoticeCard({
                 <Icon size={17} style={{ color: iconColor }} />
             </div>
 
+            <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-3">
 
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-theme leading-snug">{title}</p>
-                <p className="text-xs text-theme2 mt-0.5 leading-relaxed">{description}</p>
-                {action && <div className="mt-3">{action}</div>}
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-theme leading-snug">{title}</p>
+                    <p className="text-xs text-theme2 mt-0.5 leading-relaxed">{description}</p>
+                </div>
+
+                {action && (
+                    <div className="flex-shrink-0">
+                        {action}
+                    </div>
+                )}
+
             </div>
 
 
@@ -81,47 +87,39 @@ function NoticeCard({
 }
 
 
-function NoticeCTA({ href, label }: { href: string; label: string }) {
+
+function UpgradeButton({ onClick }: { onClick: () => void }) {
     return (
-        <Link
-            href={href}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white hover:opacity-90 transition-opacity"
+        <button
+            onClick={onClick}
+            className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-bold"
             style={{ background: 'var(--accent)' }}
         >
-            {label}
-            <ArrowRight size={12} />
-        </Link>
+            <Zap size={12} /> Upgrade
+        </button>
     );
 }
 
 
-export function TrialActiveNotice() {
-    const { isTrialing, trialDaysLeft, trialHoursLeft } = useApp();
+export function TrialActiveNotice({ isTrialing, trialDaysLeft, trialHoursLeft, onUpgrade }: { isTrialing: boolean; trialDaysLeft: number; trialHoursLeft: number; onUpgrade: () => void }) {
     if (!isTrialing) return null;
-
-    const timeLabel = trialDaysLeft > 1
-        ? `${trialDaysLeft} days`
-        : trialHoursLeft > 0
-            ? `${trialHoursLeft} hour${trialHoursLeft !== 1 ? 's' : ''}`
-            : 'less than an hour';
 
     return (
         <NoticeCard
             icon={Clock}
             bg="var(--accentlt)"
-            borderColor="var(--accent)33"
+            borderColor="var(--accent)"
             iconBg="var(--accent)"
             iconColor="white"
-            title={`Free trial — ${timeLabel} remaining`}
-            description="You have full access to all features during your trial. Upgrade before it ends to keep everything."
-            action={<NoticeCTA href="/billing" label="View plans" />}
+            title={`Free Trial · ${trialHoursLeft}h left`}
+            description={`You have full Starter access for ${trialDaysLeft} more day${trialDaysLeft !== 1 ? 's' : ''}. After that, you'll drop to the free tier (5 items, 1 QR). Upgrade now to keep everything.`}
+            action={<UpgradeButton onClick={onUpgrade} />}
         />
     );
 }
 
 
-export function TrialExpiredNotice() {
-    const { isTrialExpired } = useApp();
+export function TrialExpiredNotice({ isTrialExpired, onUpgrade }: { isTrialExpired: boolean; onUpgrade: () => void }) {
     if (!isTrialExpired) return null;
 
     return (
@@ -132,15 +130,14 @@ export function TrialExpiredNotice() {
             iconBg="#fef9c3"
             iconColor="#d97706"
             title="Your free trial has ended"
-            description="Your menu is still visible to customers, but you can no longer add or edit items. Choose a plan to continue."
-            action={<NoticeCTA href="/billing" label="Choose a plan" />}
+            description="Your trial has ended. Upgrade to continue managing your menu and unlock all features."
+            action={<UpgradeButton onClick={onUpgrade} />}
         />
     );
 }
 
 
-export function PaymentFailedNotice() {
-    const { isPastDue } = useApp();
+export function PaymentFailedNotice({ isPastDue, onUpgrade }: { isPastDue: boolean; onUpgrade: () => void }) {
     if (!isPastDue) return null;
 
     return (
@@ -152,15 +149,14 @@ export function PaymentFailedNotice() {
             iconColor="#dc2626"
             title="Payment failed — action required"
             description="We couldn't charge your saved payment method. Update your billing details to restore full access."
-            action={<NoticeCTA href="/billing" label="Update billing" />}
+            action={<UpgradeButton onClick={onUpgrade} />}
         />
     );
 }
 
 
 
-export function CancelledNotice() {
-    const { isCancelled } = useApp();
+export function CancelledNotice({ isCancelled, onUpgrade }: { isCancelled: boolean; onUpgrade: () => void }) {
     if (!isCancelled) return null;
 
     return (
@@ -172,16 +168,30 @@ export function CancelledNotice() {
             iconColor="#dc2626"
             title="Subscription cancelled"
             description="Your plan is active until the end of the current billing period. After that, you'll be moved to the free tier."
-            action={<NoticeCTA href="/billing" label="Reactivate" />}
-            dismissible
-            onDismiss={() => { }} // parent can lift state if needed
+            action={<UpgradeButton onClick={onUpgrade} />}
+        />
+    );
+}
+
+export function PlanExpiredNotice({ isExpired, onUpgrade, planLabel }: { isExpired: boolean; onUpgrade: () => void; planLabel: string }) {
+    if (!isExpired) return null;
+
+    return (
+        <NoticeCard
+            icon={CreditCard}
+            bg="#fef2f2"
+            borderColor="#dc262633"
+            iconBg="#fee2e2"
+            iconColor="#dc2626"
+            title="Subscription Expired"
+            description={`Your '${planLabel}' plan has been expired, upgrade to renew your plan.`}
+            action={<UpgradeButton onClick={onUpgrade} />}
         />
     );
 }
 
 
-export function MenuLimitNotice() {
-    const { isAtMenuLimit, maxMenuItems, isSubscriptionOk } = useApp();
+export function MenuLimitNotice({ isAtMenuLimit, maxMenuItems, isSubscriptionOk, onUpgrade }: { isAtMenuLimit: boolean; maxMenuItems: number; isSubscriptionOk: boolean; onUpgrade: () => void }) {
     if (!isAtMenuLimit || !isSubscriptionOk) return null;
 
     return (
@@ -193,7 +203,7 @@ export function MenuLimitNotice() {
             iconColor="white"
             title={`Menu item limit reached (${maxMenuItems} items)`}
             description="You've hit your plan's menu item cap. Upgrade to add unlimited items."
-            action={<NoticeCTA href="/billing" label="Upgrade plan" />}
+            action={<UpgradeButton onClick={onUpgrade} />}
         />
     );
 }
@@ -248,10 +258,12 @@ export function FeatureGateNotice({
     feature,
     description,
     requiredPlan,
+    onUpgrade
 }: {
     feature: string;
     description: string;
     requiredPlan: string;
+    onUpgrade: () => void;
 }) {
     return (
         <NoticeCard
@@ -262,19 +274,39 @@ export function FeatureGateNotice({
             iconColor="white"
             title={`${feature} — ${requiredPlan} plan required`}
             description={description}
-            action={<NoticeCTA href="/billing" label={`Upgrade to ${requiredPlan}`} />}
+            action={<UpgradeButton onClick={onUpgrade} />}
         />
     );
 }
 
 
-export function ConsoleNotices() {
-    const { isTrialExpired, isPastDue, isCancelled, isTrialing } = useApp();
+export function ConsoleNotices({
+    isTrialExpired,
+    isPastDue,
+    isCancelled,
+    isTrialing,
+    trialDaysLeft,
+    trialHoursLeft,
+    isExpired,
+    planLabel,
+    onUpgrade }:
+    {
+        isTrialExpired: boolean;
+        isPastDue: boolean;
+        isCancelled: boolean;
+        isTrialing: boolean;
+        trialDaysLeft: number;
+        trialHoursLeft: number;
+        isExpired: boolean;
+        planLabel: string;
+        onUpgrade: () => void
+    }) {
 
-    if (isTrialExpired) return <TrialExpiredNotice />;
-    if (isPastDue) return <PaymentFailedNotice />;
-    if (isCancelled) return <CancelledNotice />;
-    if (isTrialing) return <TrialActiveNotice />;
+    if (isExpired) return <PlanExpiredNotice isExpired={isExpired} onUpgrade={onUpgrade} planLabel={planLabel} />
+    if (isTrialExpired) return <TrialExpiredNotice isTrialExpired={isTrialExpired} onUpgrade={onUpgrade} />;
+    if (isPastDue) return <PaymentFailedNotice isPastDue={isPastDue} onUpgrade={onUpgrade} />;
+    if (isCancelled) return <CancelledNotice isCancelled={isCancelled} onUpgrade={onUpgrade} />;
+    if (isTrialing) return <TrialActiveNotice isTrialing={isTrialing} trialDaysLeft={trialDaysLeft} trialHoursLeft={trialHoursLeft} onUpgrade={onUpgrade} />;
 
     return null;
 }

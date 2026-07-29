@@ -1,5 +1,5 @@
-import { Building2, Globe, MapPin, Phone } from 'lucide-react';
-import { Input, Textarea, Button } from '../../../components/shared/UiComponents';
+import { Building2, Globe, MapPin, Phone, Star, MessagesSquare } from 'lucide-react';
+import { Input, Textarea, Button } from '../../../components/ui/UiComponents';
 import { Check } from 'lucide-react';
 import { useRestaurantSettings } from '../hooks/useRestaurantSettings';
 import { CUISINE_OPTIONS, SERVICE_TYPE_OPTIONS, RESTAURANT_TYPE_OPTIONS } from '../constants';
@@ -44,6 +44,10 @@ export function RestaurantSettings() {
             <Input label="Address" value={form.address} onChange={(e) => setField('address', e.target.value)} icon={MapPin} />
             <Input label="Phone" value={form.phone} onChange={(e) => setField('phone', e.target.value)} icon={Phone} />
             <Input label="Website" value={form.website} onChange={(e) => setField('website', e.target.value)} icon={Globe} placeholder="https://..." />
+
+            <Input label="Google Ratings" value={form.rating} onChange={(e) => setField('rating', e.target.value)} icon={Star} placeholder='ex: 3, 4.5, 5' />
+
+            <Input label="Google Review Count" value={form.review_count} onChange={(e) => setField('review_count', parseFloat(e.target.value) || 0)} icon={MessagesSquare} placeholder='500...' />
             <Input label="Google Maps URL" value={form.google_maps_url} onChange={(e) => setField('google_maps_url', e.target.value)} icon={MapPin} />
 
             <ChipGroup label="Cuisine Type" options={CUISINE_OPTIONS} selected={form.cuisine_type} onToggle={(v) => toggleListValue('cuisine_type', v)} />

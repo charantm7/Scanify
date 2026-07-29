@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { ChefHat, IndianRupee, ImageIcon, Plus, X as XIcon, Info } from 'lucide-react';
-import { Input, Textarea, Toggle, Button } from '../../../components/shared/UiComponents';
+import { Input, Textarea, Toggle, Button } from '../../../components/ui/UiComponents';
 import { DIETARY_META, TAG_META, MAX_VARIANTS_PER_ITEM, SPICE_LEVEL_META } from '../constants';
 import { useItemForm } from '../hooks/useItemForm';
 import type { MenuItem, DietaryType, ItemTag, ItemFormValues, SpiceLevel } from '../types';

@@ -1,7 +1,7 @@
 'use client';
 
-import AuthNavbar from '../../../components/shared/AuthNavbar';
-import KeyFrames from '../../../components/ui/KeyFrames';
+import AuthNavbar from '../../../components/layouts/AuthNavbar';
+import KeyFrames from '../../../components/shared/KeyFrames';
 import EmailSentForm from '../components/EmailSentForm';
 
 export default function EmailSentPage() {

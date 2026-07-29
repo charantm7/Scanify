@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DietaryIndicator, SpiceIndicator, ItemBadgeRow, VariantIndicator } from "./ItemBadges";
 import { DIETARY_CONFIG } from "../constant";
 import type { MenuItem, DietaryFlag } from "../types";
+import { normalizeImageUrl } from "../../../components/shared/ImageUrlNormalization";
 
 interface DishModalProps {
     item: MenuItem | undefined;
@@ -33,7 +34,6 @@ function ImageGallery({ item }: { item: MenuItem }) {
     const src = allImages[activeIdx]?.url ?? null;
 
 
-
     if (allImages.length === 0) {
         return (
             <div
@@ -50,11 +50,12 @@ function ImageGallery({ item }: { item: MenuItem }) {
             <div className="relative w-full h-56 rounded-2xl overflow-hidden">
                 {src && !imgErr ? (
                     <Image
-                        src={src}
+                        src={normalizeImageUrl(src)}
                         alt={item.name}
-                        width={48}
-                        height={48}
-                        className="object-cover w-full h-full"
+                        width={600}
+                        height={400}
+                        quality={90}
+                        className="w-full h-72 object-cover rounded-xl"
                     />
                 ) : (
                     <div
@@ -76,6 +77,7 @@ function ImageGallery({ item }: { item: MenuItem }) {
             {allImages.length > 1 && (
                 <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
                     {allImages.map((img, i) => (
+
                         <button
                             key={i}
                             onClick={() => { setActiveIdx(i); setImgErr(false); }}
@@ -83,14 +85,15 @@ function ImageGallery({ item }: { item: MenuItem }) {
                             style={{ borderColor: activeIdx === i ? "var(--color-accent)" : "transparent" }}
                         >
                             <Image
-                                src={img.url}
+                                src={normalizeImageUrl(img.url)}
                                 alt={img.alt_text ?? ""}
                                 width={48}
                                 height={48}
                                 className="object-cover w-full h-full"
                             />
                         </button>
-                    ))}
+                    )
+                    )}
                 </div>
             )}
         </div>

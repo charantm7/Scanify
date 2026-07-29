@@ -5,18 +5,19 @@ import { useApp } from '../../context/AppContext';
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { formatAccountAge } from './lib/formatAccountAge';
 import { WelcomeBanner } from './components/WelcomeBanner';
-import { TrialStatusAlert } from './components/TrialStatusAlert';
 import { HotelDetailsCard } from './components/HotelDetailsCard';
 import { SetupChecklist } from './components/SetupChecklist';
 import { StatsGrid } from './components/StatsGrid';
 import { UsageMeter } from './components/UsageMeter';
 import { QuickActions } from './components/QuickActions';
+import { ConsoleNotices } from '../../components/overlays/Consolenotices';
 
 export default function DashboardPanel({ onNavigate }: { onNavigate: (section: string) => void }) {
     const {
         profile, hotel,
         menuItemCount, plan, maxMenuItems, isTrialing, planLabel,
-        isTrialExpired, trialHoursLeft, trialDaysLeft,
+        isTrialExpired, trialHoursLeft, trialDaysLeft, isPastDue,
+        isCancelled, isExpired
     } = useApp();
 
     const { stats, loading: statsLoading } = useDashboardStats(hotel?.id);
@@ -34,13 +35,9 @@ export default function DashboardPanel({ onNavigate }: { onNavigate: (section: s
 
     return (
         <div className="space-y-5 sm:space-y-6">
-            <TrialStatusAlert
-                isTrialing={isTrialing}
-                isTrialExpired={isTrialExpired}
-                trialHoursLeft={trialHoursLeft}
-                trialDaysLeft={trialDaysLeft}
-                onUpgrade={() => onNavigate('billing')}
-            />
+
+            <ConsoleNotices isTrialExpired={isTrialExpired} isPastDue={isPastDue} isCancelled={isCancelled} isTrialing={isTrialing} trialDaysLeft={trialDaysLeft} trialHoursLeft={trialHoursLeft} onUpgrade={() => onNavigate('billing')} isExpired={isExpired} planLabel={planLabel} />
+
 
             <WelcomeBanner name={profile?.name} hotelName={hotel?.name} planLabel={planLabel} />
 

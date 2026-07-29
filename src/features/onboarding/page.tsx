@@ -6,7 +6,7 @@ import {
     ChevronRight, ChevronLeft, Loader2, Image as ImageIcon, Globe, Sparkles,
 } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
-import AuthNavbar from '../../components/shared/AuthNavbar';
+import AuthNavbar from '../../components/layouts/AuthNavbar';
 
 import { Field, Input, Textarea } from './components/FormControls';
 import { PillSelect } from './components/PillSelect';
@@ -14,7 +14,7 @@ import { SuccessScreen } from './components/SuccessScreen'
 import { OnboardingSidebar } from './components/OnboardingSideBar';
 import { useOnboarding } from './hooks/useOnboarding';
 import { STEPS, CUISINE_TYPES, RESTAURANT_TYPES, SERVICE_TYPES } from './constants';
-import KeyFrames from '../../components/ui/KeyFrames';
+import KeyFrames from '../../components/shared/KeyFrames';
 
 export default function OnboardingPage() {
     const {

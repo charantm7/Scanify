@@ -1,5 +1,5 @@
 import { Check, Circle } from 'lucide-react';
-import { Card } from '../../../components/shared/UiComponents';
+import { Card } from '../../../components/ui/UiComponents';
 
 type ChecklistItem = { label: string; done: boolean; onClick?: () => void };
 

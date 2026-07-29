@@ -1,4 +1,4 @@
-import SkeletonBlock from "../../../components/ui/SkeletonBlock";
+import SkeletonBlock from "../../../components/layouts/SkeletonBlock";
 
 export default function AnalyticsSkeletonBlock() {
     return (

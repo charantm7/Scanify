@@ -27,6 +27,8 @@ export interface RestaurantFormData {
     address: string;
     phone: string;
     website: string;
+    rating: string;
+    review_count: number;
     google_maps_url: string;
     cuisine_type: string[];
     service_type: string[];

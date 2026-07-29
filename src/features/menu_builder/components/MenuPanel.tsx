@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
-import { Alert, Button } from '../../../components/shared/UiComponents';
+import { Alert, Button } from '../../../components/ui/UiComponents';
 import { useMenu } from '../hooks/useMenu';
 import { MenuHeader } from './MenuHeader';
 import { UpgradeAlerts } from './UpgradeAlerts';

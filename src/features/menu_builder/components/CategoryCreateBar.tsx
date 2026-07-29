@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { Plus, FolderPlus } from 'lucide-react';
-import { Button } from '../../../components/shared/UiComponents';
+import { Button } from '../../../components/ui/UiComponents';
 import { IconPicker } from './shared/IconPicker';
 
 interface CategoryCreateBarProps {

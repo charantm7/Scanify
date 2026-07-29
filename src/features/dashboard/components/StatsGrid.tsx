@@ -1,5 +1,5 @@
 import { ChefHat, QrCode, BarChart2, Clock } from 'lucide-react';
-import { StatCard } from '../../../components/shared/UiComponents';
+import { StatCard } from '../../../components/ui/UiComponents';
 
 export function StatsGrid({
     menuItemCount, maxMenuItems, qrCount, scanCount, accountAge, loading,

@@ -5,8 +5,8 @@ import { getSupabaseClient } from "../lib/supabase/client";
 import { PLAN_LABELS } from "../types/app.types";
 
 
-export const isUnlimited = (val) => val === -1;
-export const displayLimit = (val) => (isUnlimited(val) ? "∞" : val);
+export const isUnlimited = (val: number) => val === -1;
+export const displayLimit = (val: number) => (isUnlimited(val) ? "∞" : val);
 
 const AppContext = createContext(null);
 

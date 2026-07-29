@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Menu, Loader2, AlertTriangle, RefreshCw, Search, X, Bell } from 'lucide-react';
-import Sidebar, { NAV_GROUPS } from './Sidebar';
+import { useState } from 'react';
+import { Menu, AlertTriangle, RefreshCw, Search, X, Bell } from 'lucide-react';
+import Sidebar, { NAV_GROUPS } from './components/Sidebar';
 import DashboardPanel from '../../features/dashboard/DashboardPanel';
 import { MenuPanel } from '../../features/menu_builder';
-import QRPanel from './panels/QrPanel';
+import QRPanel from './components/QrPanel';
 import AnalyticsPanel from '../../features/analytics/components/AnalyticsPanel';
 import { SettingsPanel } from '../../features/settings';
 import { AppProvider } from '../../context/AppContext';
@@ -63,7 +63,7 @@ function Panel({ id, onNavigate }) {
         case 'analytics': return <AnalyticsPanel onNavigate={onNavigate} />;
         case 'settings': return <SettingsPanel />;
         case 'billing': return <BillingPanel />;
-        case 'customization': return <CustomizationPanel />
+        case 'customization': return <CustomizationPanel onNavigate={onNavigate} />
         case 'transactions': return <TransactionHistory />
         default: return (
             <div className="text-center py-20 text-theme2">
@@ -90,7 +90,6 @@ function ConsoleShellInner() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [error, setError] = useState(null)
-    const [search, setSearch] = useState('');
 
     const { theme, toggleTheme } = useTheme();
 

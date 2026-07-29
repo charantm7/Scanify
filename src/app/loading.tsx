@@ -5,7 +5,6 @@ export default function Loading() {
 
 
 export function ScanifyLoader({
-    message = 'Loading your workspace',
     fullscreen = true,
 }: {
     message?: string;
@@ -80,10 +79,6 @@ function QrMark() {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PanelLoader — inline variant for console panels (not full screen)
-// Drop inside any panel while data loads.
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function PanelLoader({ message = 'Loading' }: { message?: string }) {
     return (

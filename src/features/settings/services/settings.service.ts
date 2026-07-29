@@ -31,6 +31,8 @@ export const settingsService = {
             phone: data.phone?.trim() || null,
             website: data.website?.trim() || null,
             google_maps_url: data.google_maps_url?.trim() || null,
+            rating: parseFloat(data.rating),
+            review_count: data.review_count,
             cuisine_type: data.cuisine_type,
             service_type: data.service_type,
             restaurant_type: data.restaurant_type,
