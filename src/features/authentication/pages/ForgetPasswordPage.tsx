@@ -1,9 +1,9 @@
 'use client';
 
-import AuthNavbar from '../../../components/ui/AuthNavbar';
+import AuthNavbar from '../../../components/layouts/AuthNavbar';
 import PhoneMockup from '../components/PhoneMockup';
 import ForgetPasswordForm from '../components/ForgetPasswordForm';
-import KeyFrames from '../../../components/ui/KeyFrames';
+import KeyFrames from '../../../components/shared/KeyFrames';
 
 
 export default function ForgetPasswordPage() {

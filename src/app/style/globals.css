@@ -253,7 +253,7 @@ body {
 }
 
 .bg-muted {
-  background-color: hsl(var(--muted));
+  background-color: var(--muted);
 }
 
 .bg-theme2 {

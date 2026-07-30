@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
-import { Section, Button } from '../../../components/shared/ui';
+import { Section, Button } from '../../../components/ui/UiComponents';
 import { useDangerZone } from '../hooks/useDangerZone';
 
 const DELETE_CONFIRM_PHRASE = 'delete my restaurant';

@@ -1,7 +1,7 @@
 
 import { createClient } from "../../lib/supabase/server";
 import Navbar from "../../components/home/Navbar";
-import ScrollButtons from "../../components/utils/ScrollButtons";
+import ScrollButtons from "../../components/shared/ScrollButtons";
 
 export default async function MainLayout({ children }) {
     const supabase = await createClient();

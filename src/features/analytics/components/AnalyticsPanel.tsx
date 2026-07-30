@@ -15,7 +15,7 @@ import QrBreakdown from './QrBreakdown';
 import OrderStats from './OrderStats';
 import ComparisonRow from './ComparisonRow';
 import { StatCard } from './StatCardsGrid';
-import { ErrorBanner } from '../../../components/ui/ErrorBanner';
+import { ErrorBanner } from '../../../components/feedback/ErrorBanner';
 import AnalyticsSkeletonBlock from './SkeletonBlock';
 import { buildBasicStats } from '../utils/build-basic-stats';
 import PageHeader from './AnalyticsHeader';
@@ -28,7 +28,7 @@ import {
 
 import { useApp } from '../../../context/AppContext';
 import ScanTrenchChart from './ScanTrenchChart';
-import { AnalyticsLockedNotice } from '../../../components/ui/Consolenotices';
+import { AnalyticsLockedNotice } from '../../../components/overlays/Consolenotices';
 import AdvanceAnalyticsSelector from './selectors/AdvanceAnalyticsSelector';
 
 

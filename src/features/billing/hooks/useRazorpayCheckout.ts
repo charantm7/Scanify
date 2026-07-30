@@ -201,7 +201,19 @@ export function useRazorpayCheckout() {
             }
           },
           modal: {
-            ondismiss: () => setLoading(null),
+            ondismiss: async () => {
+              setLoading(null);
+
+              await fetch("/api/payments/cancel-order", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  orderId: orderData.orderId,
+                }),
+              });
+            },
           },
         };
 

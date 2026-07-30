@@ -20,11 +20,6 @@ async function redirectWithToast(
     router: AppRouterInstance
 ) {
     toast.success(message);
-
-    await new Promise((r) =>
-        setTimeout(r, 900)
-    );
-
     router.push(path);
 }
 

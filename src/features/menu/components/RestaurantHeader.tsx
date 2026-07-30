@@ -5,6 +5,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { MapPin, Star, Phone, ExternalLink, Clock, Search, X, ChevronRight } from "lucide-react";
 import type { DBHotel, DBMenuCustomization } from "../types";
+import { normalizeImageUrl } from "../../../components/shared/ImageUrlNormalization";
 
 // ── Rating stars ──────────────────────────────────────────────────────────────
 function RatingStars({ rating }: { rating: number }) {
@@ -47,6 +48,8 @@ function OpenChip({ isOpen }: { isOpen: boolean | null }) {
 
 function HotelLogo({ hotel }: { hotel: DBHotel }) {
     const [err, setErr] = useState(false);
+
+
     return (
         <div
             className="relative w-[68px] h-[68px] sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center"
@@ -56,9 +59,9 @@ function HotelLogo({ hotel }: { hotel: DBHotel }) {
                 boxShadow: "0 0 0 3px var(--color-bg), var(--shadow-md)",
             }}
         >
-            {hotel.logo_url && !err ? (
+            {hotel?.logo_url && !err ? (
                 <Image
-                    src={hotel.logo_url}
+                    src={normalizeImageUrl(hotel?.logo_url)}
                     alt={`${hotel.name} logo`}
                     fill
                     sizes="80px"
@@ -81,10 +84,11 @@ function CoverImage({ url, name }: { url: string; name: string }) {
     return (
         <div className="relative w-full" style={{ height: "180px" }}>
             <Image
-                src={url}
+                src={normalizeImageUrl(url)}
                 alt={`${name} cover`}
                 fill
                 sizes="100vw"
+                quality={90}
                 className="object-cover"
                 priority
             />
@@ -92,7 +96,7 @@ function CoverImage({ url, name }: { url: string; name: string }) {
                 className="absolute inset-x-0 bottom-0"
                 style={{
                     height: "72px",
-                    background: "linear-gradient(to bottom, transparent 0%, var(--bg) 100%)",
+                    background: "linear-gradient(to bottom, transparent 55%, var(--bg) 80%)",
                 }}
             />
         </div>

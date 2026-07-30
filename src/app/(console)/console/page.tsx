@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation"
 import { createClient } from "../../../lib/supabase/server"
-import ConsoleShell from "../../../components/console/ConsoleShell"
-import ErrorBoundary from "../../../components/errors/ErrorBoundary"
-import AppErrorFallback from "../../../components/errors/AppErrorFallback"
+import ConsoleShell from "../../../features/console/ConsoleShell"
+import ErrorBoundary from "../../../components/feedback/ErrorBoundary"
+import AppErrorFallback from "../../../components/feedback/AppErrorFallback"
 
 export default async function Console() {
     const supabase = await createClient()

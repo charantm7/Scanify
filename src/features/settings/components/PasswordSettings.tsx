@@ -1,5 +1,5 @@
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { Section, Button } from '../../../components/shared/ui';
+import { Section, Button } from '../../../components/ui/UiComponents';
 import { usePasswordChange } from '../hooks/usePasswordChange';
 import { PASSWORD_MIN_LENGTH } from '../constants';
 import type { PasswordFieldKey } from '../types';

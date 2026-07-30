@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Section, Button } from '../../../components/shared/ui';
+import { Section, Button } from '../../../components/ui/UiComponents';
 import { useApp } from '../../../context/AppContext';
 import { settingsService } from '../services/settings.service';
 

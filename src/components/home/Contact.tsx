@@ -7,7 +7,7 @@ import { AlertCircle } from 'lucide-react'
 import { FaLinkedin } from 'react-icons/fa'
 import { SiGmail } from 'react-icons/si'
 import { FaXTwitter } from 'react-icons/fa6'
-import UtilsNavbar from '../utils/Navbar'
+import UtilsNavbar from '../marketing/MarketingNavbar'
 import { getSupabaseClient } from '../../lib/supabase/client'
 
 const contactPoints = [

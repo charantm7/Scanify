@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Clock, Users } from "lucide-react";
 import { DietaryIndicator, SpiceIndicator, ItemBadgeRow } from "./ItemBadges";
 import type { MenuItem, MenuLayout } from "../types";
+import { normalizeImageUrl } from "../../../components/shared/ImageUrlNormalization";
 
 // ─── Placeholder avatar ───────────────────────────────────────────────────────
 function ItemPlaceholder({ name }: { name: string }) {
@@ -38,7 +39,8 @@ type ItemImageVariant = 'card' | 'list';
 function ItemImage({ item, variant = 'list' }: { item: MenuItem; variant?: ItemImageVariant }) {
     const [imgErr, setImgErr] = useState(false);
 
-    const src = item.image_url ??
+    const src =
+        item.image_url ??
         item.images.find((i) => i.is_primary)?.url ??
         item.images[0]?.url;
 
@@ -54,9 +56,10 @@ function ItemImage({ item, variant = 'list' }: { item: MenuItem; variant?: ItemI
         >
             {src && !imgErr ? (
                 <Image
-                    src={src}
+                    src={normalizeImageUrl(src)}
                     alt={item.name}
                     fill
+                    quality={90}
                     sizes={variant === 'card' ? '(max-width: 640px) 100vw, 33vw' : '(max-width: 640px) 80px, 96px'}
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     onError={() => setImgErr(true)}

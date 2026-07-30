@@ -1,4 +1,4 @@
-import { Button } from '../../../../components/shared/ui';
+import { Button } from '../../../../components/ui/UiComponents';
 
 interface EditableFieldProps {
     label: string;

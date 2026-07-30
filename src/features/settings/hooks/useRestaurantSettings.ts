@@ -13,6 +13,8 @@ function toForm(hotel: any): RestaurantFormData {
         address: hotel?.address || '',
         phone: hotel?.phone || '',
         website: hotel?.website || '',
+        rating: hotel?.rating || 0,
+        review_count: hotel?.review_count || 0,
         google_maps_url: hotel?.google_maps_url || '',
         cuisine_type: hotel?.cuisine_type || [],
         service_type: hotel?.service_type || [],

@@ -1,0 +1,159 @@
+'use client';
+
+import { useState } from 'react';
+import { Menu, AlertTriangle, RefreshCw, Search, X, Bell } from 'lucide-react';
+import Sidebar, { NAV_GROUPS } from './components/Sidebar';
+import DashboardPanel from '../../features/dashboard/DashboardPanel';
+import { MenuPanel } from '../../features/menu_builder';
+import QRPanel from './components/QrPanel';
+import AnalyticsPanel from '../../features/analytics/components/AnalyticsPanel';
+import { SettingsPanel } from '../../features/settings';
+import { AppProvider } from '../../context/AppContext';
+import { useTheme } from '../../context/ThemeContext';
+import BillingPanel from '../../features/billing/page/BillingPanel';
+import CustomizationPanel from '../../features/customization/components/CustomizationPanel';
+import TransactionHistory from '../../features/billing/components/TransactionHistory';
+
+function ThemeIcon({ dark }) {
+    return dark ? (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+        </svg>
+    ) : (
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+    );
+}
+
+
+
+function ConsoleError({ error }) {
+    return (
+        <div className="min-h-screen grid-bg flex items-center justify-center p-6">
+            <div className="max-w-sm text-center">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: '#fef2f2' }}>
+                    <AlertTriangle size={28} color="#dc2626" />
+                </div>
+                <h2 className="font-syne font-bold text-xl text-theme mb-2">Something went wrong</h2>
+                <p className="text-sm text-theme2 mb-5">{error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="flex items-center gap-2 mx-auto px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
+                    style={{ background: 'var(--accent)' }}
+                >
+                    <RefreshCw size={14} /> Reload
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function Panel({ id, onNavigate }) {
+    switch (id) {
+        case 'dashboard': return <DashboardPanel onNavigate={onNavigate} />;
+        case 'menu': return <MenuPanel onNavigate={onNavigate} />;
+        case 'qr-codes': return <QRPanel onNavigate={onNavigate} />;
+        case 'analytics': return <AnalyticsPanel onNavigate={onNavigate} />;
+        case 'settings': return <SettingsPanel />;
+        case 'billing': return <BillingPanel />;
+        case 'customization': return <CustomizationPanel onNavigate={onNavigate} />
+        case 'transactions': return <TransactionHistory />
+        default: return (
+            <div className="text-center py-20 text-theme2">
+                <p className="font-syne font-bold text-xl text-theme mb-2">Coming Soon</p>
+                <p>This feature is under development.</p>
+            </div>
+        );
+    }
+}
+
+
+export default function ConsoleShell() {
+    return (
+        <AppProvider>
+            <ConsoleShellInner />
+        </AppProvider>
+    );
+}
+
+
+function ConsoleShellInner() {
+
+    const [activeTab, setActiveTab] = useState('dashboard');
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const [error, setError] = useState(null)
+
+    const { theme, toggleTheme } = useTheme();
+
+
+    if (error) return <ConsoleError error={error} />;
+
+    const activeLabel = NAV_GROUPS.flatMap(group => group.items).find(item => item.id === activeTab)?.label ?? "";
+
+    return (
+        <div className="min-h-screen grid-bg flex">
+
+            <Sidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                open={sidebarOpen}
+                setOpen={setSidebarOpen}
+            />
+
+            {/* Main content */}
+            <div className="flex-1 flex flex-col lg:ml-64 min-w-0">
+                {/* Top bar */}
+                <header
+                    className="sticky top-0 z-20 h-16 flex items-center justify-between px-5 border-b flex-shrink-0"
+                    style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+                >
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden text-theme2 hover:text-theme transition"
+                            aria-label="Open menu"
+                        >
+                            <Menu size={22} />
+                        </button>
+                        <h2 className="font-syne font-bold text-theme text-lg">{activeLabel}</h2>
+                    </div>
+
+
+
+
+                    <div className='flex gap-6'>
+
+                        <button className="w-9 h-9 rounded-xl border text-theme2 flex items-center justify-center hover:bg-theme3 transition-all"
+                            style={{ borderColor: 'var(--border)' }}>
+                            <Bell size={16} />
+                        </button>
+
+                        <button
+                            onClick={toggleTheme}
+                            className="w-9 h-9 rounded-xl border text-theme2 flex items-center justify-center hover:bg-theme3 transition-all"
+                            style={{ borderColor: 'var(--border)' }}
+                            aria-label="Toggle theme"
+                        >
+                            <ThemeIcon dark={theme === 'dark'} />
+                        </button>
+
+                    </div>
+
+                </header>
+
+                {/* Page content */}
+                <main className="flex-1 p-5 sm:p-6 max-w-6xl w-full mx-auto">
+                    <Panel id={activeTab} onNavigate={setActiveTab} />
+                </main>
+            </div >
+        </div >
+    );
+}

@@ -15,10 +15,15 @@ import { ColorSwatch } from './ColorsWatch';
 import { PlanGate } from './PlanGate';
 import { Toggle, SelectPicker, RangeSlider, ThemeCard } from './Uiutils';
 import { useCustomization } from '../hook/useCustomization';
+import { ConsoleNotices } from '../../../components/overlays/Consolenotices';
+import { UpgradeGate } from '../../../components/overlays/UpgradeGate';
 
 
-export default function CustomizationPanel() {
-    const { hotel, customBranding, advancedCustom } = useApp();
+export default function CustomizationPanel({ onNavigate }: { onNavigate: (section: string) => void }) {
+    const { hotel, customBranding, advancedCustom, isActionBlocked, isTrialing, planLabel,
+        isTrialExpired, trialHoursLeft, trialDaysLeft, isPastDue,
+        isCancelled, isExpired } = useApp();
+
     const { config, activeThemeId, loading, save, saving, isDirty, applyTheme, resetToDefault, update } = useCustomization();
 
     const [activeTab, setActiveTab] = useState<'themes' | 'colors' | 'typography' | 'layout' | 'visibility'>('themes');
@@ -39,10 +44,24 @@ export default function CustomizationPanel() {
         );
     }
 
+    if (isActionBlocked) {
+        return (
+            <div className='space-y-6'>
+                <ConsoleNotices isTrialExpired={isTrialExpired} isPastDue={isPastDue} isCancelled={isCancelled} isTrialing={isTrialing} trialDaysLeft={trialDaysLeft} trialHoursLeft={trialHoursLeft} onUpgrade={() => onNavigate('billing')} isExpired={isExpired} planLabel={planLabel} />
+
+                <UpgradeGate title={'Renew or Upgrade to access customization'} description={'Customization feature has been blocked due to subscription expiry or not on trial. Please upgrade to access customization'} features={[{ icon: Sparkles, label: 'Themes' }, { icon: Palette, label: 'Colors' }, { icon: Type, label: 'Typography', }, { icon: Layout, label: 'Layouts' }, { icon: Eye, label: 'Visibility' }]} onUpgrade={() => onNavigate('billing')} />
+
+            </div>
+        )
+    }
+
     return (
         <div className="flex flex-col gap-0 h-full">
-            {/* ── Top bar ───────────────────────────────────────────────────────── */}
-            <div className="flex items-center justify-between px-6 py-4 border rounded-lg" style={{ borderColor: 'var(--border)', background: 'var(--bg3)' }}
+
+            <ConsoleNotices isTrialExpired={isTrialExpired} isPastDue={isPastDue} isCancelled={isCancelled} isTrialing={isTrialing} trialDaysLeft={trialDaysLeft} trialHoursLeft={trialHoursLeft} onUpgrade={() => onNavigate('billing')} isExpired={isExpired} planLabel={planLabel} />
+
+
+            <div className="flex items-center justify-between px-6 py-4 border mt-4 rounded-lg" style={{ borderColor: 'var(--border)', background: 'var(--bg3)' }}
             >
                 <div>
                     <h2 className="font-syne font-bold text-base text-theme">Menu Appearance</h2>
@@ -50,6 +69,7 @@ export default function CustomizationPanel() {
                 </div>
                 <div className="flex items-center gap-2">
                     <button
+                        disabled={isActionBlocked}
                         onClick={resetToDefault}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-semibold border transition hover:bg-theme3"
                         style={{ borderColor: 'var(--border)', color: 'var(--text2)' }}>
@@ -57,7 +77,7 @@ export default function CustomizationPanel() {
                     </button>
                     <button
                         onClick={save}
-                        disabled={!isDirty || saving}
+                        disabled={!isDirty || saving || isActionBlocked}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-bold text-white transition disabled:opacity-50"
                         style={{ background: isDirty ? 'var(--accent)' : 'var(--text3)' }}>
                         {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
@@ -66,7 +86,6 @@ export default function CustomizationPanel() {
                 </div>
             </div>
 
-            {/* ── Body: settings left, preview right ───────────────────────────── */}
             <div className="flex-1 grid grid-cols-1 gap-0 overflow-hidden">
 
                 {/* Left: editor */}
@@ -94,7 +113,6 @@ export default function CustomizationPanel() {
 
                     <div className="py-6 px-2 space-y-8 pb-24">
 
-                        {/* ── THEMES TAB ────────────────────────────────────────────── */}
                         {activeTab === 'themes' && (
                             <div>
                                 <SectionHeader icon={Sparkles} title="Preset Themes"
@@ -121,7 +139,6 @@ export default function CustomizationPanel() {
                             </div>
                         )}
 
-                        {/* ── COLORS TAB ────────────────────────────────────────────── */}
                         {activeTab === 'colors' && (
                             <PlanGate locked={!customBranding}>
                                 <div>
@@ -149,7 +166,6 @@ export default function CustomizationPanel() {
                             </PlanGate>
                         )}
 
-                        {/* ── TYPOGRAPHY TAB ────────────────────────────────────────── */}
                         {activeTab === 'typography' && (
                             <PlanGate locked={!advancedCustom}>
                                 <div>
@@ -195,7 +211,6 @@ export default function CustomizationPanel() {
                             </PlanGate>
                         )}
 
-                        {/* ── LAYOUT TAB ────────────────────────────────────────────── */}
                         {activeTab === 'layout' && (
                             <div>
                                 <SectionHeader icon={Layout} title="Menu Layout"
@@ -257,7 +272,6 @@ export default function CustomizationPanel() {
                             </div>
                         )}
 
-                        {/* ── VISIBILITY TAB ────────────────────────────────────────── */}
                         {activeTab === 'visibility' && (
                             <div>
                                 <SectionHeader icon={Eye} title="Element Visibility"
@@ -329,7 +343,6 @@ export default function CustomizationPanel() {
                 </div>
             </div>
 
-            {/* ── Mobile: floating preview toggle ──────────────────────────────── */}
             <div className=" fixed bottom-6 right-6 z-50">
                 <a
                     href={`/menu/${hotel?.slug ?? ''}`}

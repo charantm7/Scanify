@@ -61,7 +61,7 @@ export const PRESET_THEMES: PresetTheme[] = [
             accent_color: '#1E6FA8',
             muted_color: '#5E8FAA',
         },
-        typography: { font_family: 'instrument_sans', border_radius: 16, shadow_intensity: 'soft' },
+        typography: { font_family: 'instrument_sans', border_radius: 13, shadow_intensity: 'soft' },
     },
     {
         id: 'rose',
@@ -76,7 +76,7 @@ export const PRESET_THEMES: PresetTheme[] = [
             accent_color: '#C2557A',
             muted_color: '#A07080',
         },
-        typography: { font_family: 'instrument_sans', border_radius: 20, shadow_intensity: 'soft' },
+        typography: { font_family: 'instrument_sans', border_radius: 10, shadow_intensity: 'soft' },
     },
     {
         id: 'slate',

@@ -1,4 +1,4 @@
-import ScrollButtons from "../../components/utils/ScrollButtons";
+import ScrollButtons from "../../components/shared/ScrollButtons";
 import "../style/globals.css";
 import "../style/utils.css";
 

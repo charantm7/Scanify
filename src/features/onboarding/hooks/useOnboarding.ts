@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '../../../lib/supabase/client';
-import { subdomainUrlBuilderWithWindow } from '../../../context/Service';
+import { subdomainUrlBuilderWithWindow } from '../services/onboarding.service';
 import { useToast } from '../../../hooks/useToast';
 
 import type {
