@@ -100,13 +100,3 @@ export function getFriendlyError(err: any) {
 
     return err.message;
 }
-
-export function subdomainUrlBuilderWithWindow(slug: string) {
-    const isLocalhost = window.location.hostname.includes('localhost');
-
-    if (isLocalhost) {
-        return `${process.env.NEXT_PUBLIC_APP_URL}/console?hotel=${slug}`
-    } else {
-        return `https://${window.location.host}/console`
-    }
-}

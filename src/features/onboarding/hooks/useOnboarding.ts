@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '../../../lib/supabase/client';
-import { subdomainUrlBuilderWithWindow } from '../services/onboarding.service';
 import { useToast } from '../../../hooks/useToast';
 
 import type {
@@ -48,9 +47,7 @@ export function useOnboarding(): UseOnboardingReturn {
         try {
             await action();
         } catch (err) {
-            const msg = err instanceof Error ? err.message + err.name : 'Something went wrong.';
-
-            toast.error(getFriendlyError(msg));
+            toast.error(getFriendlyError(err));
         } finally {
             setLoading(false);
         }
@@ -192,7 +189,7 @@ export function useOnboarding(): UseOnboardingReturn {
         form,
         errors,
         createdSlug,
-        menuUrl: done ? subdomainUrlBuilderWithWindow(createdSlug) : '',
+        menuUrl: done ? `${window.location.origin}/console` : '',
         completedFields,
         stepTotals: STEP_TOTALS,
         set,

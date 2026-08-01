@@ -155,13 +155,13 @@ export async function AuthUpdatePassword(
     userEmail: string,
     toast: ToastMethods,
     setUpdatePasswordError: (error: UpdatePasswordError) => void,
-): Promise<UpdatePasswordReturn> {
+): Promise<UpdatePasswordReturn | undefined> {
 
     const errors = validateNewPassword({ password: payload.next, confirmPassword: payload.confirm })
 
     if (Object.keys(errors).length > 0) {
-        setUpdatePasswordError(errors)
-        return
+        setUpdatePasswordError(errors);
+        return;
     }
 
     if (payload.current && userEmail) {
@@ -211,6 +211,9 @@ export async function AuthResendEmail(
     await resendEmailVerification(supabase, savedEmail)
 
     setResendCount((c) => c + 1);
-    setCooldown(Number(process.env.NEXT_PUBLIC_COOLDOWN_SECONDS) ?? 60);
+    const cooldown = Number(process.env.NEXT_PUBLIC_COOLDOWN_SECONDS)
+    setCooldown(
+        Number.isNaN(cooldown) ? 60 : cooldown
+    );
 
 }
