@@ -144,6 +144,16 @@ export interface ProrationResult {
  * callers should treat that as "charge the new plan's full sticker price"
  * (a fresh purchase), not a ₹0 prorate.
  */
+
+// What the user is actually BUYING right now. When the cycle changes,
+// fulfilment grants a brand-new full period at the new cycle, so the full
+// sticker price is the right baseline. When the cycle is unchanged (a
+// same-cycle plan-tier upgrade), fulfilment deliberately preserves the
+// existing current_period_end — the user only gets `daysRemaining` days of
+// the new plan, not a fresh full period — so the baseline must be the new
+// plan's OWN daily rate prorated over daysRemaining, not its full sticker
+// price. Charging full sticker price for a partial period is what caused
+// users to be overcharged on mid-cycle tier upgrades.
 export function calculateCreditBasedProration(
   currentPlan: PlanKey,
   currentCycle: BillingCycle,
@@ -161,7 +171,15 @@ export function calculateCreditBasedProration(
     currentPlan,
     currentCycle
   );
-  const { amountPaise: originalPricePaise } = getPlanPricing(newPlan, newCycle);
+
+  const { amountPaise: newStickerPaise, durationDays: newDurationDays } = getPlanPricing(
+    newPlan,
+    newCycle
+  );
+
+  const cycleChanged = currentCycle !== newCycle;
+
+  const originalPricePaise = cycleChanged ? newStickerPaise : Math.round((newStickerPaise / newDurationDays) * daysRemaining);
 
   const currentDailyRate = currentPrice / currentDurationDays;
   const rawCredit = Math.round(currentDailyRate * daysRemaining);
