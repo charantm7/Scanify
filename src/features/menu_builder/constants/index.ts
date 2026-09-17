@@ -70,22 +70,22 @@ export const SPICE_LEVEL_META: Record<
     color: '#6B7280',
   },
   mild: {
-    label: 'Mild',
+    label: 'Mild Spicy',
     emoji: '🌶️',
     color: '#84CC16',
   },
   medium: {
-    label: 'Medium',
+    label: 'Medium Spicy',
     emoji: '🌶️🌶️',
     color: '#F59E0B',
   },
   hot: {
-    label: 'Hot',
+    label: 'Hot Spicy',
     emoji: '🌶️🌶️🌶️',
     color: '#F97316',
   },
   extra_hot: {
-    label: 'Extra Hot',
+    label: 'Extra Hot Spicy',
     emoji: '🔥🌶️',
     color: '#DC2626',
   },
@@ -107,4 +107,9 @@ export const EMPTY_ITEM_FORM: ItemFormValues = {
   dietary_type: '',
   tags: [],
   spice_level: '',
+  serving_size: '',
+  preparation_time: '',
+  calories: '',
+  ingredients: [],
+  allergens: [],
 };

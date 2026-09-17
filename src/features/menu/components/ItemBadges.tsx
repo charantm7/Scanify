@@ -69,12 +69,12 @@ export function SpiceIndicator({ level }: { level: string | null }) {
 
     return (
         <span
-            className="text-[10px] leading-none px-1.5 py-1 rounded-full"
+            className="text-[10px] leading-none px-1.5 py-1 rounded-md"
             title={meta.label}
-            style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)" }}
+            style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)", fontFamily: "var(--font-family)" }}
             aria-label={`Spice: ${meta.label}`}
         >
-            spice: {meta.label} {meta.emoji}
+            {meta.label} {meta.emoji}
         </span>
     );
 }
@@ -84,10 +84,9 @@ export function TagBadge({ tag }: { tag: string }) {
     if (meta) {
         return (
             <span
-                className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md font-bold leading-none tracking-wide"
-                style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)", fontSize: "var(--font-size)" }}
+                className="inline-flex text-[10px] items-center gap-1 px-1.5 py-1 rounded-md leading-none tracking-wide"
+                style={{ background: "var(--color-accent-lt)", color: "var(--color-accent)", fontFamily: "var(--font-family)" }}
             >
-
                 {meta.label}
             </span>
         );
@@ -109,7 +108,7 @@ export function ItemBadgeRow({ item }: { item: MenuItem }) {
     if (tags.length === 0) return null;
 
     return (
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-[3px] flex-wrap">
             {tags.slice(0, 3).map((tag) => (
                 <TagBadge key={tag} tag={tag} />
             ))}

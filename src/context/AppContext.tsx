@@ -19,6 +19,7 @@ export function AppProvider({ children }) {
     const [subscription, setSubscription] = useState(null);
     const [planLimits, setPlanLimits] = useState(null);
     const [menuItemCount, setMenuItemCount] = useState(0);
+    const [menus, setMenus] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [now] = useState(() => Date.now());
@@ -51,12 +52,22 @@ export function AppProvider({ children }) {
                     .maybeSingle();
 
                 let count = 0;
+                let menuRows = [];
                 if (hot?.id) {
-                    const { count: c } = await supabase
-                        .from("menu_items")
-                        .select("id", { count: "exact", head: true })
-                        .eq("hotel_id", hot.id);
+                    const [{ count: c }, { data: m }] = await Promise.all([
+                        supabase
+                            .from("menu_items")
+                            .select("id", { count: "exact", head: true })
+                            .eq("hotel_id", hot.id),
+                        supabase
+                            .from("menus")
+                            .select("*")
+                            .eq("hotel_id", hot.id)
+                            .is("deleted_at", null)
+                            .order("sort_order", { ascending: true }),
+                    ]);
                     count = c ?? 0;
+                    menuRows = m ?? [];
                 }
 
                 if (mounted) {
@@ -66,6 +77,7 @@ export function AppProvider({ children }) {
                     setSubscription(sub);
                     setPlanLimits(limits);
                     setMenuItemCount(count);
+                    setMenus(menuRows);
                 }
             } catch (err) {
                 console.error("[AppContext] bootstrap error:", err);
@@ -85,6 +97,7 @@ export function AppProvider({ children }) {
                 setSubscription(null);
                 setPlanLimits(null);
                 setMenuItemCount(0);
+                setMenus([]);
             }
         });
 
@@ -98,6 +111,17 @@ export function AppProvider({ children }) {
             .select("id", { count: "exact", head: true })
             .eq("hotel_id", hotel.id);
         setMenuItemCount(count ?? 0);
+    };
+
+    const refreshMenus = async () => {
+        if (!hotel?.id) return;
+        const { data } = await supabase
+            .from("menus")
+            .select("*")
+            .eq("hotel_id", hotel.id)
+            .is("deleted_at", null)
+            .order("sort_order", { ascending: true });
+        setMenus(data ?? []);
     };
 
     const refreshHotel = async () => {
@@ -130,58 +154,70 @@ export function AppProvider({ children }) {
     const isFreeTier = !isSubscriptionOk && isTrialExpired;
 
 
-    // Menu
+    // ── Menus (multiple menus per hotel) ────────────────────────────────────────
+    const maxMenus = planLimits?.max_menus ?? 1;
+    // Only menus the owner still holds count against the allowance; ones a
+    // downgrade parked are excluded, otherwise a downgraded account could never
+    // get back under its own limit.
+    const ownedMenus = menus.filter((m) => !m.hidden_by_plan);
+    const menuCount = ownedMenus.length;
+    const primaryMenu = menus.find((m) => m.is_primary) ?? menus[0] ?? null;
+    const isAtMenuCountLimit = !isUnlimited(maxMenus) && menuCount >= maxMenus;
+    // True when a downgrade left more menus than the new plan allows and the
+    // owner has not yet chosen which to keep.
+    const hasMenuOverflow = !isUnlimited(maxMenus) && menus.length > maxMenus;
+
+    // ── Menu items ──────────────────────────────────────────────────────────────
     const maxMenuItems = planLimits?.max_menu_items ?? 0;
     const maxItemsWithImages = planLimits?.max_items_with_images ?? 0;
+    const maxImagesPerItem = planLimits?.max_images_per_item ?? 1;
     const isAtMenuLimit = !isUnlimited(maxMenuItems) && menuItemCount >= maxMenuItems;
+    const advancedItemDetails = planLimits?.advanced_item_details ?? false;
 
-    // Orders
-    const maxOrdersPerMonth = planLimits?.max_orders_per_month ?? 0;
-    const orderingEnabled = planLimits?.ordering_enabled ?? false;
-    const realtimeKitchen = planLimits?.realtime_kitchen ?? false;
-
-    // QR codes
+    // ── QR codes ────────────────────────────────────────────────────────────────
     const maxQrCodes = planLimits?.max_qr_codes ?? 1;
+    const qrCustomizationLevel = planLimits?.qr_customization_level ?? "none";
 
-    // Branding
+    // ── Branding ────────────────────────────────────────────────────────────────
     const removeBranding = planLimits?.remove_branding ?? false;
     const customBranding = planLimits?.custom_branding ?? false;
     const advancedCustom = planLimits?.advanced_customization ?? false;
     const customSubdomain = planLimits?.custom_subdomain ?? false;
 
-    // Analytics
+    // ── Analytics ───────────────────────────────────────────────────────────────
     const analyticsLevel = planLimits?.analytics_level ?? "none";
     const hasBasicAnalytics = analyticsLevel === "basic" || analyticsLevel === "advanced" || isTrialing;
     const hasAdvancedAnalytics = analyticsLevel === "advanced";
+    const analyticsExportEnabled = planLimits?.analytics_export_enabled ?? false;
 
-    // Engagement
-    const ratingsEnabled = planLimits?.ratings_enabled ?? false;
+    // ── Engagement ──────────────────────────────────────────────────────────────
     const googleReviews = planLimits?.google_reviews_integration ?? false;
     const availabilityToggle = planLimits?.item_availability_toggle ?? false;
     const advancedCategories = planLimits?.advanced_category_management ?? false;
 
-    // Multi-branch & staff
+    // ── Multi-branch & staff ────────────────────────────────────────────────────
     const multiBranchEnabled = planLimits?.multi_branch_enabled ?? false;
     const maxBranches = planLimits?.max_branches ?? 1;
     const staffEnabled = planLimits?.staff_accounts_enabled ?? false;
     const maxStaffAccounts = planLimits?.max_staff_accounts ?? 0;
 
-    // Support
+    // ── Support ─────────────────────────────────────────────────────────────────
     const prioritySupport = planLimits?.priority_support ?? false;
 
-    // ── Composite action guards ──────────────────────────────────────────────────
+    // ── Composite action guards ─────────────────────────────────────────────────
     // Use these in UI — don't re-derive in each component
     const isActionBlocked = !isSubscriptionOk || isTrialExpired;
 
+    const canAddMenu = !isActionBlocked && !isAtMenuCountLimit;
     const canAddMenuItem = !isActionBlocked && !isAtMenuLimit;
-    const canUseOrdering = !isActionBlocked && orderingEnabled;
-    const canUseKitchenDisplay = !isActionBlocked && realtimeKitchen;
     const canViewBasicAnalytics = !isActionBlocked && hasBasicAnalytics;
-
     const canViewAdvancedAnalytics = !isActionBlocked && hasAdvancedAnalytics;
-    const canUseRatings = !isActionBlocked && ratingsEnabled;
+    const canExportAnalytics = !isActionBlocked && analyticsExportEnabled;
     const canUseGoogleReviews = !isActionBlocked && googleReviews;
     const canToggleAvailability = !isActionBlocked && availabilityToggle;
+    const canUseAdvancedItemDetails = !isActionBlocked && advancedItemDetails;
+    const canCustomizeQr = !isActionBlocked && qrCustomizationLevel !== "none";
+    const canUseAdvancedQrCustomization = !isActionBlocked && qrCustomizationLevel === "advanced";
     const canManageMultiBranch = !isActionBlocked && multiBranchEnabled;
     const canManageStaff = !isActionBlocked && staffEnabled;
     const canUseCustomBranding = !isActionBlocked && customBranding;
@@ -199,6 +235,9 @@ export function AppProvider({ children }) {
         planLimits,
 
         menuItemCount,
+        menus,
+        menuCount,
+        primaryMenu,
         loading,
         error,
 
@@ -217,15 +256,14 @@ export function AppProvider({ children }) {
         trialHoursLeft,
         trialDaysLeft,
 
+        maxMenus,
         maxMenuItems,
         maxItemsWithImages,
-        maxOrdersPerMonth,
+        maxImagesPerItem,
         maxQrCodes,
         maxBranches,
         maxStaffAccounts,
 
-        orderingEnabled,
-        realtimeKitchen,
         removeBranding,
         customBranding,
         advancedCustom,
@@ -233,7 +271,9 @@ export function AppProvider({ children }) {
         analyticsLevel,
         hasBasicAnalytics,
         hasAdvancedAnalytics,
-        ratingsEnabled,
+        analyticsExportEnabled,
+        qrCustomizationLevel,
+        advancedItemDetails,
         googleReviews,
         availabilityToggle,
         advancedCategories,
@@ -243,12 +283,16 @@ export function AppProvider({ children }) {
 
         isActionBlocked,
         isAtMenuLimit,
+        isAtMenuCountLimit,
+        hasMenuOverflow,
+        canAddMenu,
         canAddMenuItem,
-        canUseOrdering,
-        canUseKitchenDisplay,
         canViewBasicAnalytics,
         canViewAdvancedAnalytics,
-        canUseRatings,
+        canExportAnalytics,
+        canUseAdvancedItemDetails,
+        canCustomizeQr,
+        canUseAdvancedQrCustomization,
         canUseGoogleReviews,
         canToggleAvailability,
         canManageMultiBranch,
@@ -259,6 +303,7 @@ export function AppProvider({ children }) {
         canRemoveBranding,
 
         refreshMenuCount,
+        refreshMenus,
         refreshHotel,
         updateProfileLocally,
     };

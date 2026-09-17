@@ -19,7 +19,11 @@ export async function POST(req: NextRequest) {
     .update(rawBody)
     .digest('hex');
 
-  if (expectedSignature !== signature) {
+  const signatureValid =
+    expectedSignature.length === signature.length &&
+    crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(signature));
+
+  if (!signatureValid) {
     return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 });
   }
 
@@ -72,25 +76,40 @@ export async function POST(req: NextRequest) {
         if (payment.status === 'captured') break;
 
         const now = new Date();
+        const resolvedPaymentId = paymentId ?? payment.razorpay_payment_id;
+
+        if (!resolvedPaymentId) {
+          console.error('Webhook: captured event carries no payment id for order', orderId);
+          break;
+        }
+
+        // Fulfil FIRST, flip to 'captured' only once it succeeded.
+        //
+        // The reverse order strands the customer permanently: marking
+        // 'captured' up front and then failing inside fulfilment means every
+        // Razorpay retry hits the `status === 'captured'` guard above and
+        // breaks out without ever fulfilling. Idempotency lives in
+        // processed_fulfilments, so calling this before the status write is
+        // safe even if verify already handled the same payment.
+        //
+        // Shared with the verify route — identical fulfilment logic, so
+        // whichever path (browser redirect vs webhook) lands first, the
+        // resulting subscription state is always the same.
+        await fulfillSubscriptionPayment(
+          { ...payment, razorpay_payment_id: resolvedPaymentId },
+          resolvedPaymentId,
+          now
+        );
 
         await supabaseAdmin
           .from('payments')
           .update({
             status: 'captured',
-            razorpay_payment_id: paymentId ?? payment.razorpay_payment_id,
+            razorpay_payment_id: resolvedPaymentId,
             raw_webhook_payload: event,
-            updated_at: now.toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .eq('razorpay_order_id', orderId);
-
-        // Shared with the verify route — identical fulfilment logic, so
-        // whichever path (browser redirect vs webhook) lands first, the
-        // resulting subscription state is always the same.
-        await fulfillSubscriptionPayment(
-          { ...payment, razorpay_payment_id: paymentId ?? payment.razorpay_payment_id },
-          paymentId ?? payment.razorpay_payment_id,
-          now
-        );
         break;
       }
 

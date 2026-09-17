@@ -65,13 +65,16 @@ export async function GET(req: NextRequest) {
         .update({ status: 'expired', updated_at: nowIso })
         .in('id', trialIds);
 
+      // Table is `hotels`, not `hotel` — this silently failed every run, so
+      // hotels stayed live (and their menus publicly reachable) after the
+      // trial expired.
       const { error: hotelError } = await supabaseAdmin
-        .from('hotel')
+        .from('hotels')
         .update({ is_active: false })
-        .in('owner_id', userIds)
+        .in('owner_id', userIds);
 
       if (hotelError) {
-        console.log(hotelError)
+        console.error('Failed to deactivate hotels for expired trials:', hotelError);
       }
 
       if (error) {
@@ -88,7 +91,7 @@ export async function GET(req: NextRequest) {
     // ------------------------------------------------------------------
     const { data: lapsedSubs, error: lapsedErr } = await supabaseAdmin
       .from('subscriptions')
-      .select('id, plan, billing_cycle, pending_plan, pending_billing_cycle, status')
+      .select('id, plan, billing_cycle, pending_plan, pending_billing_cycle, status, user_id')
       .in('status', ['active', 'expiring'])
       .lt('current_period_end', nowIso);
 
@@ -130,18 +133,11 @@ export async function GET(req: NextRequest) {
 
         // Keep the denormalized users.plan column in sync when a pending
         // downgrade changed the effective plan.
-        if (sub.pending_plan) {
-          const { data: subRow } = await supabaseAdmin
-            .from('subscriptions')
-            .select('user_id')
-            .eq('id', sub.id)
-            .maybeSingle();
-          if (subRow?.user_id) {
-            await supabaseAdmin
-              .from('users')
-              .update({ plan: sub.pending_plan })
-              .eq('id', subRow.user_id);
-          }
+        if (sub.pending_plan && sub.user_id) {
+          await supabaseAdmin
+            .from('users')
+            .update({ plan: sub.pending_plan })
+            .eq('id', sub.user_id);
         }
 
         results.subscriptionsExpired++;

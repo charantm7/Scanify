@@ -9,6 +9,7 @@ import { CategoryNav } from "../components/CategoryNav";
 import { CategorySection } from "../components/CategorySection";
 import { DishModal } from "../components/DishModal";
 import { MenuFooter } from "../components/MenuFooter";
+import { MenuSwitcher } from "../components/MenuSwitcher";
 import { EmptyMenu, SearchEmpty } from "../components/EmptyStates";
 import { ItemCard } from "../components/ItemCard";
 
@@ -16,29 +17,35 @@ import { useMenuUI } from "../hooks/useMenuUI";
 import { buildThemeTokens } from "../utils/theme";
 import { searchMenu } from "../utils/search";
 import { QUERY_KEYS } from "../constant";
+import { shouldShowScanifyBadge } from "../utils/plan-presentation";
 
 import type { MenuPageData, MenuItem } from "../types";
 
 interface MenuPageClientProps {
     data: MenuPageData;
     slug: string;
+    /** Present only when the URL named a specific menu. */
+    menuSlug?: string;
     qrCodeId?: string;
 }
 
 export default function MenuPageClient({
     data,
     slug,
+    menuSlug,
     qrCodeId,
 }: MenuPageClientProps) {
 
-    const { categories, customization, hotel } = data;
+    const { categories, customization, hotel, menus, activeMenu, entitlements } = data;
 
 
     const accesstype = qrCodeId ? "qr_scan" : "page_view";
     const qc = useQueryClient();
     useEffect(() => {
-        qc.setQueryData(QUERY_KEYS.menuPage(slug), data);
-    }, [qc, slug, data]);
+        // Seed the cache under the same key the client fetcher uses, including
+        // the menu slug — otherwise a revalidation would miss the SSR data.
+        qc.setQueryData(QUERY_KEYS.menuPage(slug, menuSlug), data);
+    }, [qc, slug, menuSlug, data]);
 
 
     const themeTokens = useMemo(
@@ -125,6 +132,15 @@ export default function MenuPageClient({
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
             />
+
+            {/* ── Menu switcher (hidden when there is only one menu) ────────────── */}
+            {hotel.slug && (
+                <MenuSwitcher
+                    menus={menus}
+                    activeMenuId={activeMenu.id}
+                    hotelSlug={hotel.slug}
+                />
+            )}
 
             {/* ── Category Nav ──────────────────────────────────────────────────── */}
             {!isSearching && (
@@ -224,7 +240,12 @@ export default function MenuPageClient({
                 </AnimatePresence>
             </main>
 
-            <MenuFooter showBadge={customization.show_scanify_badge} />
+            <MenuFooter
+                showBadge={shouldShowScanifyBadge(
+                    customization.show_scanify_badge,
+                    entitlements
+                )}
+            />
 
 
             <DishModal

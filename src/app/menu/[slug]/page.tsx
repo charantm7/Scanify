@@ -1,13 +1,6 @@
-
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import type { Metadata } from "next";
-
-import { fetchMenuPage } from "../../../features/menu/services/menu.service";
-import { buildThemeTokens, buildThemeStyleTag } from "../../../features/menu/utils/theme";
-import MenuPageClient from "../../../features/menu/pages/MenuPageClient";
-import { MenuPageSkeleton } from "../../../features/menu/components/MenuSkeleton";
-
+import { notFound } from "next/navigation";
+import { MenuRouteView, buildMenuMetadata, loadMenuRoute } from "./menu-route";
 
 export const revalidate = 60;
 
@@ -18,45 +11,17 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { slug } = await params;
-
-    try {
-        const { hotel } = await fetchMenuPage(slug);
-        return {
-            title: `${hotel.name} Menu`,
-            description: hotel.description ?? `Browse the menu at ${hotel.name}`,
-            openGraph: {
-                title: `${hotel.name} — Digital Menu`,
-                description: hotel.description ?? undefined,
-                images: hotel.cover_image_url ? [hotel.cover_image_url] : hotel.logo_url ? [hotel.logo_url] : [],
-            },
-        };
-    } catch {
-        return { title: "Menu" };
-    }
+    return buildMenuMetadata(slug);
 }
 
+/** The hotel's primary menu — what every existing QR code points at. */
 export default async function MenuPage({ params, searchParams }: PageProps) {
     const { slug } = await params;
     const { qr } = await searchParams;
 
-    let data;
-    try {
-        data = await fetchMenuPage(slug);
-    } catch {
-        notFound();
-    }
+    // Awaited here, not in a child component, so a 404 is a real 404.
+    const data = await loadMenuRoute(slug);
+    if (!data) notFound();
 
-
-    const themeTokens = buildThemeTokens(data.customization);
-    const themeStyle = buildThemeStyleTag(themeTokens);
-
-    return (
-        <>
-            <div dangerouslySetInnerHTML={{ __html: themeStyle }} />
-
-            <Suspense fallback={<MenuPageSkeleton />}>
-                <MenuPageClient data={data} slug={slug} qrCodeId={qr} />
-            </Suspense>
-        </>
-    );
+    return <MenuRouteView data={data} slug={slug} qr={qr} />;
 }

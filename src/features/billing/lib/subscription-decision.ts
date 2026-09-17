@@ -42,6 +42,13 @@ export interface SubscriptionDecision {
    * fresh_purchase — false for a same-cycle plan-only upgrade).
    */
   resetPeriod?: boolean;
+  /**
+   * Days to append to that fresh period because the credit from the previous
+   * period exceeded the new plan's sticker price. See ProrationResult
+   * .carryOverDays — this is what stops a cross-cycle upgrade from forfeiting
+   * already-paid time.
+   */
+  carryOverDays?: number;
 }
 
 // Statuses from which a paid plan/cycle CHANGE (upgrade/downgrade/cycle
@@ -121,5 +128,6 @@ export function buildSubscriptionDecision(
     daysRemaining: proration.daysRemaining,
     currentPeriodEnd: existingSub!.current_period_end,
     resetPeriod: proration.cycleChanged,
+    carryOverDays: proration.carryOverDays,
   };
 }

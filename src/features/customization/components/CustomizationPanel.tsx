@@ -7,6 +7,7 @@ import {
 
 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
+import { publicMenuUrl } from '../../../lib/domains';
 import { FontFamily, ShadowIntensity } from '../types';
 import { PRESET_THEMES } from '../constants';
 import { LivePreview } from './LivePreview';
@@ -345,7 +346,7 @@ export default function CustomizationPanel({ onNavigate }: { onNavigate: (sectio
 
             <div className=" fixed bottom-6 right-6 z-50">
                 <a
-                    href={`/menu/${hotel?.slug ?? ''}`}
+                    href={hotel?.slug ? publicMenuUrl(hotel.slug) : '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold text-white shadow-lg"

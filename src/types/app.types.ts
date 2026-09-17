@@ -41,9 +41,14 @@ export interface SubscriptionState {
 
 export interface PlanCapabilities {
     // Limits
+    maxMenus: number;
+    menuCount: number;
     maxMenuItems: number;
     maxItemsWithImages: number;
-    maxOrdersPerMonth: number;
+    maxImagesPerItem: number;
+    advancedItemDetails: boolean;
+    qrCustomizationLevel: 'none' | 'basic' | 'advanced';
+    analyticsExportEnabled: boolean;
     maxQrCodes: number;
     maxBranches: number;
     maxStaffAccounts: number;
@@ -54,13 +59,10 @@ export interface PlanCapabilities {
     hasAdvancedAnalytics: boolean;
 
     // Feature flags
-    orderingEnabled: boolean;
-    realtimeKitchen: boolean;
     removeBranding: boolean;
     customBranding: boolean;
     advancedCustom: boolean;
     customSubdomain: boolean;
-    ratingsEnabled: boolean;
     googleReviews: boolean;
     availabilityToggle: boolean;
     advancedCategories: boolean;
@@ -73,12 +75,16 @@ export interface PlanCapabilities {
 export interface ActionGuards {
     isActionBlocked: boolean;
     isAtMenuLimit: boolean;
+    isAtMenuCountLimit: boolean;
+    hasMenuOverflow: boolean;
+    canAddMenu: boolean;
     canAddMenuItem: boolean;
-    canUseOrdering: boolean;
-    canUseKitchenDisplay: boolean;
+    canExportAnalytics: boolean;
+    canUseAdvancedItemDetails: boolean;
+    canCustomizeQr: boolean;
+    canUseAdvancedQrCustomization: boolean;
     canViewBasicAnalytics: boolean;
     canViewAdvancedAnalytics: boolean;
-    canUseRatings: boolean;
     canUseGoogleReviews: boolean;
     canToggleAvailability: boolean;
     canManageMultiBranch: boolean;

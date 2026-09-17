@@ -44,7 +44,7 @@ export async function insertHotel(
     supabase: SupabaseClient,
     payload: HotelInsertWithPreferences
 ): Promise<HotelRow | null> {
-    const { data, error } = await supabase.from('hotels').insert(payload).select().maybeSingle();
+    const { data, error } = await supabase.from('hotels').insert(payload).select().single();
     if (error) {
         throw error
     }
@@ -80,7 +80,7 @@ export async function generateUniqueSlug(
 ) {
     const baseSlug = buildSlug(restaurantName);
 
-    const { data, error } = await supabase.from('hotels').select('slug').like('slug', `${baseSlug}`);
+    const { data, error } = await supabase.from('hotels').select('slug').like('slug', `${baseSlug}%`);
 
     if (error) throw error;
 

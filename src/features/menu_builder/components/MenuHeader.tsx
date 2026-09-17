@@ -7,6 +7,8 @@ interface MenuHeaderProps {
   totalItems: number;
   maxMenuItems: number;
   planLabel: string;
+  /** Name of the menu currently being edited, when the hotel has more than one. */
+  menuName?: string | null;
   search: string;
   onSearchChange: (value: string) => void;
   viewMode: MenuViewMode;
@@ -17,6 +19,7 @@ export function MenuHeader({
   totalItems,
   maxMenuItems,
   planLabel,
+  menuName,
   search,
   onSearchChange,
   viewMode,
@@ -34,6 +37,11 @@ export function MenuHeader({
             >
               Menu Builder
             </h1>
+            {menuName && (
+              <p className="text-xs font-semibold mt-0.5" style={{ color: 'var(--accent)' }}>
+                Editing {menuName}
+              </p>
+            )}
             <p className="text-xs mt-0.5 font-medium" style={{ color: 'var(--text2)' }}>
               <span style={{ color: 'var(--accent)' }}>{totalItems}</span>
               {' '}item{totalItems !== 1 ? 's' : ''} ·{' '}

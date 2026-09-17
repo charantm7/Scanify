@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import {
-  QrCode, ShoppingBag, TrendingUp,
+  QrCode, TrendingUp,
   ArrowRight, Users, Clock, Calendar
 } from 'lucide-react';
 
@@ -12,7 +12,6 @@ import StatCardsGrid from './StatCardsGrid';
 import Funnel from './FunnelChart';
 import TopItemsTable from './TopItemsTable';
 import QrBreakdown from './QrBreakdown';
-import OrderStats from './OrderStats';
 import ComparisonRow from './ComparisonRow';
 import { StatCard } from './StatCardsGrid';
 import { ErrorBanner } from '../../../components/feedback/ErrorBanner';
@@ -26,7 +25,6 @@ import {
   useAnalytics,
 } from '../hooks/useAnalytics';
 
-import { useApp } from '../../../context/AppContext';
 import ScanTrenchChart from './ScanTrenchChart';
 import { AnalyticsLockedNotice } from '../../../components/overlays/Consolenotices';
 import AdvanceAnalyticsSelector from './selectors/AdvanceAnalyticsSelector';
@@ -83,7 +81,6 @@ function Section({
 // Main panel
 
 export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: string) => void }) {
-  const { canUseOrdering } = useApp();
   const [period, setPeriod] = useState<AnalyticsPeriod>('7d');
   const [level, setLevel] = useState<AnalyticsLevel>('basic');
   const [analyticType, setAnalyticType] = useState<AdvanceAnalytics>('funnel');
@@ -178,27 +175,6 @@ export default function AnalyticsPanel({ onNavigate }: { onNavigate?: (page: str
                 <Section title="Peak hours" subtitle="All events by hour of day" icon={Clock}>
                   <HeatmapHours data={advanced.peakHours} />
                 </Section>
-              ) : analyticType === 'orderanalytics' ? (
-
-                canUseOrdering && advanced.orders ? (
-                  <Section title="Order analytics" subtitle="Revenue & order breakdown" icon={ShoppingBag}>
-                    <OrderStats data={advanced.orders} />
-                  </Section>
-                ) : (
-                  !canUseOrdering && (
-                    <Section title="Order analytics" icon={ShoppingBag}>
-                      <div
-                        className="flex flex-col items-center justify-center py-6 gap-2 text-center"
-                      >
-                        <ShoppingBag size={28} style={{ color: 'var(--muted-foreground)', opacity: 0.4 }} />
-                        <p className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
-                          Ordering is not enabled on your plan.
-                        </p>
-                      </div>
-                    </Section>
-                  )
-                )
-
               ) : analyticType === 'qrperformance' ? (
                 <Section title="QR code performance" subtitle="Scans per QR code" icon={QrCode}>
                   <QrBreakdown data={advanced.qrBreakdown} />

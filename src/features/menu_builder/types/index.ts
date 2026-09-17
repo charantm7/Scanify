@@ -39,11 +39,39 @@ export interface MenuItem {
   tags: ItemTag[] | null;
   sort_order: number;
   spice_level: SpiceLevel | null;
+  /** Set when a plan downgrade took this item out of service. */
+  hidden_by_plan?: boolean;
+
+  // ── Extended details, gated by plan_limits.advanced_item_details ──────────
+  serving_size: string | null;
+  preparation_time: number | null;
+  calories: number | null;
+  ingredients: string[] | null;
+  allergens: string[] | null;
+}
+
+/**
+ * A menu groups categories. A hotel has one primary menu (served at
+ * menu.<domain>/<hotel-slug>) and, from the Growth plan up, additional ones
+ * reached at menu.<domain>/<hotel-slug>/<menu-slug>.
+ */
+export interface Menu {
+  id: string;
+  hotel_id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  is_primary: boolean;
+  is_active: boolean;
+  /** Set when a plan downgrade parked this menu; not the owner's own choice. */
+  hidden_by_plan: boolean;
+  sort_order: number;
 }
 
 export interface Category {
   id: string;
   hotel_id?: string;
+  menu_id: string;
   name: string;
   icon: string | null;
   sort_order: number;
@@ -61,12 +89,23 @@ export interface ItemFormValues {
   dietary_type: DietaryType | '';
   tags: ItemTag[];
   spice_level: SpiceLevel | '';
+
+  // ── Extended details ─────────────────────────────────────────────────────
+  // Held as strings because they come straight from text inputs; the service
+  // layer parses and nulls them on the way to the database.
+  serving_size: string;
+  preparation_time: string;
+  calories: string;
+  ingredients: string[];
+  allergens: string[];
 }
 
 export interface ItemFormErrors {
   name?: string;
   price?: string;
   variants?: string;
+  preparation_time?: string;
+  calories?: string;
 }
 
 export interface ItemModalState {
@@ -83,7 +122,14 @@ export interface MenuState {
   error: string | null;
 }
 
+export interface MenusState {
+  menus: Menu[];
+  loading: boolean;
+  error: string | null;
+}
+
 export type MenuAction =
+  | { type: 'LOADING' }
   | { type: 'LOADED'; payload: Category[] }
   | { type: 'ERROR'; payload: string }
   | { type: 'ADD_CATEGORY'; payload: Category }

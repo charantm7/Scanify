@@ -36,6 +36,27 @@ function sanitizeVariants(variants: PriceVariant[]): PriceVariant[] | null {
   return cleaned.length ? cleaned : null;
 }
 
+// These three tolerate undefined as well as empty. The form type guarantees
+// the fields, but a saved draft or an older cached form shape should not be
+// able to crash a save — it should just mean "not specified".
+
+function optionalText(value: string | undefined): string | null {
+  return value?.trim() || null;
+}
+
+/** Empty -> null, so an unfilled optional number isn't stored as 0. */
+function optionalInt(value: string | undefined): number | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+}
+
+function optionalList(values: string[] | undefined): string[] | null {
+  const cleaned = (values ?? []).map((v) => v.trim()).filter(Boolean);
+  return cleaned.length ? cleaned : null;
+}
+
 function buildItemPayload(form: ItemFormValues) {
   return {
     name: form.name.trim(),
@@ -46,17 +67,33 @@ function buildItemPayload(form: ItemFormValues) {
     is_available: form.is_available,
     dietary_type: form.dietary_type || null,
     tags: form.tags.length ? form.tags : null,
-    spice_level: form.spice_level || null
+    spice_level: form.spice_level || null,
+
+    // Extended details. Always written, even on a plan that cannot display
+    // them: the owner's content is preserved so an upgrade brings it straight
+    // back, and the public menu decides what to SHOW (see
+    // features/menu/utils/plan-presentation.ts).
+    serving_size: optionalText(form.serving_size),
+    preparation_time: optionalInt(form.preparation_time),
+    calories: optionalInt(form.calories),
+    ingredients: optionalList(form.ingredients),
+    allergens: optionalList(form.allergens),
   };
 }
 
 // ── Read ─────────────────────────────────────────────────────────────────
 
-export async function loadMenuData(supabase: TypedSupabaseClient, hotelId: string): Promise<Category[]> {
-  const categories = await fetchCategoriesQuery(supabase, hotelId);
+export async function loadMenuData(
+  supabase: TypedSupabaseClient,
+  menuId: string
+): Promise<Category[]> {
+  const categories = await fetchCategoriesQuery(supabase, menuId);
   if (!categories.length) return [];
 
-  const items = await fetchItemsQuery(supabase, hotelId);
+  const items = await fetchItemsQuery(
+    supabase,
+    categories.map((c) => c.id)
+  );
 
   return categories.map((c) => ({
     ...c,
@@ -70,6 +107,7 @@ export async function loadMenuData(supabase: TypedSupabaseClient, hotelId: strin
 export async function createCategory(
   supabase: TypedSupabaseClient,
   hotelId: string,
+  menuId: string,
   name: string,
   icon: string | null,
   existing: Category[],
@@ -77,6 +115,7 @@ export async function createCategory(
 ): Promise<Category> {
   const data = await insertCategoryQuery(supabase, {
     hotel_id: hotelId,
+    menu_id: menuId,
     name,
     icon,
     sort_order: nextSortOrder(existing),
@@ -146,6 +185,42 @@ export async function removeItem(supabase: TypedSupabaseClient, id: string, toas
 
 export async function setItemAvailabilityService(supabase: TypedSupabaseClient, id: string, isAvailable: boolean) {
   await updateItemQuery(supabase, id, { is_available: isAvailable });
+}
+
+/** Matches the message raised by the enforce_menu_item_limit database trigger. */
+const ITEM_LIMIT_MARKER = 'item_limit_reached';
+
+export function isItemLimitError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err ?? '');
+  return message.includes(ITEM_LIMIT_MARKER);
+}
+
+/**
+ * Swaps which items a downgrade keeps out of service.
+ *
+ * `hidden_by_plan` is deliberately separate from `is_available`: that column is
+ * the owner's "sold out today" switch, and reusing it would make an automatic
+ * plan action indistinguishable from their own choice.
+ *
+ * Bringing an item back is only possible while the plan has a free slot, which
+ * the database enforces — so the supported move is to hide something else
+ * first. The raw trigger message is translated here into that instruction.
+ */
+export async function setItemPlanHiddenService(
+  supabase: TypedSupabaseClient,
+  id: string,
+  hidden: boolean
+) {
+  try {
+    await updateItemQuery(supabase, id, { hidden_by_plan: hidden });
+  } catch (err) {
+    if (isItemLimitError(err)) {
+      throw new Error(
+        'Your plan is full. Hide another item first, then bring this one back.'
+      );
+    }
+    throw err;
+  }
 }
 
 export async function persistItemOrder(supabase: TypedSupabaseClient, items: MenuItem[]) {

@@ -103,18 +103,25 @@ function CardItem({
 }: ItemCardProps) {
     const unavailable = !item.is_available;
 
-
     return (
         <article
             role="button"
             tabIndex={0}
-            aria-label={`${item.name}, ₹${item.price}`}
-            onClick={() => onClick(item.id)}
-            onKeyDown={(e) => e.key === "Enter" && onClick(item.id)}
+            aria-label={`${item.name}, ₹${item.price}${unavailable ? ", currently unavailable" : ""}`}
+            aria-disabled={unavailable}
+            onClick={() => !unavailable && onClick(item.id)}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (!unavailable) onClick(item.id);
+                }
+            }}
             className={[
-                "flex flex-col gap-3  p-2 rounded-2xl border cursor-pointer",
-                "transition-all duration-200 outline-none focus-visible:ring-2",
-                unavailable ? "opacity-55" : "hover:shadow-md hover:-translate-y-px active:scale-[0.99]",
+                "relative flex flex-col gap-3 p-2 rounded-2xl border outline-none",
+                "transition-all duration-200 focus-visible:ring-2",
+                unavailable
+                    ? "opacity-55 cursor-not-allowed"
+                    : "cursor-pointer hover:shadow-md hover:-translate-y-px active:scale-[0.99]",
             ].join(" ")}
             style={{
                 background: "var(--color-surface)",
@@ -123,52 +130,76 @@ function CardItem({
                 boxShadow: "var(--shadow-sm)",
             }}
         >
-            {showImage && <ItemImage item={item} variant={'card'} />}
+            {showImage && <ItemImage item={item} variant="card" />}
+
+            {unavailable && (
+                <span
+                    className="absolute top-2 right-2 text-[10px] font-medium px-2 py-0.5 rounded-full"
+                    style={{
+                        background: "var(--color-surface)",
+                        color: "var(--color-muted)",
+                        border: "1px solid var(--color-border)",
+                    }}
+                >
+                    Unavailable
+                </span>
+            )}
 
             <div className="flex-1 min-w-0 py-0.5 space-y-2">
                 {/* Name row */}
                 <div className="flex items-center gap-2">
                     {showDietary && <DietaryIndicator dietaryType={item.dietary_type} />}
                     <p
-                        className="font-semibold text-sm leading-snug flex-1"
+                        className="font-semibold text-sm leading-snug flex-1 truncate"
                         style={{ color: "var(--color-text)", fontFamily: "var(--font-family)" }}
                     >
                         {item.name}
                     </p>
                 </div>
 
+                {/* Description */}
                 {showDescription && item.description && (
                     <p
-                        className="mt-1 overflow-hidden text-xs leading-relaxed"
-                        style={{
-                            color: "var(--color-muted)",
-                            display: "-webkit-box",
-                            WebkitBoxOrient: "vertical",
-                            WebkitLineClamp: 1,
-                        }}
+                        className="text-xs leading-relaxed line-clamp-1"
+                        style={{ color: "var(--color-muted)" }}
                     >
                         {item.description}
                     </p>
                 )}
 
-                {showTags && <ItemBadgeRow item={item} />}
+                {/* Tags / spice */}
+                {(showTags || showSpice) && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        {showTags && <ItemBadgeRow item={item} />}
+                        {showSpice && <SpiceIndicator level={item.spice_level} />}
+                    </div>
+                )}
 
-                <div className="flex items-center gap-2 flex-wrap">
-                    {showSpice && <SpiceIndicator level={item.spice_level} />}
-                    {showServing && item.serving_size && (
-                        <span className="text-[10px] flex items-center gap-0.5" style={{ color: "var(--color-muted)" }}>
-                            <Users size={9} />
-                            {item.serving_size}
-                        </span>
-                    )}
-                    {item.preparation_time && (
-                        <span className="text-[10px] flex items-center gap-0.5" style={{ color: "var(--color-muted)" }}>
-                            <Clock size={9} />
-                            {item.preparation_time}m
-                        </span>
-                    )}
-                </div>
+                {/* Meta row: serving size / prep time */}
+                {(showServing && item.serving_size) || item.preparation_time ? (
+                    <div className="flex items-center gap-3 flex-wrap">
+                        {showServing && item.serving_size && (
+                            <span
+                                className="text-[10px] flex items-center gap-1"
+                                style={{ color: "var(--color-muted)" }}
+                            >
+                                <Users size={9} />
+                                {item.serving_size}
+                            </span>
+                        )}
+                        {item.preparation_time && (
+                            <span
+                                className="text-[10px] flex items-center gap-1"
+                                style={{ color: "var(--color-muted)" }}
+                            >
+                                <Clock size={9} />
+                                {item.preparation_time}m
+                            </span>
+                        )}
+                    </div>
+                ) : null}
 
+                {/* Price / calories */}
                 <div className="flex items-center justify-between pt-1">
                     <Price amount={Number(item.price)} />
                     {item.calories && (
@@ -181,7 +212,6 @@ function CardItem({
         </article>
     );
 }
-
 // ─── List layout ──────────────────────────────────────────────────────────────
 function ListItem({ item, onClick, showImage, showDietary, showTags }: ItemCardProps) {
     return (

@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { ChefHat, Pencil, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { ChefHat, Pencil, Trash2, Eye, EyeOff, Loader2, Lock, Unlock } from 'lucide-react';
 import { DietaryDot } from './shared/DietaryDot';
 import { SpiceBadge, TagBadge } from './shared/TagBadge';
 import type { MenuItem } from '../types';
@@ -16,6 +16,8 @@ interface ItemCardProps {
   onEdit: (item: MenuItem) => void;
   onDelete: (id: string) => Promise<void> | void;
   onToggle: (item: MenuItem) => void;
+  /** Swaps which items a plan downgrade keeps out of service. */
+  onTogglePlanHidden?: (item: MenuItem) => void;
   isAdvanceCategory: boolean;
 }
 type ItemImageVariant = 'card' | 'list';
@@ -45,7 +47,7 @@ export function ItemImage({ item, variant = 'list' }: { item: MenuItem; variant?
   );
 }
 
-export function ItemCard({ item, onEdit, onDelete, onToggle, isAdvanceCategory }: ItemCardProps) {
+export function ItemCard({ item, onEdit, onDelete, onToggle, onTogglePlanHidden, isAdvanceCategory }: ItemCardProps) {
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
@@ -61,7 +63,7 @@ export function ItemCard({ item, onEdit, onDelete, onToggle, isAdvanceCategory }
       style={{
         border: '1.5px solid var(--border)',
         background: 'var(--card)',
-        opacity: item.is_available ? 1 : 0.65,
+        opacity: item.is_available && !item.hidden_by_plan ? 1 : 0.65,
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         transition: 'box-shadow 0.15s ease, transform 0.15s ease',
       }}
@@ -90,18 +92,48 @@ export function ItemCard({ item, onEdit, onDelete, onToggle, isAdvanceCategory }
           style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)' }}
         />
 
-        {!item.is_available && (
-          <div className="absolute bottom-2 left-2">
-            <span
-              className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide"
-              style={{ background: 'rgba(0,0,0,0.65)', color: '#fff', backdropFilter: 'blur(4px)' }}
-            >
-              Hidden
-            </span>
+        {(!item.is_available || item.hidden_by_plan) && (
+          <div className="absolute bottom-2 left-2 flex gap-1">
+            {!item.is_available && (
+              <span
+                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide"
+                style={{ background: 'rgba(0,0,0,0.65)', color: '#fff', backdropFilter: 'blur(4px)' }}
+              >
+                Hidden
+              </span>
+            )}
+            {item.hidden_by_plan && (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide"
+                style={{ background: 'var(--accent)', color: '#fff', backdropFilter: 'blur(4px)' }}
+                title="Over your plan's item limit, so it is not shown to diners"
+              >
+                <Lock size={9} /> Over plan
+              </span>
+            )}
           </div>
         )}
 
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onTogglePlanHidden && (
+            <button
+              onClick={() => onTogglePlanHidden(item)}
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition shadow-sm"
+              style={{
+                background: 'rgba(255,255,255,0.95)',
+                color: item.hidden_by_plan ? 'var(--accent)' : 'var(--text2)',
+                backdropFilter: 'blur(4px)',
+              }}
+              title={
+                item.hidden_by_plan
+                  ? 'Bring back within your plan limit (hide another item first if full)'
+                  : "Hide to make room for another item within your plan's limit"
+              }
+              aria-label={item.hidden_by_plan ? 'Restore item within plan limit' : 'Hide item to free a plan slot'}
+            >
+              {item.hidden_by_plan ? <Unlock size={13} /> : <Lock size={13} />}
+            </button>
+          )}
           <button
             onClick={() => onToggle(item)}
             className="w-7 h-7 rounded-lg flex items-center justify-center transition shadow-sm"

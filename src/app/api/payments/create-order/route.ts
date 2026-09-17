@@ -172,6 +172,7 @@ export async function POST(req: NextRequest) {
               days_remaining: String(decision.daysRemaining ?? ''),
               previous_plan: existingSub?.plan ?? '',
               previous_billing_cycle: existingSub?.billing_cycle ?? '',
+              carry_over_days: String(decision.carryOverDays ?? 0),
             },
           });
 
@@ -187,6 +188,7 @@ export async function POST(req: NextRequest) {
             status: 'created',
             is_renewal: false,
             is_proration: true,
+            carry_over_days: decision.carryOverDays ?? 0,
           });
 
           if (payErr) {
@@ -194,13 +196,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Could not initialize payment' }, { status: 500 });
           }
 
-          // Record intent — verify/webhook will finalise plan + (possibly)
-          // reset the period once payment is confirmed captured.
+          // Link the in-flight order, but do NOT write pending_plan here.
+          // pending_plan means exactly one thing — "a downgrade the cron must
+          // apply when this period ends" — and fulfilment reads the plan from
+          // the payments row, never from pending_plan. Writing checkout intent
+          // into the same column meant an abandoned upgrade checkout left a
+          // higher tier sitting in pending_plan, which the cron then granted
+          // for free at period end.
           await supabaseAdmin
             .from('subscriptions')
             .update({
-              pending_plan: plan,
-              pending_billing_cycle: billingCycle,
               provider_subscription_id: order.id,
               updated_at: now.toISOString(),
             })
@@ -231,7 +236,9 @@ export async function POST(req: NextRequest) {
           billingCycle as BillingCycle
         );
         const receipt = `sub_${hotel.id.slice(0, 8)}_${Date.now()}`;
-        const isRenewal = Boolean(existingSub && existingSub.plan === plan);
+        const isRenewal = Boolean(
+          existingSub && existingSub.plan === plan && existingSub.billing_cycle === billingCycle
+        );
 
         const order = await razorpay.orders.create({
           amount: amountPaise,
@@ -265,9 +272,11 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Could not initialize payment' }, { status: 500 });
         }
 
-        // Record intent so verify/webhook knows what to activate once
-        // payment is confirmed — don't touch the LIVE plan/status until
-        // then, so an abandoned checkout can't silently change access.
+        // Make sure a subscription row exists and is linked to this order,
+        // but don't touch the LIVE plan/status — an abandoned checkout must
+        // not change access. What gets activated on payment is read from the
+        // payments row, so pending_plan is deliberately left alone here (it
+        // belongs solely to scheduled downgrades).
         await supabaseAdmin.from('subscriptions').upsert(
           {
             hotel_id: hotel.id,
@@ -275,8 +284,6 @@ export async function POST(req: NextRequest) {
             plan: existingSub?.plan ?? (plan as PlanKey),
             billing_cycle: existingSub?.billing_cycle ?? (billingCycle as BillingCycle),
             status: existingSub?.status ?? 'past_due',
-            pending_plan: plan,
-            pending_billing_cycle: billingCycle,
             payment_provider: 'razorpay',
             provider_subscription_id: order.id,
             updated_at: now.toISOString(),

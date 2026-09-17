@@ -25,6 +25,7 @@ interface CategoryBlockProps {
   onEditItem: (item: MenuItem) => void;
   onDeleteItem: (id: string) => Promise<void> | void;
   onToggleItem: (item: MenuItem) => void;
+  onTogglePlanHidden?: (item: MenuItem) => void;
   onReorderItems: (categoryId: string, items: MenuItem[]) => void;
   isAdvanceCategory: boolean;
 }
@@ -41,6 +42,7 @@ export function CategoryBlock({
   onEditItem,
   onDeleteItem,
   onToggleItem,
+  onTogglePlanHidden,
   onReorderItems,
 }: CategoryBlockProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -200,6 +202,7 @@ export function CategoryBlock({
                 onEdit={onEditItem}
                 onDelete={onDeleteItem}
                 onToggle={onToggleItem}
+                onTogglePlanHidden={onTogglePlanHidden}
                 isAdvanceCategory={isAdvanceCategory}
               />
             ))}
@@ -229,6 +232,7 @@ export function CategoryBlock({
                   onEdit={onEditItem}
                   onDelete={onDeleteItem}
                   onToggle={onToggleItem}
+                  onTogglePlanHidden={onTogglePlanHidden}
                   isAdvanceCategory={isAdvanceCategory}
                 />
               </div>

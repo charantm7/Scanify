@@ -49,6 +49,11 @@ function toFormValues(item?: MenuItem | null): ItemFormValues {
     dietary_type: item.dietary_type ?? '',
     tags: item.tags ?? [],
     spice_level: item.spice_level ?? '',
+    serving_size: item.serving_size ?? '',
+    preparation_time: item.preparation_time != null ? String(item.preparation_time) : '',
+    calories: item.calories != null ? String(item.calories) : '',
+    ingredients: item.ingredients ?? [],
+    allergens: item.allergens ?? [],
   };
 }
 
@@ -65,6 +70,29 @@ export function useItemForm(initial?: MenuItem | null) {
     setForm((f) => ({ ...f, [field]: value }));
     setErrors((e) => ({ ...e, [field as keyof ItemFormErrors]: undefined }));
   }, []);
+
+  /** Adds a trimmed, de-duplicated entry to ingredients or allergens. */
+  const addListEntry = useCallback(
+    (field: 'ingredients' | 'allergens', raw: string) => {
+      const value = raw.trim();
+      if (!value) return;
+      setForm((f) => {
+        const existing = f[field];
+        // Case-insensitive de-dupe: "Dairy" and "dairy" are the same allergen
+        // and listing both on a menu looks like a mistake.
+        if (existing.some((e) => e.toLowerCase() === value.toLowerCase())) return f;
+        return { ...f, [field]: [...existing, value] };
+      });
+    },
+    []
+  );
+
+  const removeListEntry = useCallback(
+    (field: 'ingredients' | 'allergens', value: string) => {
+      setForm((f) => ({ ...f, [field]: f[field].filter((e) => e !== value) }));
+    },
+    []
+  );
 
   const toggleTag = useCallback((tag: ItemTag) => {
     setForm((f) => ({
@@ -97,9 +125,30 @@ export function useItemForm(initial?: MenuItem | null) {
     }
     const incompleteVariant = form.variants.some((v) => !v.label.trim() || Number.isNaN(Number(v.price)));
     if (incompleteVariant) nextErrors.variants = 'Fill in or remove incomplete price variants';
+
+    // Both are optional, so only a value that is present AND unusable is an
+    // error — an empty field just means "not specified".
+    if (form.preparation_time.trim()) {
+      const prep = Number(form.preparation_time);
+      if (!Number.isInteger(prep) || prep <= 0) {
+        nextErrors.preparation_time = 'Enter prep time in whole minutes';
+      }
+    }
+    if (form.calories.trim()) {
+      const kcal = Number(form.calories);
+      if (!Number.isInteger(kcal) || kcal < 0) {
+        nextErrors.calories = 'Enter calories as a whole number';
+      }
+    }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }, [form]);
 
-  return { form, errors, setField, toggleTag, addVariant, updateVariant, removeVariant, validate, reset };
+  return {
+    form, errors, setField, toggleTag,
+    addVariant, updateVariant, removeVariant,
+    addListEntry, removeListEntry,
+    validate, reset,
+  };
 }

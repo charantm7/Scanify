@@ -12,11 +12,12 @@ import Image from 'next/image';
 
 import toast from 'react-hot-toast';
 
-import { getSupabaseClient } from '../../../lib/supabase/client';
+import { getSupabaseClient } from '../../lib/supabase/client';
 
-import { useApp } from '../../../context/AppContext';
+import { useApp } from '../../context/AppContext';
+import { publicMenuUrl } from '../../lib/domains';
 
-import { Card, Button, EmptyState, Alert } from '../../../components/ui/UiComponents';
+import { Card, Button, EmptyState, Alert } from '../../components/ui/UiComponents';
 
 function qrUrl(text: string, size = 256) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&color=000000&bgcolor=ffffff&qzone=2&format=png`;
@@ -113,8 +114,10 @@ export default function QRPanel({ onNavigate }) {
   const [generating, setGenerating] = useState(false);
   const [label, setLabel] = useState('');
 
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'scanify.co.in';
-  const menuUrl = hotel?.slug ? `${appDomain}/menu/${hotel.slug}` : null;
+  // Always the menu host, and always the hotel's PRIMARY menu: a QR code is
+  // printed once and cannot be re-pointed, so it must survive the owner
+  // renaming or reordering their menus later.
+  const menuUrl = hotel?.slug ? publicMenuUrl(hotel.slug) : null;
 
 
   const isAtLimit =

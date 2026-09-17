@@ -23,7 +23,7 @@ export default async function Onboarding() {
     .maybeSingle()
 
   if (profile?.onboarding_complete) {
-    redirect('/console')
+    redirect('/dashboard')
   }
   return <OnboardingPage />;
 }
