@@ -29,6 +29,8 @@ const INITIAL_STATE: MenuState = { categories: [], loading: true, error: null };
 
 function reducer(state: MenuState, action: MenuAction): MenuState {
   switch (action.type) {
+    case 'LOADING':
+      return { ...state, categories: [], loading: true, error: null };
     case 'LOADED':
       return { ...state, categories: action.payload, loading: false, error: null };
     case 'ERROR':
@@ -76,38 +78,53 @@ function reducer(state: MenuState, action: MenuAction): MenuState {
   }
 }
 
-export function useMenu(hotelId: string | undefined, onItemCountChange?: () => void | Promise<void>) {
+/**
+ * `menuId` scopes every read and category write to one menu. It is undefined
+ * only while useMenus is still resolving which menu to edit, so the hook
+ * reports `loading` rather than briefly rendering an empty menu.
+ */
+export function useMenu(
+  hotelId: string | undefined,
+  menuId: string | undefined,
+  onItemCountChange?: () => void | Promise<void>
+) {
   const { supabase } = useApp()
   const toast = useToast();
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
 
   const loadMenu = useCallback(async () => {
-    if (!hotelId) return;
+    if (!hotelId || !menuId) return;
     try {
-      const categories = await loadMenuData(supabase, hotelId);
+      const categories = await loadMenuData(supabase, menuId);
       dispatch({ type: 'LOADED', payload: categories });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       dispatch({ type: 'ERROR', payload: message });
       toast.error('Failed to load menu');
     }
-  }, [hotelId, supabase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hotelId, menuId, supabase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // Back to loading first: without this, switching menus keeps the previous
+    // menu's categories on screen until the new fetch resolves, which reads as
+    // the wrong menu's content rather than as loading.
+    dispatch({ type: 'LOADING' });
     loadMenu();
   }, [loadMenu]);
 
   const addCategory = useCallback(
     async (name: string, icon: string | null) => {
-      if (!hotelId) return;
+      if (!hotelId || !menuId) return;
       try {
-        const category = await createCategory(supabase, hotelId, name, icon, state.categories, toast);
+        const category = await createCategory(
+          supabase, hotelId, menuId, name, icon, state.categories, toast
+        );
         dispatch({ type: 'ADD_CATEGORY', payload: category });
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Failed to add category');
       }
     },
-    [hotelId, supabase, state.categories, toast]
+    [hotelId, menuId, supabase, state.categories, toast]
   );
 
   const renameCategory = useCallback(

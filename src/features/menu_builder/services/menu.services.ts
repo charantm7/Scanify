@@ -52,11 +52,17 @@ function buildItemPayload(form: ItemFormValues) {
 
 // ── Read ─────────────────────────────────────────────────────────────────
 
-export async function loadMenuData(supabase: TypedSupabaseClient, hotelId: string): Promise<Category[]> {
-  const categories = await fetchCategoriesQuery(supabase, hotelId);
+export async function loadMenuData(
+  supabase: TypedSupabaseClient,
+  menuId: string
+): Promise<Category[]> {
+  const categories = await fetchCategoriesQuery(supabase, menuId);
   if (!categories.length) return [];
 
-  const items = await fetchItemsQuery(supabase, hotelId);
+  const items = await fetchItemsQuery(
+    supabase,
+    categories.map((c) => c.id)
+  );
 
   return categories.map((c) => ({
     ...c,
@@ -70,6 +76,7 @@ export async function loadMenuData(supabase: TypedSupabaseClient, hotelId: strin
 export async function createCategory(
   supabase: TypedSupabaseClient,
   hotelId: string,
+  menuId: string,
   name: string,
   icon: string | null,
   existing: Category[],
@@ -77,6 +84,7 @@ export async function createCategory(
 ): Promise<Category> {
   const data = await insertCategoryQuery(supabase, {
     hotel_id: hotelId,
+    menu_id: menuId,
     name,
     icon,
     sort_order: nextSortOrder(existing),

@@ -11,7 +11,9 @@ import { Loader2 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
 import { Alert, Button } from '../../../components/ui/UiComponents';
 import { useMenu } from '../hooks/useMenu';
+import { useMenus } from '../hooks/useMenus';
 import { MenuHeader } from './MenuHeader';
+import { MenuSelector } from './MenuSelector';
 import { UpgradeAlerts } from './UpgradeAlerts';
 import { CategoryCreateBar } from './CategoryCreateBar';
 import { CategoryList } from './CategoryList';
@@ -33,11 +35,20 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
     planLabel,
     maxMenuItems,
     isActionBlocked,
-    advancedCategories
+    advancedCategories,
+    maxMenus,
+    canAddMenu,
   } = useApp();
 
+  const {
+    editableMenus,
+    parkedMenus,
+    selectedMenu,
+    loading: menusLoading,
+    actions: menuActions,
+  } = useMenus(hotel?.id);
 
-  const { state, actions } = useMenu(hotel?.id, refreshMenuCount);
+  const { state, actions } = useMenu(hotel?.id, selectedMenu?.id, refreshMenuCount);
 
   const [itemModal, setItemModal] = useState<ItemModalState>({ open: false, item: null, categoryId: null });
   const [savingItem, setSavingItem] = useState(false);
@@ -67,7 +78,7 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
     setItemModal({ open: true, item, categoryId: item.category_id });
   }
 
-  if (state.loading) {
+  if (menusLoading || state.loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 size={28} className="animate-spin" style={{ color: 'var(--accent)' }} />
@@ -97,10 +108,27 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
           totalItems={menuItemCount}
           maxMenuItems={maxMenuItems}
           planLabel={planLabel}
+          menuName={selectedMenu?.name ?? null}
           search={search}
           onSearchChange={setSearch}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+        />
+
+        <MenuSelector
+          menus={editableMenus}
+          parkedMenus={parkedMenus}
+          selectedMenuId={selectedMenu?.id ?? null}
+          hotelSlug={hotel?.slug ?? null}
+          maxMenus={maxMenus}
+          canAddMenu={canAddMenu}
+          disabled={isActionBlocked}
+          onSelect={menuActions.selectMenu}
+          onCreate={menuActions.addMenu}
+          onRename={menuActions.renameMenu}
+          onMakePrimary={menuActions.makePrimary}
+          onToggleActive={menuActions.toggleMenuActive}
+          onDelete={menuActions.deleteMenu}
         />
 
         <UpgradeAlerts

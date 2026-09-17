@@ -2,17 +2,23 @@ import { TypedSupabaseClient } from '../../../types/supabase';
 import type { Category, MenuItem } from '../types';
 
 
-const CATEGORY_COLUMNS = 'id, name, sort_order';
+const CATEGORY_COLUMNS = 'id, menu_id, name, icon, sort_order';
 const ITEM_COLUMNS =
-  'id, name, description, price, variants, image_url, is_available, dietary_type, tags, sort_order, spice_level , category_id';
+  'id, name, description, price, variants, image_url, is_available, hidden_by_plan, dietary_type, tags, sort_order, spice_level, category_id';
 
 // ── Categories ───────────────────────────────────────────────────────────
 
-export async function fetchCategoriesQuery(supabase: TypedSupabaseClient, hotelId: string) {
+/**
+ * Categories belong to a menu, not directly to the hotel, so the builder loads
+ * them per selected menu. Filtering by hotel_id here would pull in every other
+ * menu's categories.
+ */
+export async function fetchCategoriesQuery(supabase: TypedSupabaseClient, menuId: string) {
   const { data, error } = await supabase
     .from('categories')
     .select(CATEGORY_COLUMNS)
-    .eq('hotel_id', hotelId)
+    .eq('menu_id', menuId)
+    .is('deleted_at', null)
     .order('sort_order', { ascending: true });
   if (error) throw error;
   return (data ?? []) as unknown as Array<Omit<Category, 'items' | 'hotel_id'>>;
@@ -20,7 +26,14 @@ export async function fetchCategoriesQuery(supabase: TypedSupabaseClient, hotelI
 
 export async function insertCategoryQuery(
   supabase: TypedSupabaseClient,
-  payload: { hotel_id: string; name: string; icon: string | null; sort_order: number }
+  payload: {
+    hotel_id: string;
+    // NOT NULL since the menus migration — an insert without it is rejected.
+    menu_id: string;
+    name: string;
+    icon: string | null;
+    sort_order: number;
+  }
 ) {
   const { data, error } = await supabase
     .from('categories')
@@ -58,11 +71,18 @@ export async function reorderCategoriesQuery(
 
 // ── Items ────────────────────────────────────────────────────────────────
 
-export async function fetchItemsQuery(supabase: TypedSupabaseClient, hotelId: string) {
+/**
+ * Scoped to the given categories rather than the whole hotel, so switching
+ * menus doesn't load every item the hotel owns.
+ */
+export async function fetchItemsQuery(supabase: TypedSupabaseClient, categoryIds: string[]) {
+  if (!categoryIds.length) return [];
+
   const { data, error } = await supabase
     .from('menu_items')
     .select(ITEM_COLUMNS)
-    .eq('hotel_id', hotelId)
+    .in('category_id', categoryIds)
+    .is('deleted_at', null)
     .order('sort_order', { ascending: true });
   if (error) throw error;
   return (data ?? []) as unknown as MenuItem[];

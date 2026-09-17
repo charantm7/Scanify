@@ -1,10 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   resolveSurface,
   surfaceOrigin,
   isDashboardPath,
   isLandingPath,
   isInfrastructurePath,
+  publicMenuUrl,
+  publicMenuPath,
+  toMenuSlug,
   ROOT_DOMAIN,
 } from './domains';
 
@@ -135,5 +138,77 @@ describe('isInfrastructurePath', () => {
     for (const path of ['/', '/dashboard', '/menu/spice-route', '/apiary']) {
       expect(isInfrastructurePath(path)).toBe(false);
     }
+  });
+});
+
+describe('toMenuSlug', () => {
+  it('produces slugs the menus_slug_check constraint accepts', () => {
+    const cases = ['Drinks', 'Late Night Bites', 'Café & Bar', "Chef's Specials!", '  Wine  ', 'A--B'];
+
+    for (const name of cases) {
+      const slug = toMenuSlug(name);
+      expect(slug, name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+    }
+  });
+
+  it('returns an empty string when there is nothing to slugify', () => {
+    // Callers substitute a fallback stem; the constraint rejects empty.
+    expect(toMenuSlug('!!!')).toBe('');
+    expect(toMenuSlug('   ')).toBe('');
+  });
+
+  it('caps length without leaving a trailing hyphen', () => {
+    const slug = toMenuSlug('a'.repeat(39) + ' bcdef');
+    expect(slug.length).toBeLessThanOrEqual(40);
+    expect(slug.endsWith('-')).toBe(false);
+  });
+});
+
+describe('public menu links — no subdomains configured (local dev)', () => {
+  // NEXT_PUBLIC_COOKIE_DOMAIN is unset under test, so SUBDOMAINS_ENABLED is
+  // false and links must keep the real /menu prefix the dev server serves.
+  it('keeps the /menu prefix for the primary menu', () => {
+    expect(publicMenuUrl('spice-route')).toBe('/menu/spice-route');
+    expect(publicMenuPath('spice-route')).toBe('/menu/spice-route');
+  });
+
+  it('keeps the /menu prefix for a named menu', () => {
+    expect(publicMenuUrl('spice-route', 'drinks')).toBe('/menu/spice-route/drinks');
+    expect(publicMenuPath('spice-route', 'drinks')).toBe('/menu/spice-route/drinks');
+  });
+
+  it('treats a null menu slug as the primary menu', () => {
+    expect(publicMenuPath('spice-route', null)).toBe('/menu/spice-route');
+  });
+});
+
+describe('public menu links — subdomains configured (production)', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  async function loadWithSubdomains() {
+    vi.stubEnv('NEXT_PUBLIC_COOKIE_DOMAIN', `.${ROOT_DOMAIN}`);
+    vi.resetModules();
+    return import('./domains');
+  }
+
+  it('returns an absolute URL on the menu host, for QR codes and copied links', async () => {
+    const d = await loadWithSubdomains();
+
+    expect(d.publicMenuUrl('spice-route')).toBe(`https://menu.${ROOT_DOMAIN}/spice-route`);
+    expect(d.publicMenuUrl('spice-route', 'drinks')).toBe(
+      `https://menu.${ROOT_DOMAIN}/spice-route/drinks`
+    );
+  });
+
+  it('drops the /menu prefix for in-page links, since the proxy adds it', async () => {
+    const d = await loadWithSubdomains();
+
+    // The diner is already on the menu host: the rewrite supplies /menu, so a
+    // link that included it would resolve to /menu/menu/...
+    expect(d.publicMenuPath('spice-route')).toBe('/spice-route');
+    expect(d.publicMenuPath('spice-route', 'drinks')).toBe('/spice-route/drinks');
   });
 });

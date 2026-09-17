@@ -44,11 +44,38 @@ export interface DBHotel {
     deleted_at: string | null;
 }
 
+// ── menus row ──────────────────────────────────────────────────────────────────
+// A hotel's primary menu is served at menu.<domain>/<hotel-slug>; any other is
+// at menu.<domain>/<hotel-slug>/<menu-slug>.
+export interface DBMenu {
+    id: string;
+    hotel_id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    is_primary: boolean;
+    is_active: boolean;
+    hidden_by_plan: boolean;
+    sort_order: number;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
+/** Just enough of a menu to render the public switcher and build its links. */
+export interface MenuSummary {
+    id: string;
+    name: string;
+    slug: string;
+    is_primary: boolean;
+}
+
 // ── categories row ─────────────────────────────────────────────────────────────
 export interface DBCategory {
     id: string;
     created_at: string;
     hotel_id: string;
+    menu_id: string;
     name: string;
     description: string | null;
     cover_image: string | null;
@@ -146,6 +173,13 @@ export interface MenuPageData {
     hotel: DBHotel;
     categories: MenuCategory[];
     customization: DBMenuCustomization;
+    /**
+     * Every publicly visible menu for this hotel, used to render the switcher.
+     * Single-menu hotels get a one-element array and the switcher hides itself.
+     */
+    menus: MenuSummary[];
+    /** The menu whose categories are in `categories`. */
+    activeMenu: MenuSummary;
 }
 
 // ── Theme tokens ───────────────────────────────────────────────────────────────

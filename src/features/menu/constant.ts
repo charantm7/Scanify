@@ -117,7 +117,10 @@ export const SPICE_CONFIG = {
 
 
 export const QUERY_KEYS = {
-    menuPage: (slug: string) => ["menu", "page", slug] as const,
+    // The menu slug is part of the key so a hotel's menus never collide in
+    // the cache. `null` stands in for "the primary menu".
+    menuPage: (slug: string, menuSlug?: string) =>
+        ["menu", "page", slug, menuSlug ?? null] as const,
     hotel: (slug: string) => ["menu", "hotel", slug] as const,
     menu: (hotelId: string) => ["menu", "items", hotelId] as const,
     theme: (hotelId: string) => ["menu", "theme", hotelId] as const,

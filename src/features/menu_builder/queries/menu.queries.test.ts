@@ -19,27 +19,35 @@ function mockSupabase(result: { data?: any; error?: any }) {
 }
 
 describe('fetchCategoriesQuery', () => {
-    it('queries categories filtered by hotel and ordered by sort_order', async () => {
-        const data = [{ id: 'c1', name: 'Starters', sort_order: 1 }]
+    it('scopes categories to one MENU, not the whole hotel', async () => {
+        const data = [{ id: 'c1', menu_id: 'menu-1', name: 'Starters', sort_order: 1 }]
         const supabase = mockSupabase({ data, error: null })
 
-        const result = await fetchCategoriesQuery(supabase as any, 'hotel-1')
+        const result = await fetchCategoriesQuery(supabase as any, 'menu-1')
 
         expect(supabase.from).toHaveBeenCalledWith('categories')
-        expect(supabase._builder.eq).toHaveBeenCalledWith('hotel_id', 'hotel-1')
+        // Filtering by hotel_id here would pull in every other menu's categories.
+        expect(supabase._builder.eq).toHaveBeenCalledWith('menu_id', 'menu-1')
+        expect(supabase._builder.eq).not.toHaveBeenCalledWith('hotel_id', expect.anything())
         expect(supabase._builder.order).toHaveBeenCalledWith('sort_order', { ascending: true })
         expect(result).toEqual(data)
     })
 
+    it('excludes soft-deleted categories', async () => {
+        const supabase = mockSupabase({ data: [], error: null })
+        await fetchCategoriesQuery(supabase as any, 'menu-1')
+        expect(supabase._builder.is).toHaveBeenCalledWith('deleted_at', null)
+    })
+
     it('returns [] rather than null when data is null', async () => {
         const supabase = mockSupabase({ data: null, error: null })
-        const result = await fetchCategoriesQuery(supabase as any, 'hotel-1')
+        const result = await fetchCategoriesQuery(supabase as any, 'menu-1')
         expect(result).toEqual([])
     })
 
     it('throws the supabase error instead of swallowing it', async () => {
         const supabase = mockSupabase({ data: null, error: new Error('permission denied') })
-        await expect(fetchCategoriesQuery(supabase as any, 'hotel-1')).rejects.toThrow('permission denied')
+        await expect(fetchCategoriesQuery(supabase as any, 'menu-1')).rejects.toThrow('permission denied')
     })
 })
 
@@ -49,11 +57,13 @@ describe('insertCategoryQuery', () => {
         const supabase = mockSupabase({ data: inserted, error: null })
 
         const result = await insertCategoryQuery(supabase as any, {
-            hotel_id: 'hotel-1', name: 'Mains', icon: null, sort_order: 2,
+            hotel_id: 'hotel-1', menu_id: 'menu-1', name: 'Mains', icon: null, sort_order: 2,
         })
 
+        // menu_id is NOT NULL since the menus migration — an insert without it
+        // is rejected by the database.
         expect(supabase._builder.insert).toHaveBeenCalledWith({
-            hotel_id: 'hotel-1', name: 'Mains', icon: null, sort_order: 2,
+            hotel_id: 'hotel-1', menu_id: 'menu-1', name: 'Mains', icon: null, sort_order: 2,
         })
         expect(result).toEqual(inserted)
     })
@@ -61,7 +71,9 @@ describe('insertCategoryQuery', () => {
     it('throws on insert error', async () => {
         const supabase = mockSupabase({ data: null, error: new Error('duplicate name') })
         await expect(
-            insertCategoryQuery(supabase as any, { hotel_id: 'h1', name: 'x', icon: null, sort_order: 1 })
+            insertCategoryQuery(supabase as any, {
+                hotel_id: 'h1', menu_id: 'm1', name: 'x', icon: null, sort_order: 1,
+            })
         ).rejects.toThrow('duplicate name')
     })
 })
@@ -122,15 +134,26 @@ describe('reorderCategoriesQuery', () => {
 // two behaviors that differ (extra column list, hotel_id + category_id filtering).
 
 describe('fetchItemsQuery', () => {
-    it('queries menu_items filtered by hotel and ordered by sort_order', async () => {
+    it('queries menu_items for the given categories, ordered by sort_order', async () => {
         const data = [{ id: 'i1', name: 'Paneer Tikka', category_id: 'c1' }]
         const supabase = mockSupabase({ data, error: null })
 
-        const result = await fetchItemsQuery(supabase as any, 'hotel-1')
+        const result = await fetchItemsQuery(supabase as any, ['c1', 'c2'])
 
         expect(supabase.from).toHaveBeenCalledWith('menu_items')
-        expect(supabase._builder.eq).toHaveBeenCalledWith('hotel_id', 'hotel-1')
+        expect(supabase._builder.in).toHaveBeenCalledWith('category_id', ['c1', 'c2'])
+        expect(supabase._builder.is).toHaveBeenCalledWith('deleted_at', null)
         expect(result).toEqual(data)
+    })
+
+    it('short-circuits without querying when there are no categories', async () => {
+        const supabase = mockSupabase({ data: null, error: null })
+
+        const result = await fetchItemsQuery(supabase as any, [])
+
+        // `.in('category_id', [])` matches nothing, so the round trip is waste.
+        expect(result).toEqual([])
+        expect(supabase.from).not.toHaveBeenCalled()
     })
 })
 

@@ -28,16 +28,18 @@ describe('loadMenuData', () => {
             { id: 'i3', category_id: 'c1', name: 'Pakora' },
         ] as any)
 
-        const result = await loadMenuData({} as any, 'hotel-1')
+        const result = await loadMenuData({} as any, 'menu-1')
 
         expect(result.find((c) => c.id === 'c1')?.items).toHaveLength(2)
         expect(result.find((c) => c.id === 'c2')?.items).toHaveLength(1)
+        // Items are fetched for this menu's categories, not the whole hotel.
+        expect(q.fetchItemsQuery).toHaveBeenCalledWith({} as any, ['c1', 'c2'])
     })
 
     it('short-circuits without fetching items when there are no categories', async () => {
         q.fetchCategoriesQuery.mockResolvedValue([])
 
-        const result = await loadMenuData({} as any, 'hotel-1')
+        const result = await loadMenuData({} as any, 'menu-1')
 
         expect(result).toEqual([])
         expect(q.fetchItemsQuery).not.toHaveBeenCalled()
@@ -47,7 +49,7 @@ describe('loadMenuData', () => {
         q.fetchCategoriesQuery.mockResolvedValue([{ id: 'c1', name: 'Starters', sort_order: 1 } as any])
         q.fetchItemsQuery.mockResolvedValue([])
 
-        const [category] = await loadMenuData({} as any, 'hotel-1')
+        const [category] = await loadMenuData({} as any, 'menu-1')
         expect(category.icon).toBeNull()
     })
 })
@@ -58,7 +60,7 @@ describe('createCategory', () => {
         q.insertCategoryQuery.mockResolvedValue({ id: 'c3', name: 'Desserts', sort_order: 99 } as any)
 
         await createCategory(
-            {} as any, 'hotel-1', 'Desserts', null,
+            {} as any, 'hotel-1', 'menu-1', 'Desserts', null,
             [{ sort_order: 3 } as any, { sort_order: 7 } as any],
             toast
         )
@@ -70,7 +72,7 @@ describe('createCategory', () => {
         const toast = createMockToast()
         q.insertCategoryQuery.mockResolvedValue({ id: 'c1' } as any)
 
-        await createCategory({} as any, 'hotel-1', 'Starters', null, [], toast)
+        await createCategory({} as any, 'hotel-1', 'menu-1', 'Starters', null, [], toast)
 
         expect(q.insertCategoryQuery).toHaveBeenCalledWith({} as any, expect.objectContaining({ sort_order: 1 }))
     })
@@ -79,10 +81,14 @@ describe('createCategory', () => {
         const toast = createMockToast()
         q.insertCategoryQuery.mockResolvedValue({ id: 'c1', name: 'Starters', sort_order: 1 } as any)
 
-        const result = await createCategory({} as any, 'hotel-1', 'Starters', null, [], toast)
+        const result = await createCategory({} as any, 'hotel-1', 'menu-1', 'Starters', null, [], toast)
 
         expect(result.items).toEqual([])
         expect(toast.success).toHaveBeenCalledWith('Category "Starters" added')
+        expect(q.insertCategoryQuery).toHaveBeenCalledWith(
+            {} as any,
+            expect.objectContaining({ menu_id: 'menu-1' })
+        )
     })
 })
 

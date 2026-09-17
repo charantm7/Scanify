@@ -30,6 +30,17 @@ export const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'scanify.co.in
  */
 export const COOKIE_DOMAIN = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined;
 
+/**
+ * Whether the three subdomains are actually configured for this deployment.
+ *
+ * It decides how public menu links are built: on the menu host the `/menu`
+ * prefix is supplied by the proxy rewrite, so links must omit it, whereas a
+ * local dev server has no subdomains and serves the page at its real
+ * /menu/<slug> path. Keyed off the cookie domain because that is the one
+ * setting that must be present for the subdomain split to work at all.
+ */
+export const SUBDOMAINS_ENABLED = Boolean(COOKIE_DOMAIN);
+
 const SUBDOMAIN_SURFACES: Record<string, AppSurface> = {
   dashboard: 'dashboard',
   menu: 'menu',
@@ -163,4 +174,53 @@ export function isInfrastructurePath(pathname: string): boolean {
     pathname === '/robots.txt' ||
     pathname === '/sitemap.xml'
   );
+}
+
+// ── Public menu URLs ─────────────────────────────────────────────────────────
+
+/**
+ * The URL a diner lands on, which is what QR codes encode and what the
+ * dashboard's "view live menu" links point at.
+ *
+ * In production this is always absolute on the menu host, because the menu
+ * surface is a different origin from the dashboard that renders the link.
+ * Locally there are no subdomains, so it falls back to the internal
+ * /menu/<slug> path that the same dev server serves.
+ *
+ * `menuSlug` is omitted for a hotel's primary menu, so single-menu hotels keep
+ * the short URL their existing QR codes already encode.
+ */
+export function publicMenuUrl(hotelSlug: string, menuSlug?: string | null): string {
+  const path = menuSlug ? `/${hotelSlug}/${menuSlug}` : `/${hotelSlug}`;
+
+  // Dev / preview: no menu subdomain exists, so stay same-origin on the real
+  // path the app serves.
+  if (!SUBDOMAINS_ENABLED) return `${MENU_PATH_PREFIX}${path}`;
+
+  return `${surfaceOrigin('menu')}${path}`;
+}
+
+/**
+ * Same destination as publicMenuUrl but root-relative, for links rendered by
+ * the public menu page itself — the diner is already on the right host, so a
+ * relative href keeps navigation client-side instead of forcing a full reload.
+ */
+export function publicMenuPath(hotelSlug: string, menuSlug?: string | null): string {
+  const path = menuSlug ? `/${hotelSlug}/${menuSlug}` : `/${hotelSlug}`;
+
+  // On the menu host the proxy adds the /menu prefix; everywhere else the page
+  // is served at its real path and the prefix is part of the URL.
+  return SUBDOMAINS_ENABLED ? path : `${MENU_PATH_PREFIX}${path}`;
+}
+
+/** Slugifies a menu name into something the menus_slug_check constraint accepts. */
+export function toMenuSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
+    .replace(/-+$/g, '');
 }

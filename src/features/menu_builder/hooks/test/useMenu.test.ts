@@ -24,21 +24,29 @@ describe('useMenu — initial load', () => {
         const categories = [{ id: 'c1', name: 'Starters', items: [] } as any]
         s.loadMenuData.mockResolvedValue(categories)
 
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
 
         await waitFor(() => expect(result.current.state.loading).toBe(false))
         expect(result.current.state.categories).toEqual(categories)
     })
 
+    it('loads the SELECTED MENU, not the hotel', async () => {
+        s.loadMenuData.mockResolvedValue([])
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-7'))
+        await waitFor(() => expect(result.current.state.loading).toBe(false))
+
+        expect(s.loadMenuData).toHaveBeenCalledWith(expect.anything(), 'menu-7')
+    })
+
     it('does not call loadMenuData when hotelId is undefined', () => {
-        renderHook(() => useMenu(undefined))
+        renderHook(() => useMenu(undefined, 'menu-1'))
         expect(s.loadMenuData).not.toHaveBeenCalled()
     })
 
     it('dispatches ERROR and toasts on load failure, leaving categories empty', async () => {
         s.loadMenuData.mockRejectedValue(new Error('network down'))
 
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
 
         await waitFor(() => expect(result.current.state.loading).toBe(false))
         expect(result.current.state.error).toBe('network down')
@@ -49,7 +57,7 @@ describe('useMenu — initial load', () => {
 
 describe('useMenu — category actions', () => {
     it('addCategory appends the returned category to state', async () => {
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.createCategory.mockResolvedValue({ id: 'c1', name: 'Desserts', items: [] } as any)
@@ -60,7 +68,7 @@ describe('useMenu — category actions', () => {
     })
 
     it('addCategory toasts an error and does not modify state on failure', async () => {
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.createCategory.mockRejectedValue(new Error('duplicate category'))
@@ -72,9 +80,29 @@ describe('useMenu — category actions', () => {
     })
 
     it('is a no-op when hotelId is undefined', async () => {
-        const { result } = renderHook(() => useMenu(undefined))
+        const { result } = renderHook(() => useMenu(undefined, 'menu-1'))
         await act(async () => { await result.current.actions.addCategory('Desserts', null) })
         expect(s.createCategory).not.toHaveBeenCalled()
+    })
+
+    it('is a no-op when no menu is selected yet', async () => {
+        // useMenus resolves the selection asynchronously, so menuId is briefly
+        // undefined; a category created then would have no menu to belong to.
+        const { result } = renderHook(() => useMenu('hotel-1', undefined))
+        await act(async () => { await result.current.actions.addCategory('Desserts', null) })
+        expect(s.createCategory).not.toHaveBeenCalled()
+    })
+
+    it('passes the selected menu id through to createCategory', async () => {
+        s.createCategory.mockResolvedValue({ id: 'c1', name: 'Desserts', items: [] } as any)
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-9'))
+        await waitFor(() => expect(result.current.state.loading).toBe(false))
+
+        await act(async () => { await result.current.actions.addCategory('Desserts', null) })
+
+        expect(s.createCategory).toHaveBeenCalledWith(
+            expect.anything(), 'hotel-1', 'menu-9', 'Desserts', null, expect.anything(), expect.anything()
+        )
     })
 
     it('renameCategory patches only the matching category name', async () => {
@@ -82,7 +110,7 @@ describe('useMenu — category actions', () => {
             { id: 'c1', name: 'Old', items: [] } as any,
             { id: 'c2', name: 'Other', items: [] } as any,
         ])
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.renameCategoryService.mockResolvedValue(undefined as any)
@@ -95,7 +123,7 @@ describe('useMenu — category actions', () => {
 
     it('deleteCategory removes the category from state', async () => {
         s.loadMenuData.mockResolvedValue([{ id: 'c1', name: 'Gone', items: [] } as any])
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.removeCategory.mockResolvedValue(undefined as any)
@@ -108,7 +136,7 @@ describe('useMenu — category actions', () => {
     it('reorderCategories updates state optimistically, before the persist call resolves', async () => {
         const initial = [{ id: 'c1', name: 'A', items: [] }, { id: 'c2', name: 'B', items: [] }] as any
         s.loadMenuData.mockResolvedValue(initial)
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         let resolvePersist: () => void
@@ -126,7 +154,7 @@ describe('useMenu — category actions', () => {
     it('reorderCategories reverts via loadMenu (refetch) if persisting fails', async () => {
         const initial = [{ id: 'c1', name: 'A', items: [] }, { id: 'c2', name: 'B', items: [] }] as any
         s.loadMenuData.mockResolvedValueOnce(initial)
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.persistCategoryOrder.mockRejectedValue(new Error('failed'))
@@ -145,7 +173,7 @@ describe('useMenu — item actions', () => {
     it('saveItem with no `existing` creates a new item, dispatches ADD_ITEM, and fires onItemCountChange', async () => {
         s.loadMenuData.mockResolvedValue([{ id: 'c1', name: 'Starters', items: [] } as any])
         const onItemCountChange = vi.fn()
-        const { result } = renderHook(() => useMenu('hotel-1', onItemCountChange))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1', onItemCountChange))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.createItem.mockResolvedValue({ id: 'i1', category_id: 'c1', name: 'Samosa' } as any)
@@ -165,7 +193,7 @@ describe('useMenu — item actions', () => {
             { id: 'c1', name: 'Starters', items: [{ id: 'i1', name: 'Old Name' }] } as any,
         ])
         const onItemCountChange = vi.fn()
-        const { result } = renderHook(() => useMenu('hotel-1', onItemCountChange))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1', onItemCountChange))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.updateItemService.mockResolvedValue({ name: 'New Name' } as any)
@@ -180,7 +208,7 @@ describe('useMenu — item actions', () => {
 
     it('saveItem returns false and toasts on failure, without mutating state', async () => {
         s.loadMenuData.mockResolvedValue([{ id: 'c1', name: 'Starters', items: [] } as any])
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.createItem.mockRejectedValue(new Error('price required'))
@@ -196,7 +224,7 @@ describe('useMenu — item actions', () => {
     })
 
     it('saveItem is a no-op returning false when hotelId is missing', async () => {
-        const { result } = renderHook(() => useMenu(undefined))
+        const { result } = renderHook(() => useMenu(undefined, 'menu-1'))
         let success: boolean;
         await act(async () => {
             success = await result.current.actions.saveItem({} as any, null, 'c1')
@@ -210,7 +238,7 @@ describe('useMenu — item actions', () => {
             { id: 'c1', name: 'Starters', items: [{ id: 'i1', name: 'Samosa' }] } as any,
         ])
         const onItemCountChange = vi.fn()
-        const { result } = renderHook(() => useMenu('hotel-1', onItemCountChange))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1', onItemCountChange))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.removeItem.mockResolvedValue(undefined as any)
@@ -225,7 +253,7 @@ describe('useMenu — item actions', () => {
         s.loadMenuData.mockResolvedValue([
             { id: 'c1', name: 'Starters', items: [{ id: 'i1', name: 'Samosa', is_available: true }] } as any,
         ])
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         let resolveToggle: () => void
@@ -242,7 +270,7 @@ describe('useMenu — item actions', () => {
         s.loadMenuData.mockResolvedValue([
             { id: 'c1', name: 'Starters', items: [{ id: 'i1', name: 'Samosa', is_available: true }] } as any,
         ])
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.setItemAvailabilityService.mockRejectedValue(new Error('failed'))
@@ -259,7 +287,7 @@ describe('useMenu — item actions', () => {
         s.loadMenuData.mockResolvedValueOnce([
             { id: 'c1', name: 'Starters', items: [{ id: 'i1' }, { id: 'i2' }] } as any,
         ])
-        const { result } = renderHook(() => useMenu('hotel-1'))
+        const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))
         await waitFor(() => expect(result.current.state.loading).toBe(false))
 
         s.persistItemOrder.mockRejectedValue(new Error('failed'))
