@@ -177,7 +177,7 @@ export default function Navbar({ user: initialUser }) {
                   {user ? (
                     <div className='flex gap-3'>
                       <Link
-                        href="/console"
+                        href="/dashboard"
                         className="w-full text-center px-4 py-3 rounded-xl text-sm font-semibold text-white"
                         style={{ background: 'var(--accent)' }}
                       >
@@ -226,7 +226,7 @@ export default function Navbar({ user: initialUser }) {
             <div className='flex items-center hover:bg-[var(--hover)] rounded-lg px-3'>
               <LayoutDashboard size={15} />
               <Link
-                href="/console"
+                href="/dashboard"
                 onClick={() => setOpen(false)}
                 className="px-3 py-2 rounded-lg text-sm hover:bg-theme3"
               >

@@ -114,7 +114,7 @@ export async function AuthSignIn(
 
     const profile = await getUserProfile(supabase, data.user.id);
 
-    const destination = profile?.onboarding_complete ? '/console' : '/onboarding';
+    const destination = profile?.onboarding_complete ? '/dashboard' : '/onboarding';
     redirectWithToast('Welcome Back!', destination, toast, router)
 }
 

@@ -1,13 +1,35 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, NextRequest } from 'next/server';
+import {
+    COOKIE_DOMAIN,
+    MENU_PATH_PREFIX,
+    isDashboardPath,
+    isInfrastructurePath,
+    isLandingPath,
+    resolveSurface,
+    surfaceOrigin,
+    type AppSurface,
+} from './lib/domains';
 
-const PROTECTED_ROUTES = ['/console', '/onboarding'] as const;
+// Paths that require a signed-in owner.
+const PROTECTED_ROUTES = [
+    '/dashboard',
+    '/menu-builder',
+    '/customization',
+    '/qr-codes',
+    '/analytics',
+    '/billing',
+    '/transactions',
+    '/settings',
+    '/onboarding',
+] as const;
+
 const AUTH_ROUTES = ['/login', '/forget-password', '/check-mail'] as const;
 
 const matchesRoute = (
     pathname: string,
     routes: readonly string[]
-): boolean => routes.some(route => pathname.startsWith(route))
+): boolean => routes.some(route => pathname === route || pathname.startsWith(`${route}/`))
 
 const redirect = (
     request: NextRequest,
@@ -19,15 +41,93 @@ const redirect = (
     return NextResponse.redirect(redirectUrl);
 };
 
+/** Sends a request to the same path on a different surface's host. */
+const redirectToSurface = (
+    request: NextRequest,
+    surface: Exclude<AppSurface, 'dev'>,
+    path?: string
+): NextResponse => {
+    const target = new URL(path ?? request.nextUrl.pathname, surfaceOrigin(surface));
+    target.search = request.nextUrl.search;
+    return NextResponse.redirect(target);
+};
+
+/**
+ * menu.scanify.co.in/<hotel-slug>[/<menu-slug>] is served by the app's
+ * /menu/<hotel-slug>[/<menu-slug>] routes. Rewriting (not redirecting) keeps
+ * the short, QR-friendly URL in the address bar.
+ */
+function handleMenuSurface(request: NextRequest): NextResponse {
+    const { pathname } = request.nextUrl;
+
+    // Nothing to show at the bare menu host — send visitors to the marketing
+    // site rather than a 404.
+    if (pathname === '/') {
+        return redirectToSurface(request, 'landing', '/');
+    }
+
+    // Already prefixed (a direct hit on /menu/... via this host): leave alone
+    // so we never produce /menu/menu/...
+    if (pathname === MENU_PATH_PREFIX || pathname.startsWith(`${MENU_PATH_PREFIX}/`)) {
+        return NextResponse.next();
+    }
+
+    // The menu host serves only menus. Anything that looks like an app or
+    // marketing path belongs on another surface.
+    if (isDashboardPath(pathname) || isLandingPath(pathname)) {
+        return redirectToSurface(
+            request,
+            isDashboardPath(pathname) ? 'dashboard' : 'landing'
+        );
+    }
+
+    const url = request.nextUrl.clone();
+    url.pathname = `${MENU_PATH_PREFIX}${pathname}`;
+    return NextResponse.rewrite(url);
+}
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
     const url = request.nextUrl
     const pathname = url.pathname
 
-    const isPublic = pathname.startsWith('/menu')
-
-    if (isPublic) {
+    // Framework internals, API routes and static files are surface-agnostic.
+    if (isInfrastructurePath(pathname)) {
         return NextResponse.next();
+    }
+
+    const surface = resolveSurface(request.headers.get('host'));
+
+    // ---- Public menu surface: no session needed, no auth cost ----
+    if (surface === 'menu') {
+        return handleMenuSurface(request);
+    }
+
+    // The public menu is also reachable at /menu/... on any surface (useful in
+    // local dev, where there are no subdomains). Skip auth for it.
+    if (pathname === MENU_PATH_PREFIX || pathname.startsWith(`${MENU_PATH_PREFIX}/`)) {
+        return NextResponse.next();
+    }
+
+    // ---- Admin console: reserved, not built yet ----
+    // Park it on the dashboard rather than 404ing, so the hostname can be
+    // pointed at this deployment ahead of the admin app existing.
+    if (surface === 'console') {
+        return redirectToSurface(request, 'dashboard', '/dashboard');
+    }
+
+    // ---- Keep each path on its canonical host ----
+    if (surface === 'dashboard') {
+        // Bare dashboard host lands on the overview.
+        if (pathname === '/') {
+            return redirect(request, '/dashboard');
+        }
+        if (isLandingPath(pathname)) {
+            return redirectToSurface(request, 'landing');
+        }
+    } else if (surface === 'landing') {
+        if (isDashboardPath(pathname)) {
+            return redirectToSurface(request, 'dashboard');
+        }
     }
 
     let response = NextResponse.next({
@@ -46,6 +146,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         supabaseUrl,
         supabaseAnonKey,
         {
+            // Matches the browser and server clients so refreshed tokens stay
+            // valid across dashboard./menu./apex.
+            ...(COOKIE_DOMAIN ? { cookieOptions: { domain: COOKIE_DOMAIN } } : {}),
             cookies: {
                 getAll: () => request.cookies.getAll(),
                 setAll: (cookiesToSet: {
@@ -82,15 +185,21 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
             const loginUrl = request.nextUrl.clone();
             loginUrl.pathname = '/login';
             loginUrl.searchParams.set('next', pathname);
-            
+
             return NextResponse.redirect(loginUrl);
         }
         return response;
     }
 
-    // Authenticated user on auth pages → bounce to console
+    // Authenticated user on auth pages → bounce to the dashboard
     if (isAuthRoute) {
-        return redirect(request, '/console');
+        return redirect(request, '/dashboard');
+    }
+
+    // Only app routes need the hotel/onboarding checks below. On the landing
+    // surface a signed-in visitor is just reading marketing pages.
+    if (!isProtected) {
+        return response;
     }
 
     const { data: hotelData, error: hotelError } = await supabase

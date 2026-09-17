@@ -42,10 +42,15 @@ describe('AppContext — bootstrap with a full session', () => {
         trialEndsInHours?: number
         maxMenuItems?: number
         menuItemCount?: number
+        maxMenus?: number
+        menus?: any[]
     }) {
         const o = {
             plan: 'basic', subStatus: 'active', trialEndsInHours: 0,
-            maxMenuItems: 10, menuItemCount: 3, ...overrides,
+            maxMenuItems: 10, menuItemCount: 3,
+            maxMenus: 3,
+            menus: [{ id: 'menu-1', name: 'Main Menu', slug: 'main', is_primary: true, hidden_by_plan: false }],
+            ...overrides,
         }
 
         const client = createTableRoutedClient({
@@ -55,8 +60,12 @@ describe('AppContext — bootstrap with a full session', () => {
                 data: { status: o.subStatus, trial_ends_at: o.trialEndsInHours ? futureDate(o.trialEndsInHours) : null },
                 error: null,
             },
-            plan_limits: { data: { max_menu_items: o.maxMenuItems, ordering_enabled: true }, error: null },
+            plan_limits: {
+                data: { max_menu_items: o.maxMenuItems, max_menus: o.maxMenus, advanced_item_details: true },
+                error: null,
+            },
             menu_items: { data: null, error: null, count: o.menuItemCount },
+            menus: { data: o.menus, error: null },
         }, { session: { user: { id: 'user-1' } } })
 
         mockedGetSupabaseClient.mockReturnValue(client as any)
@@ -128,7 +137,8 @@ describe('AppContext — bootstrap with a full session', () => {
         expect(result.current.isPastDue).toBe(true)
         expect(result.current.isActionBlocked).toBe(true)
         expect(result.current.canAddMenuItem).toBe(false)
-        expect(result.current.canUseOrdering).toBe(false)
+        expect(result.current.canAddMenu).toBe(false)
+        expect(result.current.canUseAdvancedItemDetails).toBe(false)
     })
 
     it('canAddMenuItem is false once menuItemCount reaches maxMenuItems', async () => {
@@ -187,7 +197,8 @@ describe('AppContext — SIGNED_OUT resets state', () => {
             users: { data: { id: 'user-1', plan: 'basic' }, error: null },
             hotels: { data: { id: 'hotel-1', name: 'Spice Route' }, error: null },
             subscriptions: { data: { status: 'active' }, error: null },
-            plan_limits: { data: { max_menu_items: 10 }, error: null },
+            plan_limits: { data: { max_menu_items: 10, max_menus: 3 }, error: null },
+            menus: { data: [], error: null },
             menu_items: { data: null, error: null, count: 3 },
         }, { session: { user: { id: 'user-1' } } })
         client.auth.onAuthStateChange = vi.fn((cb) => {
@@ -226,7 +237,8 @@ describe('AppContext — action helpers', () => {
             users: { data: { id: 'user-1', plan: 'basic' }, error: null },
             hotels: { data: { id: 'hotel-1' }, error: null },
             subscriptions: { data: { status: 'active' }, error: null },
-            plan_limits: { data: { max_menu_items: 10 }, error: null },
+            plan_limits: { data: { max_menu_items: 10, max_menus: 3 }, error: null },
+            menus: { data: [], error: null },
             menu_items: { data: null, error: null, count: 3 },
         }, { session: { user: { id: 'user-1' } } })
         mockedGetSupabaseClient.mockReturnValue(client as any)
@@ -252,7 +264,8 @@ describe('AppContext — action helpers', () => {
             users: { data: { id: 'user-1', plan: 'basic', name: 'Old Name' }, error: null },
             hotels: { data: null, error: null },
             subscriptions: { data: null, error: null },
-            plan_limits: { data: { max_menu_items: 10 }, error: null },
+            plan_limits: { data: { max_menu_items: 10, max_menus: 3 }, error: null },
+            menus: { data: [], error: null },
         }, { session: { user: { id: 'user-1' } } })
         mockedGetSupabaseClient.mockReturnValue(client as any)
 

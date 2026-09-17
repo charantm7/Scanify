@@ -140,14 +140,14 @@ describe('AuthSignIn', () => {
         expect(localStorage.getItem('remember_me')).toBeNull()
     })
 
-    it('redirects to /console when onboarding is complete', async () => {
+    it('redirects to /dashboard when onboarding is complete', async () => {
         q.signInWithPassword.mockResolvedValue({ user: { id: 'u1', email_confirmed_at: 'now' } } as any)
         q.getUserProfile.mockResolvedValue({ onboarding_complete: true } as any)
         const router = createMockRouter()
 
         await AuthSignIn({} as any, { email: 'a@b.com', password: 'x', rememberMe: false }, router as any, createMockToast() as any)
 
-        expect(router.push).toHaveBeenCalledWith('/console')
+        expect(router.push).toHaveBeenCalledWith('/dashboard')
     })
 
     it('redirects to /onboarding when onboarding is incomplete or profile is missing', async () => {

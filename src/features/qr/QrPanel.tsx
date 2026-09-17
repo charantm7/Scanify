@@ -12,11 +12,11 @@ import Image from 'next/image';
 
 import toast from 'react-hot-toast';
 
-import { getSupabaseClient } from '../../../lib/supabase/client';
+import { getSupabaseClient } from '../../lib/supabase/client';
 
-import { useApp } from '../../../context/AppContext';
+import { useApp } from '../../context/AppContext';
 
-import { Card, Button, EmptyState, Alert } from '../../../components/ui/UiComponents';
+import { Card, Button, EmptyState, Alert } from '../../components/ui/UiComponents';
 
 function qrUrl(text: string, size = 256) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&color=000000&bgcolor=ffffff&qzone=2&format=png`;

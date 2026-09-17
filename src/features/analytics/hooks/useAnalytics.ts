@@ -2,9 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../../../context/AppContext';
-import type { MenuScanRow, OrderRow, OrderItemsRow } from '../../../types/supabase';
+import type { MenuScanRow } from '../../../types/supabase';
 import { getMenuScans, getPrevMenuScan, MenuScansWithItem } from '../queries/analytics.query';
-import { getOrderItems, getOrders } from '../../../lib/queries/orders';
 import { AnalyticsPeriod } from '../constants';
 
 import {
@@ -19,7 +18,6 @@ import {
     buildComparison,
     buildDayStats,
     buildFunnel,
-    buildOrderStats,
     buildPeakDays,
     buildPeakHours,
     buildQrBreakdown,
@@ -37,7 +35,6 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
         supabase,
         canViewBasicAnalytics,
         canViewAdvancedAnalytics,
-        canUseOrdering,
     } = useApp();
 
     const [stats, setStats] = useState<AnalyticsStats | null>(null);
@@ -83,25 +80,8 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
                 return;
             }
 
-            // Advance prevMenu scan and ordering in parallel
-            const [prevRes, ordersRes] = await Promise.all([
-
-                getPrevMenuScan(supabase, hotelId, prevSince, since),
-
-                canUseOrdering
-                    ? getOrders(supabase, hotelId, since)
-                    : Promise.resolve({ data: [], error: null }),
-            ]);
-
+            const prevRes = await getPrevMenuScan(supabase, hotelId, prevSince, since);
             const previousScans: MenuScansWithItem[] = prevRes as MenuScansWithItem[];
-            const orders: OrderRow[] = ordersRes as OrderRow[];
-
-            // fetch order items
-            let orderItems: OrderItemsRow[] = [];
-            if (canUseOrdering && orders.length > 0) {
-                const oi = await getOrderItems(supabase, orders);
-                orderItems = (oi ?? []) as OrderItemsRow[];
-            }
 
             // Repeat-day: days with ≥ 2 qr_scan events (proxy for return traffic)
             const scansByDate = new Map<string, number>();
@@ -118,12 +98,11 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
 
             const advancedStats: AdvancedAnalyticsStats = {
                 ...basicStats,
-                topItems: buildTopItems(currentScans, orderItems), // enriched with order data
+                topItems: buildTopItems(currentScans),
                 peakHours: buildPeakHours(currentScans),
                 peakDays: buildPeakDays(currentScans),
                 qrBreakdown: buildQrBreakdown(currentScans),
                 funnel: buildFunnel(currentScans),
-                orders: canUseOrdering ? buildOrderStats(orders, days) : null,
                 comparison: buildComparison(currentScans, previousScans),
                 repeatDays,
                 avgSessionDepth,
@@ -135,7 +114,7 @@ export function useAnalytics(period: AnalyticsPeriod = '7d') {
         } finally {
             setLoading(false);
         }
-    }, [hotelId, period, canViewBasicAnalytics, canViewAdvancedAnalytics, canUseOrdering, supabase]);
+    }, [hotelId, period, canViewBasicAnalytics, canViewAdvancedAnalytics, supabase]);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect

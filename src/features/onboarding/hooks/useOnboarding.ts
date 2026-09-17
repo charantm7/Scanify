@@ -165,7 +165,7 @@ export function useOnboarding(): UseOnboardingReturn {
     }, [form, userId, supabase, toast, run, validateStep, email]);
 
     const goToConsole = useCallback(() => {
-        window.location.href = `https://${window.location.host}/console`;
+        window.location.href = `https://${window.location.host}/dashboard`;
     }, []);
 
     const completedFields: Record<number, number> = {
@@ -189,7 +189,7 @@ export function useOnboarding(): UseOnboardingReturn {
         form,
         errors,
         createdSlug,
-        menuUrl: done ? `${window.location.origin}/console` : '',
+        menuUrl: done ? `${window.location.origin}/dashboard` : '',
         completedFields,
         stepTotals: STEP_TOTALS,
         set,

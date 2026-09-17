@@ -414,7 +414,7 @@ describe('useOnboarding — menuUrl', () => {
 
         await act(async () => { await result.current.handleSubmit() })
 
-        expect(result.current.menuUrl).toBe('https://scanify.co.in/console')
+        expect(result.current.menuUrl).toBe('https://scanify.co.in/dashboard')
     })
 
     it('does not depend on the created slug — same origin regardless of which restaurant signed up', async () => {
@@ -441,18 +441,18 @@ describe('useOnboarding — menuUrl', () => {
 
         // confirms the URL genuinely ignores the slug — a regression test for the
         // exact bug the old subdomainUrlBuilderWithWindow had
-        expect(result.current.menuUrl).toBe('https://scanify.co.in/console')
+        expect(result.current.menuUrl).toBe('https://scanify.co.in/dashboard')
     })
 })
 
 describe('useOnboarding — goToConsole', () => {
-    it('navigates to /console on the current host', async () => {
+    it('navigates to /dashboard on the current host', async () => {
         vi.stubGlobal('location', { host: 'scanify.co.in', href: '' })
         const { result } = renderHook(() => useOnboarding())
         await flushEffects()
 
         act(() => result.current.goToConsole())
 
-        expect((location as any).href).toBe('https://scanify.co.in/console')
+        expect((location as any).href).toBe('https://scanify.co.in/dashboard')
     })
 })

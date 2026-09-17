@@ -1,6 +1,6 @@
 'use client';
 
-import type { MenuScanRow, OrderRow, OrderItemsRow } from '../../../types/supabase';
+import type { MenuScanRow, OrderItemsRow } from '../../../types/supabase';
 import { AnalyticsPeriod, DOW_LABELS } from '../constants';
 import { MenuScansWithItem } from '../queries/analytics.query';
 
@@ -13,7 +13,6 @@ import {
     DayOfWeekStat,
     QrStat,
     FunnelStep,
-    OrderStat,
     PeriodComparison
 
 } from '../types';
@@ -175,41 +174,6 @@ export function buildFunnel(scans: MenuScansWithItem[]): FunnelStep[] {
     }));
 }
 
-export function buildOrderStats(orders: OrderRow[], days: number): OrderStat {
-    const served = orders.filter(o => o.status === 'served');
-    const totalRevenue = served.reduce((acc, o) => acc + Number(o.total_amount), 0);
-
-    const byStatus = {
-        pending: orders.filter(o => o.status === 'pending').length,
-        accepted: orders.filter(o => o.status === 'accepted').length,
-        preparing: orders.filter(o => o.status === 'preparing').length,
-        ready: orders.filter(o => o.status === 'ready').length,
-        served: served.length,
-        cancelled: orders.filter(o => o.status === 'cancelled').length,
-    };
-
-    const revBuckets = new Map<string, number>();
-    for (let i = days - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        revBuckets.set(dayKey(d.toISOString()), 0);
-    }
-    for (const o of served) {
-        const k = dayKey(o.created_at);
-        if (revBuckets.has(k)) {
-            revBuckets.set(k, (revBuckets.get(k) ?? 0) + Number(o.total_amount));
-        }
-    }
-
-    return {
-        totalOrders: orders.length,
-        totalRevenue,
-        avgOrderValue: served.length > 0 ? Math.round(totalRevenue / served.length) : 0,
-        ordersPerDay: days > 0 ? Math.round((orders.length / days) * 10) / 10 : 0,
-        byStatus,
-        revenueByDay: Array.from(revBuckets.entries()).map(([label, value]) => ({ label, value })),
-    };
-}
 
 export function buildComparison(
     current: MenuScansWithItem[],

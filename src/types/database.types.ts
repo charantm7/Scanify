@@ -49,6 +49,7 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean
+          menu_id: string
           name: string
           sort_order: number
         }
@@ -61,6 +62,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean
+          menu_id: string
           name: string
           sort_order?: number
         }
@@ -73,6 +75,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean
+          menu_id?: string
           name?: string
           sort_order?: number
         }
@@ -82,6 +85,13 @@ export type Database = {
             columns: ["hotel_id"]
             isOneToOne: false
             referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "categories_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menus"
             referencedColumns: ["id"]
           },
         ]
@@ -441,6 +451,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           dietary_type: string | null
+          hidden_by_plan: boolean
           hotel_id: string
           id: string
           image_url: string | null
@@ -464,6 +475,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           dietary_type?: string | null
+          hidden_by_plan?: boolean
           hotel_id: string
           id?: string
           image_url?: string | null
@@ -487,6 +499,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           dietary_type?: string | null
+          hidden_by_plan?: boolean
           hotel_id?: string
           id?: string
           image_url?: string | null
@@ -612,6 +625,59 @@ export type Database = {
           thumbnail_url?: string | null
         }
         Relationships: []
+      }
+      menus: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          hidden_by_plan: boolean
+          hotel_id: string
+          id: string
+          is_active: boolean
+          is_primary: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          hidden_by_plan?: boolean
+          hotel_id: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          hidden_by_plan?: boolean
+          hotel_id?: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menus_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
@@ -867,6 +933,8 @@ export type Database = {
         Row: {
           advanced_category_management: boolean
           advanced_customization: boolean
+          advanced_item_details: boolean
+          analytics_export_enabled: boolean
           analytics_level: Database["public"]["Enums"]["analytics_level_type"]
           created_at: string
           custom_branding: boolean
@@ -874,17 +942,16 @@ export type Database = {
           google_reviews_integration: boolean
           item_availability_toggle: boolean
           max_branches: number
+          max_images_per_item: number
           max_items_with_images: number
           max_menu_items: number
-          max_orders_per_month: number
+          max_menus: number
           max_qr_codes: number
           max_staff_accounts: number
           multi_branch_enabled: boolean
-          ordering_enabled: boolean
           plan: Database["public"]["Enums"]["plan_type"]
           priority_support: boolean
-          ratings_enabled: boolean
-          realtime_kitchen: boolean
+          qr_customization_level: Database["public"]["Enums"]["qr_customization_level_type"]
           remove_branding: boolean
           staff_accounts_enabled: boolean
           trial_days: number
@@ -893,6 +960,8 @@ export type Database = {
         Insert: {
           advanced_category_management: boolean
           advanced_customization: boolean
+          advanced_item_details?: boolean
+          analytics_export_enabled?: boolean
           analytics_level: Database["public"]["Enums"]["analytics_level_type"]
           created_at?: string
           custom_branding: boolean
@@ -900,17 +969,16 @@ export type Database = {
           google_reviews_integration: boolean
           item_availability_toggle: boolean
           max_branches: number
+          max_images_per_item?: number
           max_items_with_images: number
           max_menu_items: number
-          max_orders_per_month: number
+          max_menus?: number
           max_qr_codes?: number
           max_staff_accounts: number
           multi_branch_enabled: boolean
-          ordering_enabled: boolean
           plan: Database["public"]["Enums"]["plan_type"]
           priority_support: boolean
-          ratings_enabled: boolean
-          realtime_kitchen: boolean
+          qr_customization_level?: Database["public"]["Enums"]["qr_customization_level_type"]
           remove_branding: boolean
           staff_accounts_enabled: boolean
           trial_days?: number
@@ -919,6 +987,8 @@ export type Database = {
         Update: {
           advanced_category_management?: boolean
           advanced_customization?: boolean
+          advanced_item_details?: boolean
+          analytics_export_enabled?: boolean
           analytics_level?: Database["public"]["Enums"]["analytics_level_type"]
           created_at?: string
           custom_branding?: boolean
@@ -926,17 +996,16 @@ export type Database = {
           google_reviews_integration?: boolean
           item_availability_toggle?: boolean
           max_branches?: number
+          max_images_per_item?: number
           max_items_with_images?: number
           max_menu_items?: number
-          max_orders_per_month?: number
+          max_menus?: number
           max_qr_codes?: number
           max_staff_accounts?: number
           multi_branch_enabled?: boolean
-          ordering_enabled?: boolean
           plan?: Database["public"]["Enums"]["plan_type"]
           priority_support?: boolean
-          ratings_enabled?: boolean
-          realtime_kitchen?: boolean
+          qr_customization_level?: Database["public"]["Enums"]["qr_customization_level_type"]
           remove_branding?: boolean
           staff_accounts_enabled?: boolean
           trial_days?: number
@@ -1180,12 +1249,14 @@ export type Database = {
         Row: {
           advanced_category_management: boolean | null
           advanced_customization: boolean | null
+          advanced_item_details: boolean | null
+          analytics_export_enabled: boolean | null
           analytics_level:
-          | Database["public"]["Enums"]["analytics_level_type"]
-          | null
+            | Database["public"]["Enums"]["analytics_level_type"]
+            | null
           billing_cycle:
-          | Database["public"]["Enums"]["billing_cycle_type"]
-          | null
+            | Database["public"]["Enums"]["billing_cycle_type"]
+            | null
           cancel_at_period_end: boolean | null
           current_period_end: string | null
           custom_branding: boolean | null
@@ -1194,20 +1265,22 @@ export type Database = {
           hotel_id: string | null
           item_availability_toggle: boolean | null
           max_branches: number | null
+          max_images_per_item: number | null
           max_items_with_images: number | null
           max_menu_items: number | null
-          max_orders_per_month: number | null
+          max_menus: number | null
           max_qr_codes: number | null
           max_staff_accounts: number | null
           multi_branch_enabled: boolean | null
-          ordering_enabled: boolean | null
           plan: Database["public"]["Enums"]["plan_type"] | null
           priority_support: boolean | null
-          ratings_enabled: boolean | null
-          realtime_kitchen: boolean | null
+          qr_customization_level:
+            | Database["public"]["Enums"]["qr_customization_level_type"]
+            | null
           remove_branding: boolean | null
           staff_accounts_enabled: boolean | null
           status: Database["public"]["Enums"]["subscription_status"] | null
+          trial_days: number | null
           trial_ends_at: string | null
           user_id: string | null
         }
@@ -1287,6 +1360,7 @@ export type Database = {
       | "authorized"
       | "captured"
       | "verified"
+      qr_customization_level_type: "none" | "basic" | "advanced"
       plan_type: "basic" | "starter" | "growth" | "pro"
       restaurant_type:
       | "restaurant"

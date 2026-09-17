@@ -69,6 +69,6 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.redirect(
-        `${origin}${profile.onboarding_complete ? '/console' : next}`
+        `${origin}${profile.onboarding_complete ? '/dashboard' : next}`
     );
 }

@@ -7,7 +7,12 @@ import { vi } from 'vitest'
  */
 function createQueryBuilder() {
     const builder: any = {}
-    const chainMethods = ['select', 'insert', 'update', 'delete', 'eq', 'order', 'limit']
+    const chainMethods = [
+        'select', 'insert', 'update', 'upsert', 'delete',
+        'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'is', 'in', 'not',
+        'like', 'ilike', 'contains', 'filter', 'match', 'or',
+        'order', 'limit', 'range',
+    ]
     const terminalMethods = ['maybeSingle', 'single', 'then']
 
     chainMethods.forEach((m) => { builder[m] = vi.fn(() => builder) })
@@ -36,18 +41,24 @@ export function createMockSupabaseClient() {
 
 export function createChainableResult(result: { data?: any; error?: any; count?: number | null }) {
     const builder: any = {
-        select: vi.fn(() => builder),
-        insert: vi.fn(() => builder),
-        update: vi.fn(() => builder),
-        delete: vi.fn(() => builder),
-        eq: vi.fn(() => builder),
-        like: vi.fn(() => builder),
-        order: vi.fn(() => builder),
-        limit: vi.fn(() => builder),
         maybeSingle: vi.fn(() => Promise.resolve(result)),
         single: vi.fn(() => Promise.resolve(result)),
         then: (resolve: any, reject: any) => Promise.resolve(result).then(resolve, reject),
     }
+
+    // Every filter/modifier returns the builder so chains of any length and
+    // order resolve to the same canned result. Keep this list in step with the
+    // PostgREST methods the app actually calls — a missing one throws
+    // "is not a function" deep inside a Promise.all and surfaces as a
+    // confusing empty-state assertion failure rather than a clear error.
+    const chainMethods = [
+        'select', 'insert', 'update', 'upsert', 'delete',
+        'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'is', 'in', 'not',
+        'like', 'ilike', 'contains', 'filter', 'match', 'or',
+        'order', 'limit', 'range',
+    ]
+    chainMethods.forEach((m) => { builder[m] = vi.fn(() => builder) })
+
     return builder
 }
 
