@@ -65,13 +65,16 @@ export async function GET(req: NextRequest) {
         .update({ status: 'expired', updated_at: nowIso })
         .in('id', trialIds);
 
+      // Table is `hotels`, not `hotel` — this silently failed every run, so
+      // hotels stayed live (and their menus publicly reachable) after the
+      // trial expired.
       const { error: hotelError } = await supabaseAdmin
-        .from('hotel')
+        .from('hotels')
         .update({ is_active: false })
-        .in('owner_id', userIds)
+        .in('owner_id', userIds);
 
       if (hotelError) {
-        console.log(hotelError)
+        console.error('Failed to deactivate hotels for expired trials:', hotelError);
       }
 
       if (error) {

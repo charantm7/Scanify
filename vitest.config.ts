@@ -7,6 +7,9 @@ export default defineConfig({
     test: {
         environment: 'jsdom',
         setupFiles: ['./tests/setup.ts'],
+        // Playwright specs live in e2e/ and are driven by playwright.config.ts.
+        // Without this, vitest collects them and they fail on import.
+        exclude: ['**/node_modules/**', '**/dist/**', '**/.next/**', 'e2e/**'],
         globals: true,
         coverage: {
             provider: 'v8',

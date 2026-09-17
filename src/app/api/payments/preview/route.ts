@@ -139,6 +139,7 @@ export async function POST(req: NextRequest) {
                     subtotalPaise: decision.amountPaise,
                     amountPaise: (decision.amountPaise ?? 0) + TAX_PAISE,
                     periodWillReset: Boolean(decision.resetPeriod),
+                    carryOverDays: decision.carryOverDays ?? 0,
                 });
 
             default:

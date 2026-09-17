@@ -776,6 +776,8 @@ export type Database = {
         Row: {
           amount_paise: number
           billing_cycle: Database["public"]["Enums"]["billing_cycle_type"]
+          cancelled_at: string | null
+          carry_over_days: number
           created_at: string
           currency: string
           failure_reason: string | null
@@ -796,6 +798,8 @@ export type Database = {
         Insert: {
           amount_paise: number
           billing_cycle: Database["public"]["Enums"]["billing_cycle_type"]
+          cancelled_at?: string | null
+          carry_over_days?: number
           created_at?: string
           currency?: string
           failure_reason?: string | null
@@ -816,6 +820,8 @@ export type Database = {
         Update: {
           amount_paise?: number
           billing_cycle?: Database["public"]["Enums"]["billing_cycle_type"]
+          cancelled_at?: string | null
+          carry_over_days?: number
           created_at?: string
           currency?: string
           failure_reason?: string | null

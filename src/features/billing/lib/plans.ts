@@ -78,16 +78,19 @@ export type PlanChangeType = 'same' | 'upgrade' | 'downgrade' | 'cycle_change';
  * Combined plan+cycle change classification used by the checkout flow.
  *
  * Business rules (deliberate & simple):
- *  - Same plan, same cycle           -> 'same'         (already subscribed)
- *  - Plan tier goes up (any cycle)   -> 'upgrade'       (charge now, prorated)
- *  - Plan tier goes down (any cycle) -> 'downgrade'     (deferred to period end,
- *                                       NEVER charged immediately, regardless
- *                                       of whether the cycle also changes)
- *  - Same plan tier, cycle changes   -> 'cycle_change'  (charge now, prorated —
- *                                       switching Monthly <-> Annual always
- *                                       takes effect immediately in EITHER
- *                                       direction, since the user is actively
- *                                       opting into a new commitment length)
+ *  - Same plan, same cycle             -> 'same'        (already subscribed)
+ *  - Plan tier goes up (any cycle)     -> 'upgrade'      (charge now, prorated;
+ *                                         unused value always follows the user
+ *                                         forward — see carryOverDays below)
+ *  - Plan tier goes down (any cycle)   -> 'downgrade'    (deferred to period
+ *                                         end, NEVER charged immediately)
+ *  - Same tier, monthly -> annual      -> 'cycle_change' (charge now, prorated,
+ *                                         fresh annual period)
+ *  - Same tier, annual -> monthly      -> 'downgrade'    (deferred: shortening
+ *                                         the commitment is not something we
+ *                                         charge for mid-period, and applying
+ *                                         it immediately would strand the
+ *                                         annual time already paid for)
  */
 export function comparePlanChange(
   currentPlan: PlanKey,
@@ -100,9 +103,10 @@ export function comparePlanChange(
   if (tierComparison === 'upgrade') return 'upgrade';
   if (tierComparison === 'downgrade') return 'downgrade';
 
-  // Same plan tier — the only remaining question is whether the billing
-  // cycle changed.
-  return currentCycle === newCycle ? 'same' : currentCycle === 'monthly' && newCycle === 'annual' ? 'cycle_change' : 'downgrade';
+  // Same plan tier — the only remaining question is which way the billing
+  // cycle moved.
+  if (currentCycle === newCycle) return 'same';
+  return currentCycle === 'monthly' && newCycle === 'annual' ? 'cycle_change' : 'downgrade';
 }
 
 export interface ProrationResult {
@@ -122,6 +126,22 @@ export interface ProrationResult {
    * not just a mid-cycle tier change.
    */
   cycleChanged: boolean;
+  /**
+   * Extra days to APPEND to that fresh period, funded by credit that exceeded
+   * the destination's full sticker price.
+   *
+   * Without this, a cross-cycle upgrade silently destroyed paid time: going
+   * from growth-annual with 300 days left (~₹10,684 of unused value) to
+   * pro-monthly capped the credit at pro-monthly's ₹1,999 sticker and then
+   * reset the period to a bare 30 days — about ₹10.6k of already-paid time
+   * simply vanished. The leftover credit is now converted into days at the
+   * DESTINATION plan's daily rate, so value is preserved across the switch
+   * (300 growth days become ~160 pro days) instead of being forfeited.
+   *
+   * Always 0 when the cycle is unchanged, since that path deliberately
+   * preserves the existing current_period_end and has nothing to append to.
+   */
+  carryOverDays: number;
 }
 
 /**
@@ -135,25 +155,24 @@ export interface ProrationResult {
  * from the CURRENT plan's OWN cycle daily rate (never the new cycle's
  * rate), multiplied by whole days left until current_period_end.
  *
- * Charge = destination plan+cycle sticker price − credit, floored at
- * MIN_CHARGE_PAISE (credit itself is capped so it can never exceed the
- * destination sticker price — this function never implies a refund).
+ * Charge = destination baseline − credit, floored at MIN_CHARGE_PAISE, where
+ * the baseline is:
+ *   - the full sticker price, when the cycle changes (fulfilment grants a
+ *     brand-new full period at the new cycle); or
+ *   - the new plan's own daily rate over `daysRemaining`, when the cycle is
+ *     unchanged (fulfilment preserves the existing current_period_end, so the
+ *     user only gets `daysRemaining` days of the new plan, not a fresh full
+ *     one). Charging full sticker price for a partial period is what caused
+ *     users to be overcharged on mid-cycle tier upgrades.
+ *
+ * Credit never exceeds the baseline, so this function never implies a refund;
+ * any excess is returned as `carryOverDays` instead.
  *
  * Returns null when there's no time left to prorate against (the period
  * has technically already lapsed but the cron hasn't caught up yet) —
  * callers should treat that as "charge the new plan's full sticker price"
  * (a fresh purchase), not a ₹0 prorate.
  */
-
-// What the user is actually BUYING right now. When the cycle changes,
-// fulfilment grants a brand-new full period at the new cycle, so the full
-// sticker price is the right baseline. When the cycle is unchanged (a
-// same-cycle plan-tier upgrade), fulfilment deliberately preserves the
-// existing current_period_end — the user only gets `daysRemaining` days of
-// the new plan, not a fresh full period — so the baseline must be the new
-// plan's OWN daily rate prorated over daysRemaining, not its full sticker
-// price. Charging full sticker price for a partial period is what caused
-// users to be overcharged on mid-cycle tier upgrades.
 export function calculateCreditBasedProration(
   currentPlan: PlanKey,
   currentCycle: BillingCycle,
@@ -179,13 +198,24 @@ export function calculateCreditBasedProration(
 
   const cycleChanged = currentCycle !== newCycle;
 
-  const originalPricePaise = cycleChanged ? newStickerPaise : Math.round((newStickerPaise / newDurationDays) * daysRemaining);
+  const newDailyRate = newStickerPaise / newDurationDays;
+
+  const originalPricePaise = cycleChanged
+    ? newStickerPaise
+    : Math.round(newDailyRate * daysRemaining);
 
   const currentDailyRate = currentPrice / currentDurationDays;
   const rawCredit = Math.round(currentDailyRate * daysRemaining);
 
-  // Never let credit exceed the destination price.
+  // Never let credit exceed the destination price...
   const creditPaise = Math.min(rawCredit, originalPricePaise);
+
+  // ...but don't throw the excess away either. Convert whatever the
+  // destination price couldn't absorb into extra days at the destination's own
+  // daily rate. Only meaningful when the period is being reset.
+  const carryOverDays = cycleChanged
+    ? Math.floor((rawCredit - creditPaise) / newDailyRate)
+    : 0;
 
   const rawAmount = originalPricePaise - creditPaise;
   const amountPaise = Math.max(rawAmount, MIN_CHARGE_PAISE);
@@ -195,6 +225,7 @@ export function calculateCreditBasedProration(
     originalPricePaise,
     creditPaise,
     daysRemaining,
-    cycleChanged: currentCycle !== newCycle,
+    cycleChanged,
+    carryOverDays,
   };
 }

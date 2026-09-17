@@ -17,10 +17,12 @@
 //     keeps the existing current_period_end — the user already paid (via
 //     the proration charge) only for the remaining days of the CURRENT
 //     period at the new plan's rate.
-//   - ANY billing-cycle change (monthly <-> annual, in either direction) —
-//     or a fresh purchase/renewal — resets current_period_start/end to a
-//     brand new full period for the destination cycle, because the user is
-//     now paying for a new commitment length, not just a mid-cycle swap.
+//   - A billing-cycle change — or a fresh purchase/renewal — resets
+//     current_period_start/end to a brand new full period for the destination
+//     cycle, because the user is now paying for a new commitment length, not
+//     just a mid-cycle swap. Any unused value the new sticker price couldn't
+//     absorb rides along as payment.carry_over_days, appended to that fresh
+//     period so no already-paid time is lost in the switch.
 //
 // We detect "did the cycle change" by comparing the payment's billing_cycle
 // against the subscription row's CURRENT billing_cycle at fulfilment time
@@ -37,6 +39,8 @@ export interface FulfilmentResult {
   periodReset: boolean;
   alreadyProcessed?: boolean;
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function fulfillSubscriptionPayment(
   payment: PaymentRow,
@@ -64,7 +68,14 @@ export async function fulfillSubscriptionPayment(
 
   if (needsFreshPeriod) {
     const { durationDays } = getPlanPricing(plan, cycle);
-    const periodEnd = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+    // Unused value from the previous period that the new plan's sticker price
+    // couldn't absorb was converted into extra days at checkout time (see
+    // ProrationResult.carryOverDays) and stored on the payment row. Append it,
+    // otherwise a cross-cycle upgrade silently forfeits already-paid time.
+    const carryOverDays = payment.carry_over_days ?? 0;
+    const totalDays = durationDays + carryOverDays;
+    const periodEnd = new Date(now.getTime() + totalDays * DAY_MS);
 
     subUpdate = {
       plan,
