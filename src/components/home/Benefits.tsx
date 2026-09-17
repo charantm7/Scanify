@@ -55,6 +55,7 @@ const compareRows = [
   { feature: 'Availability control', digital: true, printed: false },
   { feature: 'Contactless', digital: true, printed: false },
   { feature: 'Zero ongoing cost', digital: true, printed: false },
+  { feature: 'Customization', digital: true, printed: false },
   { feature: 'Works offline', digital: null, printed: true },
 ]
 
