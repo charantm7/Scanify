@@ -17,6 +17,7 @@ import { useMenuUI } from "../hooks/useMenuUI";
 import { buildThemeTokens } from "../utils/theme";
 import { searchMenu } from "../utils/search";
 import { QUERY_KEYS } from "../constant";
+import { shouldShowScanifyBadge } from "../utils/plan-presentation";
 
 import type { MenuPageData, MenuItem } from "../types";
 
@@ -35,7 +36,7 @@ export default function MenuPageClient({
     qrCodeId,
 }: MenuPageClientProps) {
 
-    const { categories, customization, hotel, menus, activeMenu } = data;
+    const { categories, customization, hotel, menus, activeMenu, entitlements } = data;
 
 
     const accesstype = qrCodeId ? "qr_scan" : "page_view";
@@ -239,7 +240,12 @@ export default function MenuPageClient({
                 </AnimatePresence>
             </main>
 
-            <MenuFooter showBadge={customization.show_scanify_badge} />
+            <MenuFooter
+                showBadge={shouldShowScanifyBadge(
+                    customization.show_scanify_badge,
+                    entitlements
+                )}
+            />
 
 
             <DishModal

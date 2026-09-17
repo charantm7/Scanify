@@ -62,6 +62,12 @@ export async function updateMenuQuery(
     is_active: boolean;
     hidden_by_plan: boolean;
     sort_order: number;
+    /**
+     * Only set alongside hidden_by_plan, when swapping which menu is live.
+     * For an ordinary promotion use setPrimaryMenuQuery, which clears the old
+     * primary first — the partial unique index allows just one per hotel.
+     */
+    is_primary: boolean;
   }>
 ): Promise<void> {
   const { error } = await supabase.from('menus').update(patch as never).eq('id', id);

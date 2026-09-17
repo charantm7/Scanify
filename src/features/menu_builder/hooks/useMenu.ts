@@ -21,6 +21,7 @@ import {
   updateItemService,
   removeItem,
   setItemAvailabilityService,
+  setItemPlanHiddenService,
   persistItemOrder,
 } from '../services/menu.services';
 import { useApp } from '../../../context/AppContext';
@@ -226,6 +227,22 @@ export function useMenu(
     [supabase, toast]
   );
 
+  const toggleItemPlanHidden = useCallback(
+    async (item: MenuItem) => {
+      const next = !item.hidden_by_plan;
+      // Not optimistic: the database can refuse this (the plan is full), and
+      // showing the item as restored before finding out would be a lie.
+      try {
+        await setItemPlanHiddenService(supabase, item.id, next);
+        dispatch({ type: 'UPDATE_ITEM', payload: { id: item.id, hidden_by_plan: next } });
+        toast.success(next ? 'Item hidden' : 'Item restored');
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to update item');
+      }
+    },
+    [supabase, toast]
+  );
+
   const reorderItems = useCallback(
     async (categoryId: string, reordered: MenuItem[]) => {
       dispatch({ type: 'REORDER_ITEMS', payload: { categoryId, items: reordered } });
@@ -251,6 +268,7 @@ export function useMenu(
       saveItem,
       deleteItem,
       toggleItemAvailability,
+      toggleItemPlanHidden,
       reorderItems,
     },
   };

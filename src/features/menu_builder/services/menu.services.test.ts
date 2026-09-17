@@ -122,6 +122,81 @@ describe('createItem — payload shaping', () => {
         }))
     })
 
+    it('parses the extended detail fields and nulls the unfilled ones', async () => {
+        const toast = createMockToast()
+        q.insertItemQuery.mockResolvedValue({ id: 'i1' } as any)
+
+        await createItem({} as any, 'hotel-1', 'c1', {
+            name: 'Paneer Tikka', description: '', price: '199', variants: [],
+            image_url: '', is_available: true, dietary_type: '', tags: [], spice_level: '',
+            serving_size: '  250g  ',
+            preparation_time: '20',
+            calories: '450',
+            ingredients: ['  paneer  ', '', 'cream'],
+            allergens: [],
+        } as any, [], toast)
+
+        expect(q.insertItemQuery).toHaveBeenCalledWith({} as any, expect.objectContaining({
+            serving_size: '250g',
+            preparation_time: 20,
+            calories: 450,
+            ingredients: ['paneer', 'cream'],
+            // Empty list stores as null, not [], so "not specified" is one value.
+            allergens: null,
+        }))
+    })
+
+    it('stores an unfilled optional number as null rather than 0', async () => {
+        const toast = createMockToast()
+        q.insertItemQuery.mockResolvedValue({ id: 'i1' } as any)
+
+        await createItem({} as any, 'hotel-1', 'c1', {
+            name: 'Chai', description: '', price: '20', variants: [],
+            image_url: '', is_available: true, dietary_type: '', tags: [], spice_level: '',
+            serving_size: '', preparation_time: '', calories: '',
+            ingredients: [], allergens: [],
+        } as any, [], toast)
+
+        const payload = q.insertItemQuery.mock.calls[0][1]
+        // A 0 would render as "0 kcal" and "0 min" on the public menu.
+        expect(payload.preparation_time).toBeNull()
+        expect(payload.calories).toBeNull()
+        expect(payload.serving_size).toBeNull()
+    })
+
+    it('writes extended details even on a plan that cannot display them', async () => {
+        // The plan decides what the public menu SHOWS; the owner's content is
+        // always preserved so an upgrade brings it straight back.
+        const toast = createMockToast()
+        q.insertItemQuery.mockResolvedValue({ id: 'i1' } as any)
+
+        await createItem({} as any, 'hotel-1', 'c1', {
+            name: 'Biryani', description: '', price: '300', variants: [],
+            image_url: '', is_available: true, dietary_type: '', tags: [], spice_level: '',
+            serving_size: 'Serves 2', preparation_time: '35', calories: '800',
+            ingredients: ['rice'], allergens: ['dairy'],
+        } as any, [], toast)
+
+        const payload = q.insertItemQuery.mock.calls[0][1]
+        expect(payload.ingredients).toEqual(['rice'])
+        expect(payload.allergens).toEqual(['dairy'])
+    })
+
+    it('does not crash when a form is missing the extended fields entirely', async () => {
+        // A stale cached form shape must not be able to break saving.
+        const toast = createMockToast()
+        q.insertItemQuery.mockResolvedValue({ id: 'i1' } as any)
+
+        await createItem({} as any, 'hotel-1', 'c1', {
+            name: 'Lassi', description: '', price: '80', variants: [],
+            image_url: '', is_available: true, dietary_type: '', tags: [], spice_level: '',
+        } as any, [], toast)
+
+        const payload = q.insertItemQuery.mock.calls[0][1]
+        expect(payload.serving_size).toBeNull()
+        expect(payload.ingredients).toBeNull()
+    })
+
     it('drops incomplete price variants (empty label or non-numeric price)', async () => {
         const toast = createMockToast()
         q.insertItemQuery.mockResolvedValue({ id: 'i1' } as any)

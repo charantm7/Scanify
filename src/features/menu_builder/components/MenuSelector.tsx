@@ -11,7 +11,7 @@
 
 import { useState } from 'react';
 import {
-  Plus, Star, Eye, EyeOff, Pencil, Trash2, Check, X, Lock, ExternalLink, Loader2,
+  Plus, Star, Eye, EyeOff, Pencil, Trash2, Check, X, Lock, ExternalLink, Loader2, RefreshCw,
 } from 'lucide-react';
 import type { Menu } from '../types';
 import { publicMenuUrl } from '../../../lib/domains';
@@ -30,6 +30,8 @@ interface MenuSelectorProps {
   onMakePrimary: (menu: Menu) => Promise<void>;
   onToggleActive: (menu: Menu) => Promise<void>;
   onDelete: (menu: Menu) => Promise<void>;
+  /** Swaps a plan-parked menu in for the current live one. */
+  onSwitchLive?: (menu: Menu) => Promise<void>;
 }
 
 function IconButton({
@@ -74,6 +76,7 @@ export function MenuSelector({
   onMakePrimary,
   onToggleActive,
   onDelete,
+  onSwitchLive,
 }: MenuSelectorProps) {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
@@ -281,17 +284,44 @@ export function MenuSelector({
       {/* Menus a downgrade took out of service */}
       {parkedMenus.length > 0 && (
         <div
-          className="rounded-xl p-3 text-xs"
+          className="rounded-xl p-3 text-xs space-y-2"
           style={{ background: 'var(--accentlt)', color: 'var(--text2)' }}
         >
-          <p className="font-bold mb-1" style={{ color: 'var(--accent)' }}>
-            {parkedMenus.length} menu{parkedMenus.length === 1 ? '' : 's'} paused by your current plan
-          </p>
-          <p className="leading-snug">
-            {parkedMenus.map((m) => m.name).join(', ')} —{' '}
-            {parkedMenus.length === 1 ? 'it is' : 'they are'} saved but not shown to diners.
-            Upgrade to bring {parkedMenus.length === 1 ? 'it' : 'them'} back.
-          </p>
+          <div>
+            <p className="font-bold" style={{ color: 'var(--accent)' }}>
+              {parkedMenus.length} menu{parkedMenus.length === 1 ? '' : 's'} paused by your current plan
+            </p>
+            <p className="leading-snug mt-0.5">
+              Saved but not shown to diners. Pick one to use instead of your
+              current live menu, or upgrade to show
+              {parkedMenus.length === 1 ? ' it' : ' them all'}.
+            </p>
+          </div>
+
+          {onSwitchLive && (
+            <div className="flex flex-wrap gap-2">
+              {parkedMenus.map((menu) => (
+                <button
+                  key={menu.id}
+                  type="button"
+                  onClick={() => onSwitchLive(menu)}
+                  disabled={disabled}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: 'var(--card)',
+                    border: '1.5px solid var(--border)',
+                    color: 'var(--text)',
+                  }}
+                  // Swapping changes what the hotel's main QR code resolves to,
+                  // so say so rather than letting it be a surprise.
+                  title={`Use "${menu.name}" as the live menu instead (your main QR code will show it)`}
+                >
+                  <RefreshCw size={11} />
+                  Use {menu.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

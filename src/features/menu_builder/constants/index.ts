@@ -107,4 +107,9 @@ export const EMPTY_ITEM_FORM: ItemFormValues = {
   dietary_type: '',
   tags: [],
   spice_level: '',
+  serving_size: '',
+  preparation_time: '',
+  calories: '',
+  ingredients: [],
+  allergens: [],
 };

@@ -7,6 +7,7 @@ import {
   renameMenuService,
   setMenuActiveService,
   setPrimaryMenuService,
+  switchLiveMenuService,
   removeMenu,
 } from './menus.services';
 import * as queries from '../queries/menus.queries';
@@ -199,6 +200,61 @@ describe('setPrimaryMenuService', () => {
     const toast = createMockToast();
     await setPrimaryMenuService({} as never, 'hotel-1', menu({ id: 'm2', is_primary: false }), toast);
     expect(q.setPrimaryMenuQuery).toHaveBeenCalledWith({}, 'hotel-1', 'm2');
+  });
+});
+
+describe('switchLiveMenuService', () => {
+  const outgoing = menu({ id: 'm1', slug: 'main', is_primary: true });
+  const incoming = menu({ id: 'm2', slug: 'drinks', is_primary: false, hidden_by_plan: true });
+
+  it('parks the outgoing menu BEFORE restoring the incoming one', async () => {
+    const toast = createMockToast();
+
+    await switchLiveMenuService({} as never, 'hotel-1', outgoing, incoming, toast);
+
+    // The allowance is full, so restoring first would be refused by the
+    // database. Order is the whole point of this function.
+    expect(q.updateMenuQuery.mock.calls[0]).toEqual([
+      {}, 'm1', { is_primary: false, hidden_by_plan: true },
+    ]);
+    expect(q.updateMenuQuery.mock.calls[1]).toEqual([
+      {}, 'm2', { is_primary: true, hidden_by_plan: false },
+    ]);
+  });
+
+  it('moves the primary flag, so the hotel QR code follows the swap', async () => {
+    const toast = createMockToast();
+
+    await switchLiveMenuService({} as never, 'hotel-1', outgoing, incoming, toast);
+
+    const incomingPatch = q.updateMenuQuery.mock.calls[1]![2];
+    expect(incomingPatch).toMatchObject({ is_primary: true });
+  });
+
+  it('restores the outgoing menu if the second write fails', async () => {
+    const toast = createMockToast();
+    q.updateMenuQuery
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('network reset'));
+
+    await expect(
+      switchLiveMenuService({} as never, 'hotel-1', outgoing, incoming, toast)
+    ).rejects.toThrow('network reset');
+
+    // Otherwise the hotel is left with nothing served at its primary URL.
+    expect(q.updateMenuQuery.mock.calls[2]).toEqual([
+      {}, 'm1', { is_primary: true, hidden_by_plan: false },
+    ]);
+  });
+
+  it('refuses to swap in a menu that is already live', async () => {
+    const toast = createMockToast();
+    const alreadyLive = menu({ id: 'm3', slug: 'x', hidden_by_plan: false });
+
+    await expect(
+      switchLiveMenuService({} as never, 'hotel-1', outgoing, alreadyLive, toast)
+    ).rejects.toThrow(/already live/i);
+    expect(q.updateMenuQuery).not.toHaveBeenCalled();
   });
 });
 

@@ -20,6 +20,7 @@ interface CategoryListProps {
   onEditItem: (item: MenuItem) => void;
   onDeleteItem: (id: string) => Promise<void> | void;
   onToggleItem: (item: MenuItem) => void;
+  onTogglePlanHidden?: (item: MenuItem) => void;
   onReorderItems: (categoryId: string, items: MenuItem[]) => void;
   onReorderCategories: (categories: Category[]) => void;
   onCreateFirstCategory: () => void;
@@ -51,6 +52,7 @@ export function CategoryList({
   onEditItem,
   onDeleteItem,
   onToggleItem,
+  onTogglePlanHidden,
   onReorderItems,
   onReorderCategories,
   onCreateFirstCategory,
@@ -112,6 +114,7 @@ export function CategoryList({
               onEditItem={onEditItem}
               onDeleteItem={onDeleteItem}
               onToggleItem={onToggleItem}
+          onTogglePlanHidden={onTogglePlanHidden}
               onReorderItems={onReorderItems}
               isAdvanceCategory={isAdvanceCategory}
             />

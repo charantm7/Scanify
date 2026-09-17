@@ -148,6 +148,47 @@ export async function setPrimaryMenuService(
   toast.success(`"${menu.name}" is now your main menu`);
 }
 
+/**
+ * Makes a plan-parked menu the live one, in exchange for the current primary.
+ *
+ * This is the "choose which menu to use" move for an account whose downgrade
+ * left it with more menus than its plan covers. It cannot be done as two
+ * independent toggles: the allowance is full, so the outgoing menu has to be
+ * parked BEFORE the incoming one is restored, or the database refuses the
+ * second write. Same for the primary flag, which a partial unique index
+ * allows only one of per hotel.
+ *
+ * The incoming menu becomes primary, not merely visible, because on a
+ * single-menu plan the primary menu is the one served at /<hotel-slug> — the
+ * URL on every QR code already printed. Swapping without moving the flag would
+ * leave those codes pointing at a parked menu.
+ */
+export async function switchLiveMenuService(
+  supabase: TypedSupabaseClient,
+  hotelId: string,
+  outgoing: Menu,
+  incoming: Menu,
+  toast: ToastApi
+): Promise<void> {
+  if (!incoming.hidden_by_plan) {
+    throw new Error('That menu is already live.');
+  }
+
+  // Order matters — see above.
+  await updateMenuQuery(supabase, outgoing.id, { is_primary: false, hidden_by_plan: true });
+
+  try {
+    await updateMenuQuery(supabase, incoming.id, { is_primary: true, hidden_by_plan: false });
+  } catch (err) {
+    // Put the outgoing menu back rather than leaving the hotel with nothing
+    // served at its primary URL.
+    await updateMenuQuery(supabase, outgoing.id, { is_primary: true, hidden_by_plan: false });
+    throw err;
+  }
+
+  toast.success(`"${incoming.name}" is now your live menu`);
+}
+
 // ── Delete ─────────────────────────────────────────────────────────────────
 
 export async function removeMenu(

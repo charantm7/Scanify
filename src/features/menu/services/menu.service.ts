@@ -13,8 +13,10 @@ import type {
     MenuSummary,
     MenuCategory,
     MenuItem,
+    MenuEntitlements,
     MenuScanEvent,
 } from "../types";
+import { applyPlanPresentation } from "../utils/plan-presentation";
 
 /** Distinguishes "no such hotel" from "that hotel has no such menu". */
 export class MenuNotFoundError extends Error {
@@ -63,6 +65,18 @@ export async function fetchMenuPage(
         .single<DBHotel>();
 
     if (hotelErr || !hotel) notFound(`Hotel not found: ${slug}`);
+
+    // 2a. Presentation entitlements.
+    //
+    // Goes through a security-definer function because this page is rendered
+    // anonymously and `users` (which holds the plan) is readable only by its
+    // owner. A failure here is non-fatal: the menu is served unrestricted
+    // rather than stripping a paying hotel's content over a lookup error.
+    const { data: entitlementRows } = await supabase
+        .rpc("hotel_menu_entitlements", { p_hotel_id: hotel.id });
+
+    const entitlements: MenuEntitlements | null =
+        (Array.isArray(entitlementRows) ? entitlementRows[0] : entitlementRows) ?? null;
 
     // 2. Customization — falls back to defaults if not configured yet
     const { data: customizationRow } = await supabase
@@ -120,6 +134,7 @@ export async function fetchMenuPage(
         customization,
         menus: summaries,
         activeMenu,
+        entitlements,
     };
 
     // 4. Categories — scoped to the active menu
@@ -204,12 +219,18 @@ export async function fetchMenuPage(
 
     const nonEmptyCats = categories.filter((c) => c.items.length > 0);
 
+    // Last step, on the assembled and ordered categories: the plan decides
+    // which item details may be shown, and the image caps are spent in the
+    // order a diner reads the menu.
+    const presented = applyPlanPresentation(nonEmptyCats, entitlements);
+
     return {
         hotel,
-        categories: nonEmptyCats,
+        categories: presented,
         customization,
         menus: summaries,
         activeMenu,
+        entitlements,
     };
 }
 

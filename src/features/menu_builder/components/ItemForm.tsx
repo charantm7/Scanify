@@ -4,10 +4,11 @@
 // Redesigned: cleaner section dividers, better field grouping, improved mobile layout
 
 import { useState } from 'react';
-import { ChefHat, IndianRupee, ImageIcon, Plus, X as XIcon, Info } from 'lucide-react';
+import { ChefHat, IndianRupee, ImageIcon, Plus, X as XIcon, Info, Lock, Clock, Flame, Users } from 'lucide-react';
 import { Input, Textarea, Toggle, Button } from '../../../components/ui/UiComponents';
 import { DIETARY_META, TAG_META, MAX_VARIANTS_PER_ITEM, SPICE_LEVEL_META } from '../constants';
 import { useItemForm } from '../hooks/useItemForm';
+import { ListInput } from './shared/ListInput';
 import type { MenuItem, DietaryType, ItemTag, ItemFormValues, SpiceLevel } from '../types';
 
 interface ItemFormProps {
@@ -15,6 +16,9 @@ interface ItemFormProps {
   onSubmit: (values: ItemFormValues) => void;
   loading?: boolean;
   isAdvanceCategory: boolean;
+  /** plan_limits.advanced_item_details — gates the extra details section. */
+  canUseAdvancedDetails?: boolean;
+  onUpgrade?: () => void;
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -28,9 +32,20 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function ItemForm({ initial = null, onSubmit, loading, isAdvanceCategory }: ItemFormProps) {
-  const { form, errors, setField, toggleTag, addVariant, updateVariant, removeVariant, validate } =
-    useItemForm(initial);
+export function ItemForm({
+  initial = null,
+  onSubmit,
+  loading,
+  isAdvanceCategory,
+  canUseAdvancedDetails = false,
+  onUpgrade,
+}: ItemFormProps) {
+  const {
+    form, errors, setField, toggleTag,
+    addVariant, updateVariant, removeVariant,
+    addListEntry, removeListEntry,
+    validate,
+  } = useItemForm(initial);
 
   function handleSubmit() {
     if (!validate()) return;
@@ -353,6 +368,94 @@ export function ItemForm({ initial = null, onSubmit, loading, isAdvanceCategory 
             </>
           )}
 
+        </section>
+
+        {/* ── Extra details (plan gated) ── */}
+        <section className="space-y-3">
+          <SectionLabel>Extra details</SectionLabel>
+
+          {canUseAdvancedDetails ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Serving size"
+                  placeholder="e.g. 250g / Serves 2"
+                  value={form.serving_size}
+                  onChange={(e) => setField('serving_size', e.target.value)}
+                  icon={Users}
+                />
+                <Input
+                  label="Prep time (min)"
+                  placeholder="20"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={form.preparation_time}
+                  onChange={(e) => setField('preparation_time', e.target.value)}
+                  error={errors.preparation_time}
+                  icon={Clock}
+                />
+              </div>
+
+              <Input
+                label="Calories (kcal)"
+                placeholder="450"
+                type="number"
+                min="0"
+                step="1"
+                value={form.calories}
+                onChange={(e) => setField('calories', e.target.value)}
+                error={errors.calories}
+                icon={Flame}
+              />
+
+              <ListInput
+                label="Ingredients"
+                placeholder="Add an ingredient"
+                values={form.ingredients}
+                onAdd={(v) => addListEntry('ingredients', v)}
+                onRemove={(v) => removeListEntry('ingredients', v)}
+              />
+
+              <ListInput
+                label="Allergens"
+                placeholder="e.g. dairy, nuts"
+                values={form.allergens}
+                onAdd={(v) => addListEntry('allergens', v)}
+                onRemove={(v) => removeListEntry('allergens', v)}
+              />
+            </>
+          ) : (
+            // Locked rather than hidden, so the owner can see what upgrading
+            // unlocks. Anything already filled in on a higher plan is kept in
+            // the database untouched and reappears on upgrade — it simply
+            // stops being shown on the public menu.
+            <div
+              className="rounded-xl p-4 flex items-start gap-3"
+              style={{ background: 'var(--accentlt)', border: '1.5px dashed var(--border)' }}
+            >
+              <Lock size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 2 }} />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
+                  Serving size, prep time, calories, ingredients &amp; allergens
+                </p>
+                <p className="text-xs mt-1 leading-snug" style={{ color: 'var(--text2)' }}>
+                  Available on Growth. Details you have already added are kept
+                  safe and reappear as soon as you upgrade.
+                </p>
+                {onUpgrade && (
+                  <button
+                    type="button"
+                    onClick={onUpgrade}
+                    className="mt-2 text-xs font-bold underline"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    See plans →
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </section>
 
         {isAdvanceCategory && (

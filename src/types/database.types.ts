@@ -1320,6 +1320,23 @@ export type Database = {
         }
         Returns: undefined
       }
+      hotel_menu_entitlements: {
+        Args: { p_hotel_id: string }
+        Returns: {
+          advanced_item_details: boolean
+          max_images_per_item: number
+          max_items_with_images: number
+          remove_branding: boolean
+        }[]
+      }
+      hotel_plan: {
+        Args: { p_hotel_id: string }
+        Returns: Database["public"]["Enums"]["plan_type"]
+      }
+      reconcile_hotel_to_plan: {
+        Args: { p_hotel_id: string }
+        Returns: undefined
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }

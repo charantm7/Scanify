@@ -39,6 +39,15 @@ export interface MenuItem {
   tags: ItemTag[] | null;
   sort_order: number;
   spice_level: SpiceLevel | null;
+  /** Set when a plan downgrade took this item out of service. */
+  hidden_by_plan?: boolean;
+
+  // ── Extended details, gated by plan_limits.advanced_item_details ──────────
+  serving_size: string | null;
+  preparation_time: number | null;
+  calories: number | null;
+  ingredients: string[] | null;
+  allergens: string[] | null;
 }
 
 /**
@@ -80,12 +89,23 @@ export interface ItemFormValues {
   dietary_type: DietaryType | '';
   tags: ItemTag[];
   spice_level: SpiceLevel | '';
+
+  // ── Extended details ─────────────────────────────────────────────────────
+  // Held as strings because they come straight from text inputs; the service
+  // layer parses and nulls them on the way to the database.
+  serving_size: string;
+  preparation_time: string;
+  calories: string;
+  ingredients: string[];
+  allergens: string[];
 }
 
 export interface ItemFormErrors {
   name?: string;
   price?: string;
   variants?: string;
+  preparation_time?: string;
+  calories?: string;
 }
 
 export interface ItemModalState {

@@ -14,6 +14,7 @@ import { useMenu } from '../hooks/useMenu';
 import { useMenus } from '../hooks/useMenus';
 import { MenuHeader } from './MenuHeader';
 import { MenuSelector } from './MenuSelector';
+import { PlanLimitNotice } from './PlanLimitNotice';
 import { UpgradeAlerts } from './UpgradeAlerts';
 import { CategoryCreateBar } from './CategoryCreateBar';
 import { CategoryList } from './CategoryList';
@@ -38,6 +39,7 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
     advancedCategories,
     maxMenus,
     canAddMenu,
+    canUseAdvancedItemDetails,
   } = useApp();
 
   const {
@@ -77,6 +79,14 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
   function openEditItem(item: MenuItem) {
     setItemModal({ open: true, item, categoryId: item.category_id });
   }
+
+  // Items in THIS menu that the plan is currently withholding. Counted from
+  // the loaded categories rather than from a separate query, so it always
+  // matches what the list below is showing.
+  const hiddenItemCount = state.categories.reduce(
+    (total, category) => total + category.items.filter((i) => i.hidden_by_plan).length,
+    0
+  );
 
   if (menusLoading || state.loading) {
     return (
@@ -129,6 +139,15 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
           onMakePrimary={menuActions.makePrimary}
           onToggleActive={menuActions.toggleMenuActive}
           onDelete={menuActions.deleteMenu}
+          onSwitchLive={menuActions.switchLiveMenu}
+        />
+
+        <PlanLimitNotice
+          hiddenItemCount={hiddenItemCount}
+          parkedMenuCount={parkedMenus.length}
+          maxMenuItems={maxMenuItems}
+          planLabel={planLabel}
+          onUpgrade={() => onNavigate('billing')}
         />
 
         <UpgradeAlerts
@@ -153,6 +172,7 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
           onEditItem={openEditItem}
           onDeleteItem={actions.deleteItem}
           onToggleItem={actions.toggleItemAvailability}
+          onTogglePlanHidden={actions.toggleItemPlanHidden}
           onReorderItems={actions.reorderItems}
           onReorderCategories={actions.reorderCategories}
           onCreateFirstCategory={() => handleCreateCategory('Mains', null)}
@@ -168,6 +188,8 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
         onClose={() => setItemModal({ open: false, item: null, categoryId: null })}
         onSubmit={handleSaveItem}
         isAdvanceCategory={advancedCategories}
+        canUseAdvancedDetails={canUseAdvancedItemDetails}
+        onUpgrade={() => onNavigate('billing')}
       />
     </>
   );

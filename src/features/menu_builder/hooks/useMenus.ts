@@ -20,6 +20,7 @@ import {
   renameMenuService,
   setMenuActiveService,
   setPrimaryMenuService,
+  switchLiveMenuService,
   removeMenu,
   persistMenuOrder,
 } from '../services/menus.services';
@@ -182,6 +183,31 @@ export function useMenus(hotelId: string | undefined) {
     [hotelId, supabase, toast, refreshMenus]
   );
 
+  /** Swaps a plan-parked menu in for the current primary one. */
+  const switchLiveMenu = useCallback(
+    async (incoming: Menu) => {
+      if (!hotelId) return;
+      const outgoing = menus.find((m) => m.is_primary && !m.hidden_by_plan);
+      if (!outgoing) {
+        toast.error('No live menu to swap out.');
+        return;
+      }
+
+      try {
+        await switchLiveMenuService(supabase, hotelId, outgoing, incoming, toast);
+        // Reload rather than patching: the swap touches two rows and the
+        // primary flag, and a stale local guess here would put the builder out
+        // of step with which menu is actually being served.
+        await load();
+        setSelectedMenuId(incoming.id);
+        await refreshMenus?.();
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to switch menu');
+      }
+    },
+    [hotelId, supabase, menus, toast, load, refreshMenus]
+  );
+
   const deleteMenu = useCallback(
     async (menu: Menu) => {
       try {
@@ -223,6 +249,7 @@ export function useMenus(hotelId: string | undefined) {
       renameMenu,
       toggleMenuActive,
       makePrimary,
+      switchLiveMenu,
       deleteMenu,
       reorderMenus,
     },

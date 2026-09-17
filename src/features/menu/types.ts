@@ -169,6 +169,19 @@ export interface MenuCategory extends DBCategory {
     items: MenuItem[];
 }
 
+/**
+ * Presentation-only slice of the hotel's plan, resolved through the
+ * hotel_menu_entitlements security-definer function. Deliberately excludes the
+ * plan name and every billing field so the public menu can be rendered
+ * anonymously without widening access to `users`.
+ */
+export interface MenuEntitlements {
+    advanced_item_details: boolean;
+    max_images_per_item: number;
+    max_items_with_images: number;
+    remove_branding: boolean;
+}
+
 export interface MenuPageData {
     hotel: DBHotel;
     categories: MenuCategory[];
@@ -180,6 +193,8 @@ export interface MenuPageData {
     menus: MenuSummary[];
     /** The menu whose categories are in `categories`. */
     activeMenu: MenuSummary;
+    /** Null when the hotel's plan could not be resolved. */
+    entitlements: MenuEntitlements | null;
 }
 
 // ── Theme tokens ───────────────────────────────────────────────────────────────
