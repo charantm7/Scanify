@@ -1,9 +1,8 @@
 // app/auth-callback/route.js
 import { createClient } from '../../../lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { createUserProfile, getUserProfile, getUserProfileWithOnboarding } from '../../../lib/queries/user';
-import { UserInsert, UserRow } from '../../../types/supabase';
-import { error } from 'node:console';
+import { createUserProfile, getUserProfileWithOnboarding } from '../../../lib/queries/user';
+import { UserInsert } from '../../../types/supabase';
 
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
@@ -18,19 +17,12 @@ export async function GET(request) {
   const supabase = await createClient();
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-  console.log("main Error", error)
-  console.log("Exchange Error", exchangeError);
-
   if (exchangeError) {
+    console.error('[auth-callback] code exchange failed:', exchangeError.message);
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
   const { data: { user } } = await supabase.auth.getUser();
-
-  console.log({
-    userId: user?.id,
-    email: user?.email,
-  });
 
   if (!user) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
@@ -47,19 +39,23 @@ export async function GET(request) {
     return response;
   }
 
-  const profile = await getUserProfileWithOnboarding(supabase, user?.id)
-  console.log(profile);
+  // A session is not proof of a confirmed email: with "Confirm email" off in
+  // Supabase, sign-up hands out a session straight away. Only Supabase's own
+  // email_confirmed_at says the address was verified.
+  if (!user.email_confirmed_at) {
+    return NextResponse.redirect(`${origin}/check-mail`);
+  }
+
+  const profile = await getUserProfileWithOnboarding(supabase, user.id)
 
   if (!profile) {
     const payload: UserInsert = {
       id: user.id,
       onboarding_complete: false,
       email: user.email,
-      is_verified: true,
+      is_verified: Boolean(user.email_confirmed_at),
     }
-    const result = await createUserProfile(supabase, payload);
-
-    console.log(result);
+    await createUserProfile(supabase, payload);
 
     return NextResponse.redirect(`${origin}/onboarding`);
   }

@@ -10,7 +10,11 @@ export async function GET(request: Request) {
 
     const token_hash = searchParams.get('token_hash');
     const type = searchParams.get('type') as EmailOtpType | null;
-    const next = searchParams.get('next') ?? '/onboarding';
+    // `next` comes from the email link, so anyone can edit it. It's appended to
+    // origin, so "@evil.com" or ".evil.com" would leave our host. Allow only
+    // same-origin paths.
+    const rawNext = searchParams.get('next');
+    const next = rawNext && /^\/(?![/\\])/.test(rawNext) ? rawNext : '/onboarding';
 
     if (!token_hash || !type) {
         return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
@@ -53,7 +57,13 @@ export async function GET(request: Request) {
         return response;
     }
 
-    // Signup / email verification flow
+    // Signup / email verification flow. verifyOtp succeeding is not enough on
+    // its own (an email_change OTP, say), so trust Supabase's confirmation
+    // timestamp rather than asserting it.
+    if (!user.email_confirmed_at) {
+        return NextResponse.redirect(`${origin}/check-mail`);
+    }
+
     const profile = await getUserProfileWithOnboarding(supabase, user.id);
 
     if (!profile) {
@@ -61,7 +71,7 @@ export async function GET(request: Request) {
             id: user.id,
             onboarding_complete: false,
             email: user.email!,
-            is_verified: true,
+            is_verified: Boolean(user.email_confirmed_at),
         };
 
         await createUserProfile(supabase, payload);
