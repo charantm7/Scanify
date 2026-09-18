@@ -191,6 +191,16 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         return response;
     }
 
+    // A session with an unconfirmed email (possible whenever "Confirm email"
+    // is off in Supabase) must not reach the app. The sign-in form checks
+    // this too, but only in the browser, where it can be skipped.
+    if (!user.email_confirmed_at) {
+        if (isProtected) {
+            return redirect(request, '/check-mail', 'email_not_verified');
+        }
+        return response;
+    }
+
     // Authenticated user on auth pages → bounce to the dashboard
     if (isAuthRoute) {
         return redirect(request, '/dashboard');
