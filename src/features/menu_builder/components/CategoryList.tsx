@@ -27,17 +27,45 @@ interface CategoryListProps {
   isAdvanceCategory: boolean;
 }
 
-function filterCategories(categories: Category[], search: string): Category[] {
-  if (!search.trim()) return categories;
+/**
+ * Narrows what is on screen without rewriting the data underneath it.
+ *
+ * The previous version replaced `items` with the matching subset, and that
+ * filtered array was then what CategoryBlock reordered and counted. Dragging
+ * an item while a search was active committed the subset as the category's
+ * whole list — every non-matching item vanished from the menu and had its
+ * sort_order rewritten. The same filtered array also fooled the
+ * "remove all items before deleting" guard into letting a full category be
+ * deleted whenever the search hid its contents.
+ *
+ * So the category keeps its real `items`, and the ids that matched travel
+ * alongside as `visibleItemIds`.
+ */
+type FilteredCategory = { category: Category; visibleItemIds: Set<string> | null };
+
+function filterCategories(categories: Category[], search: string): FilteredCategory[] {
+  if (!search.trim()) {
+    return categories.map((category) => ({ category, visibleItemIds: null }));
+  }
+
   const q = search.trim().toLowerCase();
+
   return categories
-    .map((c) => ({
-      ...c,
-      items: c.items.filter(
+    .map((category) => {
+      const nameMatches = category.name.toLowerCase().includes(q);
+      const matching = category.items.filter(
         (i) => i.name.toLowerCase().includes(q) || (i.description ?? '').toLowerCase().includes(q)
-      ),
-    }))
-    .filter((c) => c.items.length > 0 || c.name.toLowerCase().includes(q));
+      );
+
+      return {
+        category,
+        // A category matched by its own name shows all of its items.
+        visibleItemIds: nameMatches ? null : new Set(matching.map((i) => i.id)),
+        hit: nameMatches || matching.length > 0,
+      };
+    })
+    .filter((entry) => entry.hit)
+    .map(({ category, visibleItemIds }) => ({ category, visibleItemIds }));
 }
 
 export function CategoryList({
@@ -87,7 +115,7 @@ export function CategoryList({
 
   return (
     <div className="space-y-4">
-      {visible.map((category) => {
+      {visible.map(({ category, visibleItemIds }) => {
         const index = categories.findIndex((c) => c.id === category.id);
         return (
           <div
@@ -105,6 +133,7 @@ export function CategoryList({
           >
             <CategoryBlock
               category={category}
+              visibleItemIds={visibleItemIds}
               viewMode={viewMode}
               isAtCap={isAtCap}
               onRename={onRename}

@@ -7,9 +7,9 @@
 // presentational components below it. No Supabase calls happen here.
 
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { ChefHat, Loader2 } from 'lucide-react';
 import { useApp } from '../../../context/AppContext';
-import { Alert, Button } from '../../../components/ui/UiComponents';
+import { Alert, Button, EmptyState } from '../../../components/ui/UiComponents';
 import { useMenu } from '../hooks/useMenu';
 import { useMenus } from '../hooks/useMenus';
 import { MenuHeader } from './MenuHeader';
@@ -92,6 +92,50 @@ export default function MenuPanel({ onNavigate }: MenuPanelProps) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 size={28} className="animate-spin" style={{ color: 'var(--accent)' }} />
+      </div>
+    );
+  }
+
+  // Menus have loaded and there is nothing editable — a hotel whose first menu
+  // was never created, or one where a downgrade parked every menu. The panel
+  // used to render the spinner forever in this state, which left the owner
+  // with no way to reach the create/restore controls below.
+  if (!selectedMenu) {
+    return (
+      <div className="space-y-5">
+        <MenuSelector
+          menus={editableMenus}
+          parkedMenus={parkedMenus}
+          selectedMenuId={null}
+          hotelSlug={hotel?.slug ?? null}
+          maxMenus={maxMenus}
+          canAddMenu={canAddMenu}
+          disabled={isActionBlocked}
+          onSelect={menuActions.selectMenu}
+          onCreate={menuActions.addMenu}
+          onRename={menuActions.renameMenu}
+          onMakePrimary={menuActions.makePrimary}
+          onToggleActive={menuActions.toggleMenuActive}
+          onDelete={menuActions.deleteMenu}
+          onSwitchLive={menuActions.switchLiveMenu}
+        />
+
+        <EmptyState
+          icon={ChefHat}
+          title={parkedMenus.length ? 'No menu is live on your plan' : 'No menu yet'}
+          description={
+            parkedMenus.length
+              ? 'Your plan allows fewer menus than you have. Pick one above to put back in service, or upgrade to keep them all.'
+              : 'Create a menu to start adding categories and dishes.'
+          }
+          action={
+            parkedMenus.length ? (
+              <Button variant="primary" onClick={() => onNavigate('billing')}>
+                See plans
+              </Button>
+            ) : undefined
+          }
+        />
       </div>
     );
   }

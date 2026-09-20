@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 import { getSupabaseClient } from "../lib/supabase/client";
 import { PLAN_LABELS } from "../types/app.types";
 
@@ -34,23 +34,27 @@ export function AppProvider({ children }) {
 
                 const authUser = session.user;
 
+                // Round 1. plan_limits joins this batch instead of waiting for
+                // the profile: the table is one row per plan (four rows), so
+                // fetching all of them and picking locally is cheaper than the
+                // extra sequential round trip that selecting one row cost.
                 const [
                     { data: prof },
                     { data: hot },
                     { data: sub },
+                    { data: allLimits },
                 ] = await Promise.all([
                     supabase.from("users").select("*").eq("id", authUser.id).maybeSingle(),
                     supabase.from("hotels").select("*").eq("owner_id", authUser.id).maybeSingle(),
                     supabase.from("subscriptions").select("*").eq("user_id", authUser.id).maybeSingle(),
+                    supabase.from("plan_limits").select("*"),
                 ]);
 
                 const planKey = prof?.plan ?? "basic";
-                const { data: limits } = await supabase
-                    .from("plan_limits")
-                    .select("*")
-                    .eq("plan", planKey)
-                    .maybeSingle();
+                const limits =
+                    (allLimits ?? []).find((row) => row.plan === planKey) ?? null;
 
+                // Round 2. Genuinely dependent — both need hotel.id.
                 let count = 0;
                 let menuRows = [];
                 if (hot?.id) {
@@ -104,32 +108,40 @@ export function AppProvider({ children }) {
         return () => { mounted = false; authSub.unsubscribe(); };
     }, [supabase]);
 
-    const refreshMenuCount = async () => {
-        if (!hotel?.id) return;
+    // These three are handed to hooks that list them in useCallback/useEffect
+    // dependency arrays. Declared as plain functions they were new on every
+    // render of this provider, which re-created every downstream callback and
+    // defeated memoisation all the way down the menu builder tree.
+    // Read out of state once so the dependency arrays below name plain values.
+    const hotelId = hotel?.id;
+    const userId = user?.id;
+
+    const refreshMenuCount = useCallback(async () => {
+        if (!hotelId) return;
         const { count } = await supabase
             .from("menu_items")
             .select("id", { count: "exact", head: true })
-            .eq("hotel_id", hotel.id);
+            .eq("hotel_id", hotelId);
         setMenuItemCount(count ?? 0);
-    };
+    }, [supabase, hotelId]);
 
-    const refreshMenus = async () => {
-        if (!hotel?.id) return;
+    const refreshMenus = useCallback(async () => {
+        if (!hotelId) return;
         const { data } = await supabase
             .from("menus")
             .select("*")
-            .eq("hotel_id", hotel.id)
+            .eq("hotel_id", hotelId)
             .is("deleted_at", null)
             .order("sort_order", { ascending: true });
         setMenus(data ?? []);
-    };
+    }, [supabase, hotelId]);
 
-    const refreshHotel = async () => {
-        if (!user?.id) return;
+    const refreshHotel = useCallback(async () => {
+        if (!userId) return;
         const { data } = await supabase
-            .from("hotels").select("*").eq("owner_id", user.id).maybeSingle();
+            .from("hotels").select("*").eq("owner_id", userId).maybeSingle();
         setHotel(data);
-    };
+    }, [supabase, userId]);
 
     const updateProfileLocally = useCallback((patch) => {
         setProfile((prev) => (prev ? { ...prev, ...patch } : patch));
@@ -225,7 +237,10 @@ export function AppProvider({ children }) {
     const canUseCustomSubdomain = !isActionBlocked && customSubdomain;
     const canRemoveBranding = !isActionBlocked && removeBranding;
 
-    const value = {
+    // A fresh object here meant every `useApp()` consumer in the tree re-rendered
+    // on every render of this provider, whatever they actually read from it.
+    /* eslint-disable react-hooks/exhaustive-deps */
+    const value = useMemo(() => ({
         supabase,
 
         user,
@@ -306,7 +321,12 @@ export function AppProvider({ children }) {
         refreshMenus,
         refreshHotel,
         updateProfileLocally,
-    };
+    }), [
+        supabase, user, profile, hotel, subscription, planLimits,
+        menuItemCount, menus, loading, error, now,
+        refreshMenuCount, refreshMenus, refreshHotel, updateProfileLocally,
+    ]);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

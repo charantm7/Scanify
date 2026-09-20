@@ -147,7 +147,7 @@ describe('AuthSignIn', () => {
 
         await AuthSignIn({} as any, { email: 'a@b.com', password: 'x', rememberMe: false }, router as any, createMockToast() as any)
 
-        expect(router.push).toHaveBeenCalledWith('/dashboard')
+        expect(router.push).toHaveBeenCalledWith('/overview')
     })
 
     it('redirects to /onboarding when onboarding is incomplete or profile is missing', async () => {

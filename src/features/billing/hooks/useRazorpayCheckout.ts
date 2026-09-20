@@ -132,7 +132,7 @@ export function useRazorpayCheckout() {
               timeStyle: 'short',
             })}`
           );
-          router.push('/dashboard?trialStarted=true');
+          router.push('/overview?trialStarted=true');
           return;
         }
 
@@ -149,7 +149,7 @@ export function useRazorpayCheckout() {
             })}`
           );
           router.push(
-            `/dashboard?downgradeScheduled=true&newPlan=${orderData.newPlan}&effectiveAt=${encodeURIComponent(
+            `/overview?downgradeScheduled=true&newPlan=${orderData.newPlan}&effectiveAt=${encodeURIComponent(
               orderData.effectiveAt
             )}`
           );
@@ -192,7 +192,7 @@ export function useRazorpayCheckout() {
                 return;
               }
 
-              router.push('/dashboard?upgraded=true');
+              router.push('/overview?upgraded=true');
             } catch {
               setError(
                 'Payment succeeded but we could not confirm activation. Contact support with payment ID: ' +

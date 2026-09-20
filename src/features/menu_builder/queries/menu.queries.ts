@@ -26,6 +26,30 @@ export async function fetchCategoriesQuery(supabase: TypedSupabaseClient, menuId
   return (data ?? []) as unknown as Array<Omit<Category, 'items' | 'hotel_id'>>;
 }
 
+/**
+ * Categories and their items in one round trip.
+ *
+ * The builder used to fetch categories, wait, then fetch items filtered by the
+ * ids that came back — two sequential round trips before anything could be
+ * drawn, on a page that already waits on the menu list. PostgREST can embed
+ * the child rows, so this is one request with the same shape of result.
+ */
+export async function fetchMenuTreeQuery(supabase: TypedSupabaseClient, menuId: string) {
+  const { data, error } = await supabase
+    .from('categories')
+    .select(`${CATEGORY_COLUMNS}, items:menu_items(${ITEM_COLUMNS})`)
+    .eq('menu_id', menuId)
+    .is('deleted_at', null)
+    .is('menu_items.deleted_at', null)
+    .order('sort_order', { ascending: true })
+    .order('sort_order', { foreignTable: 'menu_items', ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as Array<
+    Omit<Category, 'items' | 'hotel_id'> & { items: MenuItem[] | null }
+  >;
+}
+
 export async function insertCategoryQuery(
   supabase: TypedSupabaseClient,
   payload: {

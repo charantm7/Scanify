@@ -3,7 +3,7 @@
 // src/features/menu/components/CategoryBlock.tsx
 // Redesigned: more polished category header, better empty state, cleaner item count badge
 
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Plus, Trash2, Loader2, ChevronDown, GripVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../../../components/ui/UiComponents';
@@ -16,6 +16,12 @@ import type { Category, MenuItem, MenuViewMode } from '../types';
 
 interface CategoryBlockProps {
   category: Category;
+  /**
+   * Ids the active search matched, or null when nothing is being filtered.
+   * The category always carries its real item list; this only decides what is
+   * painted, so reordering and the delete guard still see the truth.
+   */
+  visibleItemIds?: Set<string> | null;
   viewMode: MenuViewMode;
   isAtCap: boolean;
   onRename: (id: string, name: string) => void;
@@ -32,6 +38,7 @@ interface CategoryBlockProps {
 
 export function CategoryBlock({
   category,
+  visibleItemIds = null,
   viewMode,
   isAtCap,
   isAdvanceCategory,
@@ -47,10 +54,24 @@ export function CategoryBlock({
 }: CategoryBlockProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Every item in the category, whatever the search is showing.
   const items = category.items;
+  const filtering = visibleItemIds !== null;
+  const shownItems = useMemo(
+    () => (visibleItemIds ? items.filter((i) => visibleItemIds.has(i.id)) : items),
+    [items, visibleItemIds]
+  );
+
+  // Reorder against the full list — committing a filtered view would drop the
+  // items the search is hiding.
+  const commitReorder = useCallback(
+    (reordered: MenuItem[]) => onReorderItems(category.id, reordered),
+    [category.id, onReorderItems]
+  );
 
   const { dragIndex, overIndex, handleDragStart, handleDragOver, handleDrop, handleDragEnd } =
-    useReorderableList(items, (reordered) => onReorderItems(category.id, reordered));
+    useReorderableList(items, commitReorder);
 
   async function handleDelete() {
     if (items.length > 0) {
@@ -163,7 +184,7 @@ export function CategoryBlock({
 
       {/* Items area */}
       {!collapsed && (
-        items.length === 0 ? (
+        shownItems.length === 0 ? (
           /* Empty state */
           <div className="py-16 px-4 flex flex-col items-center justify-center gap-3 text-center">
             <div
@@ -177,13 +198,15 @@ export function CategoryBlock({
                 className="text-sm font-semibold"
                 style={{ color: 'var(--text)' }}
               >
-                No items in {category.name}
+                {filtering ? `No matches in ${category.name}` : `No items in ${category.name}`}
               </p>
               <p className="text-xs mt-0.5" style={{ color: 'var(--text2)' }}>
-                Add your first dish or drink to this category
+                {filtering
+                  ? `${items.length} item${items.length === 1 ? '' : 's'} here, none matching your search`
+                  : 'Add your first dish or drink to this category'}
               </p>
             </div>
-            {!isAtCap && (
+            {!isAtCap && !filtering && (
               <button
                 onClick={() => onAddItem(category.id)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition"
@@ -195,7 +218,7 @@ export function CategoryBlock({
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 p-4">
-            {items.map((item) => (
+            {shownItems.map((item) => (
               <ItemCard
                 key={item.id}
                 item={item}
@@ -209,10 +232,14 @@ export function CategoryBlock({
           </div>
         ) : (
           <div className="" style={{ borderColor: 'var(--border)' }}>
-            {items.map((item, index) => (
+            {shownItems.map((item) => {
+              const index = items.indexOf(item);
+              return (
               <div
                 key={item.id}
-                draggable
+                // Reordering a filtered view has no well-defined meaning —
+                // the positions on screen are not the positions being saved.
+                draggable={!filtering}
                 onDragStart={handleDragStart(index)}
                 onDragOver={handleDragOver(index)}
                 onDrop={handleDrop(index)}
@@ -236,7 +263,8 @@ export function CategoryBlock({
                   isAdvanceCategory={isAdvanceCategory}
                 />
               </div>
-            ))}
+              );
+            })}
           </div>
         )
       )}

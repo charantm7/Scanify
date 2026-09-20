@@ -17,37 +17,55 @@ const q = vi.mocked(queries)
 beforeEach(() => vi.clearAllMocks())
 
 describe('loadMenuData', () => {
-    it('nests items under their category by category_id', async () => {
-        q.fetchCategoriesQuery.mockResolvedValue([
-            { id: 'c1', name: 'Starters', sort_order: 1 },
-            { id: 'c2', name: 'Mains', sort_order: 2 },
-        ] as any)
-        q.fetchItemsQuery.mockResolvedValue([
-            { id: 'i1', category_id: 'c1', name: 'Samosa' },
-            { id: 'i2', category_id: 'c2', name: 'Biryani' },
-            { id: 'i3', category_id: 'c1', name: 'Pakora' },
+    // Categories and their items now arrive together as one embedded read
+    // rather than a categories query followed by an items query keyed on the
+    // ids it returned — one round trip instead of two sequential ones.
+    it('keeps each category\'s items nested under it', async () => {
+        q.fetchMenuTreeQuery.mockResolvedValue([
+            {
+                id: 'c1', name: 'Starters', sort_order: 1,
+                items: [
+                    { id: 'i1', category_id: 'c1', name: 'Samosa' },
+                    { id: 'i3', category_id: 'c1', name: 'Pakora' },
+                ],
+            },
+            {
+                id: 'c2', name: 'Mains', sort_order: 2,
+                items: [{ id: 'i2', category_id: 'c2', name: 'Biryani' }],
+            },
         ] as any)
 
         const result = await loadMenuData({} as any, 'menu-1')
 
         expect(result.find((c) => c.id === 'c1')?.items).toHaveLength(2)
         expect(result.find((c) => c.id === 'c2')?.items).toHaveLength(1)
-        // Items are fetched for this menu's categories, not the whole hotel.
-        expect(q.fetchItemsQuery).toHaveBeenCalledWith({} as any, ['c1', 'c2'])
+        // Scoped to the one menu, not the whole hotel.
+        expect(q.fetchMenuTreeQuery).toHaveBeenCalledWith({} as any, 'menu-1')
     })
 
-    it('short-circuits without fetching items when there are no categories', async () => {
-        q.fetchCategoriesQuery.mockResolvedValue([])
+    it('reads the menu in a single query', async () => {
+        q.fetchMenuTreeQuery.mockResolvedValue([])
 
         const result = await loadMenuData({} as any, 'menu-1')
 
         expect(result).toEqual([])
-        expect(q.fetchItemsQuery).not.toHaveBeenCalled()
+        expect(q.fetchMenuTreeQuery).toHaveBeenCalledTimes(1)
+    })
+
+    it('normalises a category with no items to an empty array', async () => {
+        // PostgREST returns null, not [], for a category with no children.
+        q.fetchMenuTreeQuery.mockResolvedValue([
+            { id: 'c1', name: 'Starters', sort_order: 1, items: null } as any,
+        ])
+
+        const [category] = await loadMenuData({} as any, 'menu-1')
+        expect(category.items).toEqual([])
     })
 
     it('defaults a null icon to null rather than leaving it undefined', async () => {
-        q.fetchCategoriesQuery.mockResolvedValue([{ id: 'c1', name: 'Starters', sort_order: 1 } as any])
-        q.fetchItemsQuery.mockResolvedValue([])
+        q.fetchMenuTreeQuery.mockResolvedValue([
+            { id: 'c1', name: 'Starters', sort_order: 1, items: [] } as any,
+        ])
 
         const [category] = await loadMenuData({} as any, 'menu-1')
         expect(category.icon).toBeNull()

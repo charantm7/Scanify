@@ -60,8 +60,22 @@ describe('AppContext — bootstrap with a full session', () => {
                 data: { status: o.subStatus, trial_ends_at: o.trialEndsInHours ? futureDate(o.trialEndsInHours) : null },
                 error: null,
             },
+            // The whole table, not one row: bootstrap fetches every plan's
+            // limits in the first parallel batch and picks the matching row
+            // locally, rather than waiting on the profile to know which single
+            // row to ask for.
             plan_limits: {
-                data: { max_menu_items: o.maxMenuItems, max_menus: o.maxMenus, advanced_item_details: true },
+                data: [
+                    {
+                        plan: o.plan ?? 'basic',
+                        max_menu_items: o.maxMenuItems,
+                        max_menus: o.maxMenus,
+                        advanced_item_details: true,
+                    },
+                    // A second plan's row, so the test proves the right one is
+                    // picked out of the table rather than the only one there.
+                    { plan: 'growth', max_menu_items: 999, max_menus: 99, advanced_item_details: true },
+                ],
                 error: null,
             },
             menu_items: { data: null, error: null, count: o.menuItemCount },
@@ -197,7 +211,7 @@ describe('AppContext — SIGNED_OUT resets state', () => {
             users: { data: { id: 'user-1', plan: 'basic' }, error: null },
             hotels: { data: { id: 'hotel-1', name: 'Spice Route' }, error: null },
             subscriptions: { data: { status: 'active' }, error: null },
-            plan_limits: { data: { max_menu_items: 10, max_menus: 3 }, error: null },
+            plan_limits: { data: [{ plan: 'basic', max_menu_items: 10, max_menus: 3 }], error: null },
             menus: { data: [], error: null },
             menu_items: { data: null, error: null, count: 3 },
         }, { session: { user: { id: 'user-1' } } })
@@ -237,7 +251,7 @@ describe('AppContext — action helpers', () => {
             users: { data: { id: 'user-1', plan: 'basic' }, error: null },
             hotels: { data: { id: 'hotel-1' }, error: null },
             subscriptions: { data: { status: 'active' }, error: null },
-            plan_limits: { data: { max_menu_items: 10, max_menus: 3 }, error: null },
+            plan_limits: { data: [{ plan: 'basic', max_menu_items: 10, max_menus: 3 }], error: null },
             menus: { data: [], error: null },
             menu_items: { data: null, error: null, count: 3 },
         }, { session: { user: { id: 'user-1' } } })
@@ -264,7 +278,7 @@ describe('AppContext — action helpers', () => {
             users: { data: { id: 'user-1', plan: 'basic', name: 'Old Name' }, error: null },
             hotels: { data: null, error: null },
             subscriptions: { data: null, error: null },
-            plan_limits: { data: { max_menu_items: 10, max_menus: 3 }, error: null },
+            plan_limits: { data: [{ plan: 'basic', max_menu_items: 10, max_menus: 3 }], error: null },
             menus: { data: [], error: null },
         }, { session: { user: { id: 'user-1' } } })
         mockedGetSupabaseClient.mockReturnValue(client as any)
