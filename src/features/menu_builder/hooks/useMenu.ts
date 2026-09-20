@@ -106,6 +106,10 @@ export function useMenu(
   }, [hotelId, menuId, supabase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (!menuId || !hotelId) {
+      dispatch({ type: 'LOADING' });
+      return;
+    }
     // Back to loading first: without this, switching menus keeps the previous
     // menu's categories on screen until the new fetch resolves, which reads as
     // the wrong menu's content rather than as loading.
