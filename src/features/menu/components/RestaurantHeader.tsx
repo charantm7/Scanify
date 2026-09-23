@@ -183,7 +183,6 @@ export function RestaurantHeader({
 
     return (
         <header
-            className="border-b"
             style={{ borderColor: "var(--color-border)", background: "var(--color-bg)" }}
         >
 
@@ -320,7 +319,7 @@ export function RestaurantHeader({
                     )}
 
                     {customization.show_search && (
-                        <div className="pt-1 pb-4">
+                        <div className="pt-1 pb-1">
                             <SearchBar value={searchQuery} onChange={onSearchChange} />
                         </div>
                     )}

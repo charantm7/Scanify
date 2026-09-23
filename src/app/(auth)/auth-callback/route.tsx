@@ -61,6 +61,6 @@ export async function GET(request) {
   }
 
   return NextResponse.redirect(
-    profile.onboarding_complete ? `${origin}/dashboard` : `${origin}/onboarding`
+    profile.onboarding_complete ? `${origin}/overview` : `${origin}/onboarding`
   );
 }

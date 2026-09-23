@@ -46,21 +46,22 @@ function NoticeCard({
 }: NoticeProps) {
     return (
         <div
-            className="flex items-start gap-4 rounded-2xl border px-5 py-4"
+            className="flex items-start gap-3 sm:gap-4 rounded-xl border px-3.5 py-3 sm:px-5 sm:py-4"
             style={{ background: bg, borderColor }}
         >
 
             <div
-                className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5"
+                className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-md flex items-center justify-center mt-0.5"
                 style={{ background: iconBg }}
             >
-                <Icon size={17} style={{ color: iconColor }} />
+                <Icon size={15} className="sm:hidden" style={{ color: iconColor }} />
+                <Icon size={17} className="hidden sm:block" style={{ color: iconColor }} />
             </div>
 
-            <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
 
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-theme leading-snug">{title}</p>
+                    <p className="text-[13px] sm:text-sm font-semibold text-theme leading-snug">{title}</p>
                     <p className="text-xs text-theme2 mt-0.5 leading-relaxed">{description}</p>
                 </div>
 
@@ -92,7 +93,7 @@ function UpgradeButton({ onClick }: { onClick: () => void }) {
     return (
         <button
             onClick={onClick}
-            className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-bold"
+            className="flex-shrink-0 w-full sm:w-auto flex items-center justify-center gap-1 px-3 py-1.5 rounded-md text-white text-xs font-bold hover:opacity-90 transition"
             style={{ background: 'var(--accent)' }}
         >
             <Zap size={12} /> Upgrade

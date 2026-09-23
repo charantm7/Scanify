@@ -79,6 +79,6 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.redirect(
-        `${origin}${profile.onboarding_complete ? '/dashboard' : next}`
+        `${origin}${profile.onboarding_complete ? '/overview' : next}`
     );
 }

@@ -13,7 +13,7 @@ import {
 
 // Paths that require a signed-in owner.
 const PROTECTED_ROUTES = [
-    '/dashboard',
+    '/overview',
     '/menu-builder',
     '/customization',
     '/qr-codes',
@@ -25,6 +25,36 @@ const PROTECTED_ROUTES = [
 ] as const;
 
 const AUTH_ROUTES = ['/login', '/forget-password', '/check-mail'] as const;
+
+/**
+ * Caches the "owner has a live hotel" verdict from the database check at the
+ * bottom of this file, so it costs one query per TTL rather than one per
+ * navigation. Holds the user id, so it cannot be replayed by another session.
+ */
+const GATE_COOKIE = 'sc_gate';
+const GATE_TTL_SECONDS = 300;
+
+function setDashboardGate(response: NextResponse, userId: string): NextResponse {
+    response.cookies.set(GATE_COOKIE, userId, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: GATE_TTL_SECONDS,
+        ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
+    });
+    return response;
+}
+
+/** Drops the cached verdict so the next request re-checks immediately. */
+function clearDashboardGate(response: NextResponse): NextResponse {
+    response.cookies.set(GATE_COOKIE, '', {
+        path: '/',
+        maxAge: 0,
+        ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
+    });
+    return response;
+}
 
 const matchesRoute = (
     pathname: string,
@@ -77,7 +107,7 @@ function handleMenuSurface(request: NextRequest): NextResponse {
     if (isDashboardPath(pathname) || isLandingPath(pathname)) {
         return redirectToSurface(
             request,
-            isDashboardPath(pathname) ? 'dashboard' : 'landing'
+            isDashboardPath(pathname) ? 'overview' : 'landing'
         );
     }
 
@@ -112,21 +142,21 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     // Park it on the dashboard rather than 404ing, so the hostname can be
     // pointed at this deployment ahead of the admin app existing.
     if (surface === 'console') {
-        return redirectToSurface(request, 'dashboard', '/dashboard');
+        return redirectToSurface(request, 'overview', '/overview');
     }
 
     // ---- Keep each path on its canonical host ----
-    if (surface === 'dashboard') {
+    if (surface === 'overview') {
         // Bare dashboard host lands on the overview.
         if (pathname === '/') {
-            return redirect(request, '/dashboard');
+            return redirect(request, '/overview');
         }
         if (isLandingPath(pathname)) {
             return redirectToSurface(request, 'landing');
         }
     } else if (surface === 'landing') {
         if (isDashboardPath(pathname)) {
-            return redirectToSurface(request, 'dashboard');
+            return redirectToSurface(request, 'overview');
         }
     }
 
@@ -164,9 +194,41 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         }
     );
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    // `getUser()` calls the Supabase auth server over the network on EVERY
+    // request — including every client-side navigation, which fetches an RSC
+    // payload through this proxy. `getClaims()` verifies the JWT locally
+    // against the project's public signing key (and still refreshes an expired
+    // token), so the common case costs no round trip at all.
+    //
+    // Projects still on the legacy symmetric secret cannot verify offline; the
+    // fallback keeps them working unchanged.
+    const { data: claimsData } = await supabase.auth.getClaims();
+    const claims = claimsData?.claims as
+        | {
+            sub: string;
+            email?: string;
+            email_verified?: boolean;
+            user_metadata?: { email_verified?: boolean };
+        }
+        | undefined;
+
+    // `email_verified` is not guaranteed to be in the token (it depends on the
+    // project's JWT template), and this is a security check — so when the
+    // claim is missing we pay for the authoritative lookup rather than guess.
+    const verifiedClaim =
+        claims?.email_verified ?? claims?.user_metadata?.email_verified;
+
+    let user: { id: string; email_confirmed_at?: string | null } | null =
+        claims && verifiedClaim !== undefined
+            ? { id: claims.sub, email_confirmed_at: verifiedClaim ? 'verified' : null }
+            : null;
+
+    if (!user) {
+        const {
+            data: { user: fetched },
+        } = await supabase.auth.getUser();
+        user = fetched;
+    }
 
     if (pathname.startsWith('/reset-password')) {
         const hasRecoveryCookie = request.cookies.get('recovery_flow')
@@ -203,12 +265,27 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
     // Authenticated user on auth pages → bounce to the dashboard
     if (isAuthRoute) {
-        return redirect(request, '/dashboard');
+        return redirect(request, '/overview');
     }
 
     // Only app routes need the hotel/onboarding checks below. On the landing
     // surface a signed-in visitor is just reading marketing pages.
     if (!isProtected) {
+        return response;
+    }
+
+    // The hotel check is a full database round trip and it ran on every single
+    // protected request — including each RSC fetch behind a tab click, where
+    // the answer cannot have changed since a moment ago. A short-lived cookie
+    // carries the "this owner has a live hotel" verdict so the query runs once
+    // every GATE_TTL_SECONDS instead of once per navigation.
+    //
+    // Only the passing verdict is cached, and only briefly: onboarding and
+    // account deletion both clear it (see clearDashboardGate below), so a user
+    // never sits behind a stale pass for more than the TTL.
+    const gateCookie = request.cookies.get(GATE_COOKIE);
+
+    if (gateCookie?.value === user.id) {
         return response;
     }
 
@@ -224,18 +301,17 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
     if (!hotelData) {
         if (pathname.startsWith('/onboarding')) {
-            return response;
+            return clearDashboardGate(response);
         }
-        return redirect(request, '/onboarding');
+        return clearDashboardGate(redirect(request, '/onboarding'));
     }
 
     if (hotelData.deleted_at) {
         await supabase.auth.signOut();
-        return redirect(request, '/login', 'account_deleted');
+        return clearDashboardGate(redirect(request, '/login', 'account_deleted'));
     }
 
-
-    return response;
+    return setDashboardGate(response, user.id);
 }
 
 export const config = {

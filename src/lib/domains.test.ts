@@ -56,7 +56,7 @@ describe('resolveSurface', () => {
 describe('surfaceOrigin', () => {
   it('builds the canonical https origin for each surface', () => {
     expect(surfaceOrigin('landing')).toBe(`https://${ROOT_DOMAIN}`);
-    expect(surfaceOrigin('dashboard')).toBe(`https://dashboard.${ROOT_DOMAIN}`);
+    expect(surfaceOrigin('overview')).toBe(`https://dashboard.${ROOT_DOMAIN}`);
     expect(surfaceOrigin('menu')).toBe(`https://menu.${ROOT_DOMAIN}`);
     expect(surfaceOrigin('console')).toBe(`https://console.${ROOT_DOMAIN}`);
   });
@@ -65,7 +65,7 @@ describe('surfaceOrigin', () => {
 describe('path ownership', () => {
   it('claims every dashboard tab route', () => {
     for (const path of [
-      '/dashboard',
+      '/overview',
       '/menu-builder',
       '/customization',
       '/qr-codes',
@@ -135,7 +135,7 @@ describe('isInfrastructurePath', () => {
   });
 
   it('does not exempt ordinary pages', () => {
-    for (const path of ['/', '/dashboard', '/menu/spice-route', '/apiary']) {
+    for (const path of ['/', '/overview', '/menu/spice-route', '/apiary']) {
       expect(isInfrastructurePath(path)).toBe(false);
     }
   });

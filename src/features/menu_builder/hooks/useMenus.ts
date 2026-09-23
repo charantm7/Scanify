@@ -10,7 +10,7 @@
 // update — "loaded" sets the rows, clears the error and clears loading
 // together, instead of as separate renders that can be observed half-applied.
 
-import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useToast } from '../../../hooks/useToast';
 import { useApp } from '../../../context/AppContext';
 import type { Menu, MenusState } from '../types';
@@ -77,11 +77,15 @@ function reducer(state: MenusState, action: MenusAction): MenusState {
 }
 
 export function useMenus(hotelId: string | undefined) {
-  const { supabase, refreshMenus } = useApp();
+  const { supabase, refreshMenus, menus: contextMenus, loading: appLoading } = useApp();
   const toast = useToast();
 
+  // Seeded from AppContext, which has already loaded this hotel's menus during
+  // bootstrap. Fetching them again here meant the menu builder paid for the
+  // same rows twice on every visit, and showed a spinner for the second trip.
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
+  const seeded = useRef(false);
 
   const { menus, loading, error } = state;
 
@@ -100,8 +104,28 @@ export function useMenus(hotelId: string | undefined) {
   }, [hotelId, supabase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (seeded.current) return;
+
+    // Still bootstrapping — wait rather than firing a duplicate request.
+    if (appLoading) return;
+
+    seeded.current = true;
+
+    if (contextMenus?.length) {
+      dispatch({ type: 'LOADED', payload: contextMenus as Menu[] });
+      return;
+    }
+
+    // No hotel, or genuinely no menus: settle instead of holding `loading`,
+    // which is what left the builder on a permanent spinner for an account
+    // with nothing to edit yet.
+    if (!hotelId) {
+      dispatch({ type: 'LOADED', payload: [] });
+      return;
+    }
+
     load();
-  }, [load]);
+  }, [appLoading, contextMenus, hotelId, load]);
 
   // Menus the owner can actually edit. A menu parked by a downgrade is still
   // listed (so they can see what they lost) but must not be editable, or they

@@ -17,7 +17,7 @@ import {
  * instead of throwing in the middle of a render.
  */
 export const TAB_ROUTES: Record<string, string> = {
-  dashboard: '/dashboard',
+  dashboard: '/overview',
   menu: '/menu-builder',
   'menu-builder': '/menu-builder',
   customization: '/customization',
@@ -54,9 +54,9 @@ export interface NavGroup {
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    title: 'Overview',
+    title: 'Dashboard',
     items: [
-      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/overview', label: 'Overview', icon: LayoutDashboard },
       { href: '/analytics', label: 'Analytics', icon: BarChart3 },
     ],
   },

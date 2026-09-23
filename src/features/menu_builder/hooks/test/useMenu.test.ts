@@ -55,6 +55,42 @@ describe('useMenu — initial load', () => {
     })
 })
 
+describe('useMenu — settling and request ordering', () => {
+    it('settles instead of loading forever when there is no menu to edit', async () => {
+        // A brand new hotel, or one where a downgrade parked every menu, has no
+        // selectable menu id. Reporting "loading" here left the builder on a
+        // spinner with no route to the create-menu button.
+        const { result } = renderHook(() => useMenu('hotel-1', undefined))
+
+        await waitFor(() => expect(result.current.state.loading).toBe(false))
+        expect(result.current.state.categories).toEqual([])
+        expect(result.current.state.error).toBeNull()
+        expect(s.loadMenuData).not.toHaveBeenCalled()
+    })
+
+    it('ignores a slow earlier response when the menu has since changed', async () => {
+        const slowFirst = [{ id: 'old', name: 'Lunch', items: [] } as any]
+        const fastSecond = [{ id: 'new', name: 'Dinner', items: [] } as any]
+
+        let resolveFirst: (v: any) => void = () => { }
+        s.loadMenuData
+            .mockImplementationOnce(() => new Promise((res) => { resolveFirst = res }))
+            .mockResolvedValueOnce(fastSecond)
+
+        const { result, rerender } = renderHook(
+            ({ menuId }) => useMenu('hotel-1', menuId),
+            { initialProps: { menuId: 'menu-1' } }
+        )
+
+        rerender({ menuId: 'menu-2' })
+        await waitFor(() => expect(result.current.state.categories).toEqual(fastSecond))
+
+        // The first request lands last. It must not win.
+        await act(async () => { resolveFirst(slowFirst) })
+        expect(result.current.state.categories).toEqual(fastSecond)
+    })
+})
+
 describe('useMenu — category actions', () => {
     it('addCategory appends the returned category to state', async () => {
         const { result } = renderHook(() => useMenu('hotel-1', 'menu-1'))

@@ -6,7 +6,7 @@
 // Mirrors the `run()`-wrapper pattern from useAuth: services throw,
 // this hook is the single place that catches and toasts.
 
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { useToast } from '../../../hooks/useToast';
 import { getSupabaseClient } from '../../../lib/supabase/client';
 import type { Category, MenuItem, ItemFormValues, MenuAction, MenuState } from '../types';
@@ -32,6 +32,12 @@ function reducer(state: MenuState, action: MenuAction): MenuState {
   switch (action.type) {
     case 'LOADING':
       return { ...state, categories: [], loading: true, error: null };
+    // Settled with nothing to load — no hotel or no editable menu yet. Without
+    // this the reducer had no way out of `loading`, so an account with no
+    // selectable menu (a brand new hotel, or every menu parked by a downgrade)
+    // sat on the spinner forever and could never reach the create-menu button.
+    case 'EMPTY':
+      return { categories: [], loading: false, error: null };
     case 'LOADED':
       return { ...state, categories: action.payload, loading: false, error: null };
     case 'ERROR':
@@ -93,12 +99,22 @@ export function useMenu(
   const toast = useToast();
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
 
+  // Every load takes a ticket; only the newest one is allowed to write to
+  // state. Switching menus quickly used to be a race — whichever request the
+  // network happened to finish last won, so a fast menu could be overwritten
+  // by a slower earlier one and the builder would show the wrong menu's
+  // categories under the right menu's name.
+  const loadTicket = useRef(0);
+
   const loadMenu = useCallback(async () => {
     if (!hotelId || !menuId) return;
+    const ticket = ++loadTicket.current;
     try {
       const categories = await loadMenuData(supabase, menuId);
+      if (ticket !== loadTicket.current) return;
       dispatch({ type: 'LOADED', payload: categories });
     } catch (err) {
+      if (ticket !== loadTicket.current) return;
       const message = err instanceof Error ? err.message : 'Unknown error';
       dispatch({ type: 'ERROR', payload: message });
       toast.error('Failed to load menu');
@@ -106,12 +122,19 @@ export function useMenu(
   }, [hotelId, menuId, supabase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (!menuId || !hotelId) {
+      // Invalidate any request still in flight, then settle. Reporting
+      // "loading" here instead was what produced the permanent spinner.
+      loadTicket.current++;
+      dispatch({ type: 'EMPTY' });
+      return;
+    }
     // Back to loading first: without this, switching menus keeps the previous
     // menu's categories on screen until the new fetch resolves, which reads as
     // the wrong menu's content rather than as loading.
     dispatch({ type: 'LOADING' });
     loadMenu();
-  }, [loadMenu]);
+  }, [loadMenu, hotelId, menuId]);
 
   const addCategory = useCallback(
     async (name: string, icon: string | null) => {
@@ -157,11 +180,15 @@ export function useMenu(
       try {
         await removeCategory(supabase, id, toast);
         dispatch({ type: 'DELETE_CATEGORY', payload: id });
+        // Deleting a category takes its items with it. Without this the plan
+        // meter kept counting them, so an owner who cleared a category still
+        // saw "limit reached" and could not add anything back until reload.
+        await onItemCountChange?.();
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Failed to delete category');
       }
     },
-    [supabase, toast]
+    [supabase, toast, onItemCountChange]
   );
 
   const reorderCategories = useCallback(

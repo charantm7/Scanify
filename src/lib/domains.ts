@@ -16,7 +16,7 @@
 // requested on the landing host is redirected to the dashboard host and vice
 // versa, so each page has exactly one canonical URL.
 
-export type AppSurface = 'landing' | 'dashboard' | 'menu' | 'console' | 'dev';
+export type AppSurface = 'landing' | 'overview' | 'menu' | 'console' | 'dev';
 
 /** Bare apex domain, no protocol, no leading dot. */
 export const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'scanify.co.in';
@@ -42,7 +42,7 @@ export const COOKIE_DOMAIN = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined;
 export const SUBDOMAINS_ENABLED = Boolean(COOKIE_DOMAIN);
 
 const SUBDOMAIN_SURFACES: Record<string, AppSurface> = {
-  dashboard: 'dashboard',
+  overview: 'overview',
   menu: 'menu',
   console: 'console',
 };
@@ -94,7 +94,7 @@ export function resolveSurface(hostHeader: string | null): AppSurface {
 
 export function surfaceOrigin(surface: Exclude<AppSurface, 'dev'>): string {
   switch (surface) {
-    case 'dashboard':
+    case 'overview':
       return `https://dashboard.${ROOT_DOMAIN}`;
     case 'menu':
       return `https://menu.${ROOT_DOMAIN}`;
@@ -109,7 +109,7 @@ export function surfaceOrigin(surface: Exclude<AppSurface, 'dev'>): string {
 
 /** One route per former console tab. Order drives the sidebar. */
 export const DASHBOARD_ROUTES = [
-  '/dashboard',
+  '/overview',
   '/menu-builder',
   '/customization',
   '/qr-codes',

@@ -8,8 +8,7 @@
 
 import type { Category, MenuItem, ItemFormValues, PriceVariant } from '../types';
 import {
-  fetchCategoriesQuery,
-  fetchItemsQuery,
+  fetchMenuTreeQuery,
   insertCategoryQuery,
   updateCategoryQuery,
   deleteCategoryQuery,
@@ -87,18 +86,12 @@ export async function loadMenuData(
   supabase: TypedSupabaseClient,
   menuId: string
 ): Promise<Category[]> {
-  const categories = await fetchCategoriesQuery(supabase, menuId);
-  if (!categories.length) return [];
-
-  const items = await fetchItemsQuery(
-    supabase,
-    categories.map((c) => c.id)
-  );
+  const categories = await fetchMenuTreeQuery(supabase, menuId);
 
   return categories.map((c) => ({
     ...c,
     icon: c.icon ?? null,
-    items: items.filter((i) => i.category_id === c.id),
+    items: c.items ?? [],
   }));
 }
 

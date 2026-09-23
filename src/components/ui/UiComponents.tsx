@@ -126,7 +126,7 @@ interface ModalProps {
 export function Card({ children, className = '', padding = 'p-6', ...props }: CardProps) {
     return (
         <div
-            className={`rounded-2xl border bg-card ${padding} ${className}`}
+            className={`rounded-xl border bg-card ${padding} ${className}`}
             style={{ borderColor: 'var(--border)' }}
             {...props}
         >

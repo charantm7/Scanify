@@ -130,6 +130,8 @@ export interface MenusState {
 
 export type MenuAction =
   | { type: 'LOADING' }
+  /** Settled with nothing to load — no hotel, or no menu selectable yet. */
+  | { type: 'EMPTY' }
   | { type: 'LOADED'; payload: Category[] }
   | { type: 'ERROR'; payload: string }
   | { type: 'ADD_CATEGORY'; payload: Category }

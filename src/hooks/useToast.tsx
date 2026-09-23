@@ -109,10 +109,19 @@ function showToast({ message, description, type, duration, id }: ShowToastOption
     );
 }
 
-export type ToastMethods = ReturnType<typeof useToast>;
+export type ToastMethods = typeof TOAST;
 
-export function useToast() {
-    return {
+/**
+ * Built once at module scope rather than rebuilt per render.
+ *
+ * `useToast()` used to return a fresh object literal every time it was called.
+ * Every hook that lists `toast` in a useCallback dependency array — which is
+ * most of useMenu and useMenus — therefore produced brand new callbacks on
+ * every render, which re-rendered every category and item row underneath them.
+ * Nothing in here depends on render state, so there is no reason for the
+ * identity to change.
+ */
+const TOAST = {
         success(message: string, description?: string) {
             return showToast({ message, description, type: 'success' });
         },
@@ -171,5 +180,8 @@ export function useToast() {
                 throw err;
             }
         },
-    };
+};
+
+export function useToast(): ToastMethods {
+    return TOAST;
 }
