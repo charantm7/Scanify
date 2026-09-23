@@ -47,13 +47,17 @@ export function WelcomeBanner({
                         Overview
                     </div>
 
-                    <h3 className=" text-theme text-2xl sm:text-3xl tracking-tight">
-                        {getGreeting()},
-                    </h3>
+                    <div className='flex-col md:flex-row flex gap-2'>
 
-                    <h2 className="font-bold text-theme text-2xl sm:text-3xl tracking-tight">
-                        {name || 'there'} 👋
-                    </h2>
+                        <h3 className=" text-theme text-2xl sm:text-3xl tracking-tight">
+                            {getGreeting()},
+                        </h3>
+
+                        <h2 className="font-bold text-theme text-2xl sm:text-3xl tracking-tight">
+                            {name || 'there'} 👋
+                        </h2>
+
+                    </div>
 
                     <p className="text-sm text-theme2 mt-1.5">
                         Here&apos;s a quick overview of your restaurant.

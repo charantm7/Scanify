@@ -43,6 +43,163 @@ interface SearchResultItem {
     icon: React.ElementType;
 }
 
+type SearchItem = {
+    label: string;
+    href: string;
+    group: string;
+    icon: React.ComponentType<{ size?: number; className?: string }>;
+};
+
+type SearchBoxProps = {
+    variant: 'desktop' | 'mobile';
+    searchOpen: boolean;
+    setSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    searchQuery: string;
+    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    selectedIndex: number;
+    setSelectedIndex: React.Dispatch<React.SetStateAction<number>>;
+    filteredItems: SearchItem[];
+    handleSearchKeyDown: (
+        event: React.KeyboardEvent<HTMLInputElement>
+    ) => void;
+    navigateToSearchResult: (href: string) => void;
+};
+
+
+
+function SearchBox({
+    variant,
+    searchOpen,
+    setSearchOpen,
+    searchQuery,
+    setSearchQuery,
+    selectedIndex,
+    setSelectedIndex,
+    filteredItems,
+    handleSearchKeyDown,
+    navigateToSearchResult,
+}: SearchBoxProps) {
+    return (
+        <div className="relative" data-search>
+            <button
+                onClick={() => setSearchOpen(true)}
+                className="w-full h-9 flex items-center gap-2.5 px-3 rounded-lg border text-left text-sm text-theme2 hover:text-theme transition"
+                style={{
+                    background: 'var(--bg)',
+                    borderColor: 'var(--border)',
+                }}
+            >
+                <Search size={14} className="flex-shrink-0 text-theme3" />
+
+                <span className="truncate text-xs">
+                    {variant === 'desktop'
+                        ? 'Search menu items, QR codes, settings...'
+                        : 'Search campaigns and pages...'}
+                </span>
+
+                <span
+                    className="hidden sm:inline-flex ml-auto items-center px-1.5 py-0.5 rounded border text-[10px] text-theme3"
+                    style={{ borderColor: 'var(--border2)' }}
+                >
+                    Ctrl K
+                </span>
+            </button>
+
+            {searchOpen && (
+                <div
+                    className="absolute top-11 left-0 right-0 z-50 rounded-xl border overflow-hidden"
+                    style={{
+                        background: 'var(--card)',
+                        borderColor: 'var(--border)',
+                        boxShadow: 'var(--shadow2)',
+                    }}
+                >
+                    <div
+                        className="flex items-center gap-2 px-3 h-11 border-b"
+                        style={{ borderColor: 'var(--border)' }}
+                    >
+                        <Search size={15} className="text-theme3 flex-shrink-0" />
+
+                        <input
+                            autoFocus
+                            value={searchQuery}
+                            onChange={(event) => {
+                                setSearchQuery(event.target.value);
+                                setSelectedIndex(0);
+                            }}
+                            onKeyDown={handleSearchKeyDown}
+                            placeholder="Search..."
+                            className="flex-1 bg-transparent outline-none text-sm text-theme placeholder:text-theme3"
+                        />
+
+                        <kbd
+                            className="hidden sm:block text-[10px] px-1.5 py-0.5 rounded border text-theme3"
+                            style={{ borderColor: 'var(--border)' }}
+                        >
+                            ESC
+                        </kbd>
+                    </div>
+
+                    <div className="max-h-80 overflow-y-auto p-1.5">
+                        {filteredItems.length > 0 ? (
+                            filteredItems.map((item, index) => {
+                                const Icon = item.icon;
+                                const selected = index === selectedIndex;
+
+                                return (
+                                    <button
+                                        key={item.href}
+                                        onClick={() => navigateToSearchResult(item.href)}
+                                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${selected ? 'bg-theme3' : 'hover:bg-theme3'
+                                            }`}
+                                    >
+                                        <div
+                                            className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
+                                            style={{
+                                                background: 'var(--accentlt)',
+                                                color: 'var(--accent)',
+                                            }}
+                                        >
+                                            <Icon size={14} />
+                                        </div>
+
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-medium text-theme">
+                                                {item.label}
+                                            </p>
+
+                                            <p className="text-[11px] text-theme3">
+                                                {item.group}
+                                            </p>
+                                        </div>
+
+                                        {selected && (
+                                            <ArrowRight size={14} className="text-theme3" />
+                                        )}
+                                    </button>
+                                );
+                            })
+                        ) : (
+                            <div className="px-3 py-8 text-center">
+                                <Search size={20} className="mx-auto mb-2 text-theme3" />
+
+                                <p className="text-sm font-medium text-theme">
+                                    No results found
+                                </p>
+
+                                <p className="text-xs text-theme2 mt-1">
+                                    Try another search term.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+
 function DashboardShellInner({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
@@ -140,126 +297,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
     // Shared search trigger + results dropdown. Rendered twice: inline in the
     // top bar on md+ screens, and as its own full-width row under the top bar
     // on mobile (where there isn't room for it next to the logo/actions).
-    function SearchBox({ variant }: { variant: 'desktop' | 'mobile' }) {
-        return (
-            <div className="relative" data-search>
-                <button
-                    onClick={() => setSearchOpen(true)}
-                    className="w-full h-9 flex items-center gap-2.5 px-3 rounded-lg border text-left text-sm text-theme2 hover:text-theme transition"
-                    style={{
-                        background: 'var(--bg)',
-                        borderColor: 'var(--border)',
-                    }}
-                >
-                    <Search size={14} className="flex-shrink-0 text-theme3" />
 
-                    <span className="truncate text-xs">
-                        {variant === 'desktop'
-                            ? 'Search menu items, QR codes, settings...'
-                            : 'Search campaigns and pages...'}
-                    </span>
-
-                    <span
-                        className="hidden sm:inline-flex ml-auto items-center px-1.5 py-0.5 rounded border text-[10px] text-theme3"
-                        style={{ borderColor: 'var(--border2)' }}
-                    >
-                        Ctrl K
-                    </span>
-                </button>
-
-                {searchOpen && (
-                    <div
-                        className="absolute top-11 left-0 right-0 z-50 rounded-xl border overflow-hidden"
-                        style={{
-                            background: 'var(--card)',
-                            borderColor: 'var(--border)',
-                            boxShadow: 'var(--shadow2)',
-                        }}
-                    >
-                        <div
-                            className="flex items-center gap-2 px-3 h-11 border-b"
-                            style={{ borderColor: 'var(--border)' }}
-                        >
-                            <Search size={15} className="text-theme3 flex-shrink-0" />
-
-                            <input
-                                autoFocus
-                                value={searchQuery}
-                                onChange={(event) => {
-                                    setSearchQuery(event.target.value);
-                                    setSelectedIndex(0);
-                                }}
-                                onKeyDown={handleSearchKeyDown}
-                                placeholder="Search..."
-                                className="flex-1 bg-transparent outline-none text-sm text-theme placeholder:text-theme3"
-                            />
-
-                            <kbd
-                                className="hidden sm:block text-[10px] px-1.5 py-0.5 rounded border text-theme3"
-                                style={{ borderColor: 'var(--border)' }}
-                            >
-                                ESC
-                            </kbd>
-                        </div>
-
-                        <div className="max-h-80 overflow-y-auto p-1.5">
-                            {filteredItems.length > 0 ? (
-                                filteredItems.map((item, index) => {
-                                    const Icon = item.icon;
-                                    const selected = index === selectedIndex;
-
-                                    return (
-                                        <button
-                                            key={item.href}
-                                            onClick={() => navigateToSearchResult(item.href)}
-                                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${selected ? 'bg-theme3' : 'hover:bg-theme3'
-                                                }`}
-                                        >
-                                            <div
-                                                className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
-                                                style={{
-                                                    background: 'var(--accentlt)',
-                                                    color: 'var(--accent)',
-                                                }}
-                                            >
-                                                <Icon size={14} />
-                                            </div>
-
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-sm font-medium text-theme">
-                                                    {item.label}
-                                                </p>
-
-                                                <p className="text-[11px] text-theme3">
-                                                    {item.group}
-                                                </p>
-                                            </div>
-
-                                            {selected && (
-                                                <ArrowRight size={14} className="text-theme3" />
-                                            )}
-                                        </button>
-                                    );
-                                })
-                            ) : (
-                                <div className="px-3 py-8 text-center">
-                                    <Search size={20} className="mx-auto mb-2 text-theme3" />
-
-                                    <p className="text-sm font-medium text-theme">
-                                        No results found
-                                    </p>
-
-                                    <p className="text-xs text-theme2 mt-1">
-                                        Try another search term.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen grid-bg flex">
@@ -288,7 +326,16 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                         </div>
 
                         <div className="flex-1 max-w-xl hidden md:block">
-                            <SearchBox variant="desktop" />
+                            <SearchBox variant="desktop"
+                                searchOpen={searchOpen}
+                                setSearchOpen={setSearchOpen}
+                                searchQuery={searchQuery}
+                                setSearchQuery={setSearchQuery}
+                                selectedIndex={selectedIndex}
+                                setSelectedIndex={setSelectedIndex}
+                                filteredItems={filteredItems}
+                                handleSearchKeyDown={handleSearchKeyDown}
+                                navigateToSearchResult={navigateToSearchResult} />
                         </div>
 
                         <div className="ml-auto flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -340,7 +387,16 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                     {/* Mobile-only second row: search drops below the logo/actions row,
                         full width, instead of disappearing at the md breakpoint. */}
                     <div className="md:hidden px-4 pb-3">
-                        <SearchBox variant="mobile" />
+                        <SearchBox variant="desktop"
+                            searchOpen={searchOpen}
+                            setSearchOpen={setSearchOpen}
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                            selectedIndex={selectedIndex}
+                            setSelectedIndex={setSelectedIndex}
+                            filteredItems={filteredItems}
+                            handleSearchKeyDown={handleSearchKeyDown}
+                            navigateToSearchResult={navigateToSearchResult} />
                     </div>
                 </header>
 
