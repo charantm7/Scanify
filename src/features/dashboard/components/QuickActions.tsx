@@ -20,15 +20,17 @@ function QuickAction({
     return (
         <button
             onClick={onClick}
-            className="group flex items-center justify-between gap-3 w-full p-4 rounded-xl border text-left transition hover:bg-theme3"
+            className="group flex items-center justify-between gap-3 w-full p-4 rounded-xl border text-left transition-all duration-200 hover:bg-theme3 hover:-translate-y-0.5"
             style={{
                 borderColor: 'var(--border)',
                 background: 'var(--card)',
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = 'var(--shadow)')}
+            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
         >
             <div className="flex items-center gap-3 min-w-0">
                 <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                    className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
                     style={{
                         background: 'var(--accentlt)',
                         color: 'var(--accent)',

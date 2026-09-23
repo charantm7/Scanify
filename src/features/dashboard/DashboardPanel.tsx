@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { formatAccountAge } from './lib/formatAccountAge';
+import { ArrowRight, Sparkle, BarChart3 } from 'lucide-react';
 import { WelcomeBanner } from './components/WelcomeBanner';
 import { HotelDetailsCard } from './components/HotelDetailsCard';
 import { StatsGrid } from './components/StatsGrid';
@@ -105,19 +106,28 @@ export default function DashboardPanel({
 
             {!setupComplete && (
                 <div
-                    className="rounded-xl border px-4 py-3.5 flex items-center justify-between gap-4"
+                    className="rounded-xl border px-4 py-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
                     style={{
                         background: 'var(--accentlt)',
                         borderColor: 'var(--border)',
                     }}
                 >
-                    <div className="min-w-0">
-                        <p className="text-sm font-semibold text-theme">
-                            Finish setting up your restaurant
-                        </p>
-                        <p className="text-xs text-theme2 mt-0.5 truncate">
-                            Complete the remaining steps to get your menu ready.
-                        </p>
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div
+                            className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center flex-shrink-0"
+                            style={{ background: 'var(--accent)', color: 'white' }}
+                        >
+                            <Sparkle size={16} />
+                        </div>
+
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-theme">
+                                Finish setting up your restaurant
+                            </p>
+                            <p className="text-xs text-theme2 mt-0.5 truncate">
+                                Complete the remaining steps to get your menu ready.
+                            </p>
+                        </div>
                     </div>
 
                     <button
@@ -128,36 +138,45 @@ export default function DashboardPanel({
 
                             next?.onClick?.();
                         }}
-                        className="flex-shrink-0 text-xs font-semibold"
+                        className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-semibold self-start sm:self-auto"
                         style={{ color: 'var(--accent)' }}
                     >
-                        Continue →
+                        Continue <ArrowRight size={13} />
                     </button>
                 </div>
             )}
 
             <div
-                className="rounded-xl border px-4 py-3.5 flex items-center justify-between gap-4"
+                className="rounded-xl border px-4 py-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
                 style={{
                     background: 'var(--card)',
                     borderColor: 'var(--border)',
                 }}
             >
-                <div className="min-w-0">
-                    <p className="text-sm font-semibold text-theme">
-                        Looking for detailed insights?
-                    </p>
-                    <p className="text-xs text-theme2 mt-0.5 truncate">
-                        View scan trends, popular items and customer activity in Analytics.
-                    </p>
+                <div className="flex items-center gap-3 min-w-0">
+                    <div
+                        className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center flex-shrink-0"
+                        style={{ background: 'var(--accentlt)', color: 'var(--accent)' }}
+                    >
+                        <BarChart3 size={16} />
+                    </div>
+
+                    <div className="min-w-0">
+                        <p className="text-sm font-semibold text-theme">
+                            Looking for detailed insights?
+                        </p>
+                        <p className="text-xs text-theme2 mt-0.5 truncate">
+                            View scan trends, popular items and customer activity in Analytics.
+                        </p>
+                    </div>
                 </div>
 
                 <button
                     onClick={() => onNavigate('analytics')}
-                    className="flex-shrink-0 text-xs font-semibold"
+                    className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-semibold self-start sm:self-auto"
                     style={{ color: 'var(--accent)' }}
                 >
-                    View Analytics →
+                    View Analytics <ArrowRight size={13} />
                 </button>
             </div>
         </div>

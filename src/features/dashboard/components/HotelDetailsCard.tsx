@@ -80,7 +80,7 @@ export function HotelDetailsCard({
                 <div className="flex flex-col lg:flex-row lg:items-center gap-5">
                     <div className="flex items-center gap-4 min-w-0 lg:flex-1">
                         <div
-                            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                            className="hidden w-14 h-14 rounded-xl md:flex items-center justify-center flex-shrink-0"
                             style={{
                                 background: 'var(--accentlt)',
                                 color: 'var(--accent)',
@@ -123,21 +123,6 @@ export function HotelDetailsCard({
                                     <ExternalLink size={14} />
                                     Open Menu
                                 </a>
-
-                                <button
-                                    onClick={() =>
-                                        menuUrl &&
-                                        navigator.clipboard.writeText(menuUrl)
-                                    }
-                                    disabled={!menuUrl}
-                                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border text-xs font-semibold text-theme hover:bg-theme3 transition disabled:opacity-50"
-                                    style={{
-                                        borderColor: 'var(--border)',
-                                    }}
-                                >
-                                    <Link2 size={14} />
-                                    Share
-                                </button>
 
                                 <button
                                     onClick={() => navigate('menu-builder')}

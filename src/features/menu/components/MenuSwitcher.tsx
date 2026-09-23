@@ -27,9 +27,8 @@ export function MenuSwitcher({ menus, activeMenuId, hotelSlug }: MenuSwitcherPro
     return (
         <nav
             aria-label="Menus"
-            className="sticky top-0 z-30 border-b"
+            className=" top-0 z-30 border-b"
             style={{
-                background: "var(--color-surface)",
                 borderColor: "var(--color-border)",
             }}
         >
@@ -54,11 +53,11 @@ export function MenuSwitcher({ menus, activeMenuId, hotelSlug }: MenuSwitcherPro
                                 <Link
                                     href={href}
                                     aria-current={active ? "page" : undefined}
-                                    className="block px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors"
+                                    className="block px-3 py-2 text-xs font-semibold whitespace-nowrap transition-colors"
                                     style={{
                                         borderRadius: "var(--border-radius)",
-                                        background: active ? "var(--color-primary)" : "transparent",
-                                        color: active ? "var(--color-surface)" : "var(--color-muted)",
+                                        background: active ? "var(--accentlt)" : "transparent",
+                                        color: active ? "var(--color-primary)" : "var(--color-muted)",
                                         border: `1px solid ${active ? "var(--color-primary)" : "var(--color-border)"}`,
                                     }}
                                 >

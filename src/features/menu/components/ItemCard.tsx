@@ -213,7 +213,7 @@ function CardItem({
     );
 }
 // ─── List layout ──────────────────────────────────────────────────────────────
-function ListItem({ item, onClick, showImage, showDietary, showTags }: ItemCardProps) {
+function ListItem({ item, onClick, showImage, showDietary, showTags, showDescription }: ItemCardProps) {
     return (
         <article
             role="button"
@@ -238,6 +238,15 @@ function ListItem({ item, onClick, showImage, showDietary, showTags }: ItemCardP
                             {item.name}
                         </p>
                     </div>
+                )}
+
+                {showDescription && item.description && (
+                    <p
+                        className="text-xs leading-relaxed line-clamp-1"
+                        style={{ color: "var(--color-muted)" }}
+                    >
+                        {item.description}
+                    </p>
                 )}
 
                 {showTags && <ItemBadgeRow item={item} />}
@@ -302,7 +311,7 @@ export const ItemCard = memo(function ItemCard({
     showDietary = true,
 }: ItemCardProps) {
     if (layout === "list") {
-        return <ListItem item={item} onClick={onClick} showImage={showImage} showDietary={showDietary} showTags={showTags} />;
+        return <ListItem item={item} onClick={onClick} showImage={showImage} showDietary={showDietary} showTags={showTags} showDescription={showDescription} />;
     }
     if (layout === "compact") {
         return <GridItem item={item} onClick={onClick} showImage={showImage} showDietary={showDietary} showTags={showTags} />;
