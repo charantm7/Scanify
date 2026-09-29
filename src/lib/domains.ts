@@ -42,6 +42,7 @@ export const COOKIE_DOMAIN = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined;
 export const SUBDOMAINS_ENABLED = Boolean(COOKIE_DOMAIN);
 
 const SUBDOMAIN_SURFACES: Record<string, AppSurface> = {
+  dashboard: 'overview',
   overview: 'overview',
   menu: 'menu',
   console: 'console',
