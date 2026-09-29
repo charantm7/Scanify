@@ -102,7 +102,12 @@ export async function AuthSignIn(
     const data = await signInWithPassword(supabase, { email, password })
 
     if (!data?.user) throw new Error('Sign in failed — no user returned.');
-    if (!data?.user.email_confirmed_at) throw new Error('Email Not Verified - SignUp')
+    if (!data?.user.email_confirmed_at) {
+        // signInWithPassword already set a session cookie — clear it so an
+        // unverified user cannot reach protected routes by navigating directly.
+        await supabase.auth.signOut();
+        throw new Error('Email Not Verified - SignUp');
+    }
 
     if (rememberMe) {
         localStorage.setItem('remember_me', 'true');

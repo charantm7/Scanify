@@ -45,7 +45,7 @@ export default function OnboardingPage() {
                     ) : (
                         <>
                             {/* ── LEFT: Form ── */}
-                            <div className="md:bg-theme3 md:backdrop-blur-xl sm:bg-theme3 sm:backdrop-blur-xl rounded-xl md:shadow-2xl md:border md:border-theme sm:shadow-2xl sm:border sm:border-theme md:p-8 sm:p-8 p-4 min-h-[520px] flex flex-col" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
+                            <div className="md:bg-theme3 md:backdrop-blur-xl sm:bg-theme3 sm:backdrop-blur-xl rounded-xl md:shadow-2xl md:border md:border-[var(--border)] sm:shadow-2xl sm:border sm:border-[var(--border)]  md:p-8 sm:p-8 p-4 min-h-[520px] flex flex-col" style={{ animation: 'fadeInUp 0.6s ease-out' }}>
 
                                 <div className="mb-7">
                                     <div className="flex items-center gap-2 mb-2">
