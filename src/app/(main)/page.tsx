@@ -2,6 +2,7 @@ import Benefits from "../../components/home/Benefits";
 import Footer from "../../components/home/Footer";
 import Hero from "../../components/home/Hero";
 import HowItWorks from "../../components/home/HowItWorks";
+import ThemeShowcase from "../../components/home/ThemeShowcase";
 import Pricing from "../../components/home/Pricing";
 import WhySwitch from "../../components/home/WhySwitch";
 import ContactPage from "../../components/home/Contact";
@@ -37,6 +38,7 @@ function HomeInner() {
     <>
       <Hero />
       <HowItWorks />
+      <ThemeShowcase />
       <Benefits />
       <Pricing />
       <CTASection />

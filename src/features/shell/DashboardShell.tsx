@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import Sidebar, { Logo } from './Sidebar';
 import { labelForPath } from './navigation';
-import { AppProvider } from '../../context/AppContext';
+import { AppProvider, useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { NAV_GROUPS } from './navigation';
 
@@ -36,12 +36,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     );
 }
 
-interface SearchResultItem {
-    label: string;
-    href: string;
-    group: string;
-    icon: React.ElementType;
-}
 
 type SearchItem = {
     label: string;
@@ -203,6 +197,8 @@ function SearchBox({
 function DashboardShellInner({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
+    const { hotel } = useApp();
+
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -340,6 +336,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
 
                         <div className="ml-auto flex items-center gap-2 sm:gap-4 flex-shrink-0">
                             <button
+                                onClick={() => router.push('/notification')}
                                 className="w-9 h-8 rounded-lg border text-theme flex items-center justify-center hover:bg-theme3 transition-all flex-shrink-0"
                                 style={{ borderColor: 'var(--border)' }}
                                 aria-label="Notifications"
@@ -371,12 +368,12 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                                             color: 'white',
                                         }}
                                     >
-                                        <span className="text-[10px] font-bold">V</span>
+                                        <span className="text-[10px] font-bold">{hotel ? hotel.name[0] : "My Workspace"}</span>
                                     </div>
 
                                     <div className="min-w-0 flex-1">
                                         <p className="text-xs font-medium truncate">
-                                            Vijayshree Chaats
+                                            {hotel ? hotel.name : "My Workspace"}
                                         </p>
                                     </div>
                                 </button>

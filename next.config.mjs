@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+
+
+  allowedDevOrigins: ['192.168.1.11'],
+
+
   images: {
     remotePatterns: [
       {
@@ -118,9 +123,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'upload.wikimedia.org',
       },
+
     ],
   },
 };
+
+
 
 export default nextConfig;
 
