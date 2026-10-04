@@ -7,6 +7,7 @@ export default async function MainLayout({ children }) {
     const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
+    console.log(user)
     return (
         <>
             <ScrollButtons />

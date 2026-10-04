@@ -112,6 +112,8 @@ export default function Sidebar({
     isTrialExpired,
   } = useApp();
 
+  const [needLogOut, setNeedLogOut] = useState(false);
+
   const pathname = usePathname();
   const supabase = getSupabaseClient();
 
@@ -307,7 +309,7 @@ export default function Sidebar({
             </Link>
           </div>
           <button
-            onClick={handleSignOut}
+            onClick={() => setNeedLogOut(true)}
             disabled={signingOut}
             title="Sign out"
             className="
@@ -335,6 +337,49 @@ export default function Sidebar({
           </button>
         </div>
       </aside >
+
+      {needLogOut && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-xl border border-theme bg-[var(--card)] p-6 shadow-xl">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">
+                Confirm Logout
+              </h2>
+
+              <p className="text-sm leading-5 text-muted-foreground">
+                Are you sure you want to logout from your account?
+              </p>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setNeedLogOut(false)}
+                className="rounded-md border border-theme px-4 py-2 text-sm font-medium transition hover:bg-[var(--muted)]"
+              >
+                Cancel
+              </button>
+              {signingOut ? (
+                <button
+                  type="button"
+                  disabled
+                  className="cursor-not-allowed rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white opacity-70"
+                >
+                  Logging Out...
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+                >
+                  Logout
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
