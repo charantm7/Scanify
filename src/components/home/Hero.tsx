@@ -36,7 +36,7 @@ export default function Hero() {
 
   return (
 
-    <section id="home" className="relative min-h-screen pt-28  md:pt-32 pb-24 grid-bg overflow-x-hidden">
+    <section id="home" className="relative min-h-screen pt-28  md:pt-32 pb-24 overflow-x-hidden">
       <style>{`
         @keyframes float {
           0%, 100% { transform: translate(0, 0) rotate(0deg); }
