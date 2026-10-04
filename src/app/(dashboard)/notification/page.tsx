@@ -19,7 +19,7 @@ export default function Notification() {
 
                         <div className="flex flex-col gap-1">
                             <p className="text-base font-semibold text-[var(--foreground)]">
-                                Service Provider's Message
+                                Service Provider`&apos;`s Message
                             </p>
 
                             <p className="text-sm leading-5 text-muted-foreground">
