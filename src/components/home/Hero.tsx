@@ -228,10 +228,22 @@ export default function Hero() {
           </div>
 
           {/* ---------- Rotating dashboard mockup ---------- */}
-          <div className="relative w-full max-w-[880px] mt-16">
+          <div className="relative w-full max-w-[920px] mt-16" style={{ perspective: '2000px' }}>
+
+            {/* ambient glow behind the dashboard */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 top-10 pointer-events-none"
+              style={{
+                width: '92%',
+                height: 420,
+                background: 'radial-gradient(60% 60% at 50% 30%, rgba(79,70,229,0.22), transparent 70%)',
+                filter: 'blur(40px)',
+                zIndex: -1,
+              }}
+            />
 
             {/* tab pills */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
               {TABS.map((t, i) => (
                 <button
                   key={t}
@@ -250,14 +262,23 @@ export default function Hero() {
 
             <div
               className="w-full rounded-2xl border border-theme2 bg-white overflow-hidden text-left"
-              style={{ boxShadow: 'var(--shadow2)', animation: 'fadeInUp 0.9s ease-out 0.15s both' }}
+              style={{
+                boxShadow: '0 2px 6px rgba(15,23,42,0.06), 0 30px 70px -20px rgba(31,41,99,0.35), 0 0 0 1px rgba(15,23,42,0.04)',
+                animation: 'fadeInUp 0.9s ease-out 0.15s both',
+                transform: 'rotateX(3deg)',
+                transformOrigin: 'bottom center',
+              }}
             >
               {/* browser chrome */}
               <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#ff5f57' }} />
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#febc2e' }} />
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#28c840' }} />
-                <div className="ml-3 flex-1 max-w-[260px] rounded-md px-3 py-1 text-[11px] text-gray-400 border border-gray-200 bg-white truncate">
+                <div className="ml-3 flex-1 max-w-[260px] rounded-md px-3 py-1 text-[11px] text-gray-400 border border-gray-200 bg-white truncate flex items-center gap-1.5">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" className="flex-shrink-0">
+                    <rect x="5" y="11" width="14" height="9" rx="2" />
+                    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                  </svg>
                   scanify.app/{TABS[active].toLowerCase().replace(' ', '-')}
                 </div>
                 <span className="ml-auto hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-gray-500">
@@ -472,6 +493,12 @@ export default function Hero() {
                 </div>
               </div>
             </div>
+
+            {/* ground shadow for depth */}
+            <div
+              className="mx-auto mt-2 pointer-events-none"
+              style={{ width: '70%', height: 28, background: 'radial-gradient(50% 100% at 50% 0%, rgba(15,23,42,0.18), transparent 75%)' }}
+            />
           </div>
 
         </div>
