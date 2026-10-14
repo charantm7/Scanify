@@ -39,51 +39,174 @@ function toSummary(menu: DBMenu): MenuSummary {
     };
 }
 
-/**
- * Loads one menu of one hotel for the public page.
- *
- * `menuSlug` omitted means "the hotel's primary menu", which is what
- * menu.<domain>/<hotel-slug> serves and what every existing QR code encodes.
- */
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+
+
+export function createMenuFetcher(
+    supabase: SupabaseClient,
+    slug: string
+) {
+    return {
+
+        fetchHotel: () =>
+            supabase
+                .from("hotels")
+                .select("*")
+                .eq("slug", slug)
+                .eq("is_active", true)
+                .is("deleted_at", null)
+                .maybeSingle<DBHotel>(),
+
+
+        fetchEntitlements: (hotelId: string) =>
+            supabase
+                .from("hotel_entitlements")
+                .select('*')
+                .eq("hotel_id", hotelId)
+                .maybeSingle(),
+
+
+        fetchCustomization: (hotelId: string) =>
+            supabase
+                .from("menu_customizations")
+                .select("*")
+                .eq("hotel_id", hotelId)
+                .maybeSingle<DBMenuCustomization>(),
+
+
+        fetchMenus: (hotelId: string) =>
+            supabase
+                .from("menus")
+                .select("*")
+                .eq("hotel_id", hotelId)
+                .eq("is_active", true)
+                .eq("hidden_by_plan", false)
+                .is("deleted_at", null)
+                .order("sort_order", {
+                    ascending: true,
+                }),
+
+
+        fetchCategories: (menuIds: string[]) =>
+            supabase
+                .from("categories")
+                .select("*")
+                .in("menu_id", menuIds)
+                .eq("is_active", true)
+                .is("deleted_at", null)
+                .order("sort_order", {
+                    ascending: true,
+                }),
+
+        fetchItems: (categoryIds: string[]) => {
+            if (categoryIds.length === 0) {
+                return Promise.resolve({
+                    data: [] as DBMenuItem[],
+                    error: null,
+                });
+            }
+
+            return supabase
+                .from("menu_items")
+                .select("*")
+                .in("category_id", categoryIds)
+                .eq("hidden_by_plan", false)
+                .is("deleted_at", null)
+                .order("sort_order", {
+                    ascending: true,
+                })
+        },
+
+
+        fetchItemImages: (itemIds: string[]) => {
+            if (itemIds.length === 0) {
+                return Promise.resolve({
+                    data: [] as DBMenuItemImage[],
+                    error: null,
+                });
+            }
+
+            return supabase
+                .from("menu_item_images")
+                .select("*")
+                .in("item_id", itemIds)
+                .order("sort_order", {
+                    ascending: true,
+                })
+        },
+    };
+}
+
+export async function fetchHotelMetadata(slug: string, menuSlug: string) {
+    const supabase = await createClient();
+
+    const fetcher = createMenuFetcher(supabase, slug);
+
+    const { data: hotel, error: hotelErr } = await fetcher.fetchHotel();
+
+    if (hotelErr || !hotel) notFound(`Hotel not found: ${slug}`);
+
+    const { data: menus, error: menusErr } = await fetcher.fetchMenus(hotel?.id);
+    if (menusErr) throw menusErr;
+    if (menus.length === 0) notFound(`No published menu for hotel: ${slug}`);
+
+    const activeMenuRow = menuSlug
+        ? menus.find((m) => m.slug === menuSlug)
+        : (menus.find((m) => m.is_primary) ?? menus[0]);
+
+    const activeMenu = toSummary(activeMenuRow);
+    const summaries = menus.map(toSummary)
+
+    return {
+        hotel,
+        menus: summaries,
+        activeMenu
+    }
+}
+
 export async function fetchMenuPage(
     slug: string,
     menuSlug?: string
 ): Promise<MenuPageData> {
     const supabase = await createClient();
 
-    // 1. Hotel.
-    //
-    // `deleted_at` matters as much as `is_active` here: deleting an account
-    // sets deleted_at but leaves is_active alone, so filtering only on
-    // is_active kept serving the menus of closed accounts.
-    const { data: hotel, error: hotelErr } = await supabase
-        .from("hotels")
-        .select("*")
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .is("deleted_at", null)
-        .single<DBHotel>();
+    const fetcher = createMenuFetcher(supabase, slug);
+
+    const { data: hotel, error: hotelErr } = await fetcher.fetchHotel();
 
     if (hotelErr || !hotel) notFound(`Hotel not found: ${slug}`);
 
-    // 2a. Presentation entitlements.
-    //
-    // Goes through a security-definer function because this page is rendered
-    // anonymously and `users` (which holds the plan) is readable only by its
-    // owner. A failure here is non-fatal: the menu is served unrestricted
-    // rather than stripping a paying hotel's content over a lookup error.
-    const { data: entitlementRows } = await supabase
-        .rpc("hotel_menu_entitlements", { p_hotel_id: hotel.id });
+    const [
+        { data: entitlementRows, error: entitlementErr },
+        { data: customizationRow, error: customizationErr },
+        { data: rawMenus, error: menusErr },
+    ] = await Promise.all([
+        fetcher.fetchEntitlements(hotel.id),
+        fetcher.fetchCustomization(hotel.id),
+        fetcher.fetchMenus(hotel.id),
+    ]);
+
+    if (entitlementErr) {
+        console.error(
+            "[fetchMenuPage] entitlement lookup failed:",
+            entitlementErr
+        );
+    }
+
+    if (customizationErr) {
+        console.error(
+            "[fetchMenuPage] customization lookup failed:",
+            customizationErr
+        );
+    }
+
+    if (menusErr) {
+        throw menusErr;
+    }
 
     const entitlements: MenuEntitlements | null =
         (Array.isArray(entitlementRows) ? entitlementRows[0] : entitlementRows) ?? null;
-
-    // 2. Customization — falls back to defaults if not configured yet
-    const { data: customizationRow } = await supabase
-        .from("menu_customizations")
-        .select("*")
-        .eq("hotel_id", hotel.id)
-        .maybeSingle<DBMenuCustomization>();
 
     const customization: DBMenuCustomization = customizationRow ?? {
         id: "",
@@ -93,34 +216,16 @@ export async function fetchMenuPage(
         ...DEFAULT_CUSTOMIZATION,
     };
 
-    // 3. Menus. The RLS policy already restricts this to menus that are
-    // active, not parked by a downgrade and not soft-deleted; the filters are
-    // repeated so the behaviour is legible here and correct if the policy is
-    // ever relaxed.
-    const { data: rawMenus, error: menusErr } = await supabase
-        .from("menus")
-        .select("*")
-        .eq("hotel_id", hotel.id)
-        .eq("is_active", true)
-        .eq("hidden_by_plan", false)
-        .is("deleted_at", null)
-        .order("sort_order", { ascending: true });
-
-    if (menusErr) throw menusErr;
     const menus = (rawMenus ?? []) as DBMenu[];
 
     if (menus.length === 0) {
         notFound(`No published menu for hotel: ${slug}`);
     }
-
     const activeMenuRow = menuSlug
         ? menus.find((m) => m.slug === menuSlug)
         : (menus.find((m) => m.is_primary) ?? menus[0]);
 
-    // An unknown or unpublished menu slug is a 404 rather than a silent
-    // fallback to the primary menu: quietly serving different content than the
-    // URL asked for would let a stale QR code point at the wrong menu without
-    // anyone noticing.
+
     if (!activeMenuRow) {
         notFound(`Menu not found: ${slug}/${menuSlug}`);
     }
@@ -137,14 +242,8 @@ export async function fetchMenuPage(
         entitlements,
     };
 
-    // 4. Categories — scoped to the active menu
-    const { data: rawCats, error: catsErr } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("menu_id", activeMenuRow.id)
-        .eq("is_active", true)
-        .is("deleted_at", null)
-        .order("sort_order", { ascending: true });
+    const menuIds = menus.map((i) => i.id)
+    const { data: rawCats, error: catsErr } = await fetcher.fetchCategories(menuIds);
 
     if (catsErr) throw catsErr;
     const cats = (rawCats ?? []) as DBCategory[];
@@ -153,36 +252,19 @@ export async function fetchMenuPage(
 
     const catIds = cats.map((c) => c.id);
 
-    // 5. Menu items.
-    //
-    // `hidden_by_plan` items are excluded: those are the overflow a plan
-    // downgrade took out of service, and they must not appear to diners even
-    // though the owner can still see and re-pick them in the builder.
-    const { data: rawItems, error: itemsErr } = await supabase
-        .from("menu_items")
-        .select("*")
-        .in("category_id", catIds)
-        .eq("hidden_by_plan", false)
-        .is("deleted_at", null)
-        .order("sort_order", { ascending: true });
+    const { data: rawItems, error: itemsErr } = await fetcher.fetchItems(catIds);
 
     if (itemsErr) throw itemsErr;
     const items = (rawItems ?? []) as DBMenuItem[];
 
     const itemIds = items.map((i) => i.id);
 
-    // 6. Item images
     const { data: rawImages } = itemIds.length
-        ? await supabase
-            .from("menu_item_images")
-            .select("*")
-            .in("item_id", itemIds)
-            .order("sort_order", { ascending: true })
+        ? await fetcher.fetchItemImages(itemIds)
         : { data: [] };
 
     const images = (rawImages ?? []) as DBMenuItemImage[];
 
-    // 7. Build lookup maps
     const imagesByItem = images.reduce<Record<string, DBMenuItemImage[]>>(
         (acc, img) => {
             (acc[img.item_id] ??= []).push(img);
@@ -219,10 +301,9 @@ export async function fetchMenuPage(
 
     const nonEmptyCats = categories.filter((c) => c.items.length > 0);
 
-    // Last step, on the assembled and ordered categories: the plan decides
-    // which item details may be shown, and the image caps are spent in the
-    // order a diner reads the menu.
     const presented = applyPlanPresentation(nonEmptyCats, entitlements);
+
+    console.log(presented)
 
     return {
         hotel,

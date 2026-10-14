@@ -1,14 +1,14 @@
 'use client';
 
 
-import { useCallback, useEffect, useState } from 'react';
-
 import {
-  QrCode, Download, Trash2, Plus, Loader2,
-  ExternalLink, Copy, Check, Zap,
+  useCallback, useEffect, useState, useRef, forwardRef,
+  useImperativeHandle,
+} from 'react';
+import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
+import {
+  QrCode, Download, Trash2, Plus, Loader2, Copy, Check, Zap,
 } from 'lucide-react';
-
-import Image from 'next/image';
 
 import toast from 'react-hot-toast';
 
@@ -19,15 +19,71 @@ import { publicMenuUrl } from '../../lib/domains';
 
 import { Card, Button, EmptyState, Alert } from '../../components/ui/UiComponents';
 
-function qrUrl(text: string, size = 256) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&color=000000&bgcolor=ffffff&qzone=2&format=png`;
+
+interface QrCodeGenProps {
+  url: string;
+  size?: number;
+  fileName?: string;
 }
+
+export interface QrCodeGenRef {
+  download: () => void;
+}
+
+export const QrCodeGen = forwardRef<QrCodeGenRef, QrCodeGenProps>(
+  function QrCodeGen(
+    {
+      url,
+      size = 256,
+      fileName = "menu-qr-code",
+    },
+    ref
+  ) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const handleDownload = () => {
+      const canvas = canvasRef.current;
+
+      if (!canvas) return;
+
+      const pngUrl = canvas.toDataURL("image/png");
+
+      const downloadLink = document.createElement("a");
+
+      downloadLink.href = pngUrl;
+      downloadLink.download = `${fileName}.png`;
+
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    };
+
+    useImperativeHandle(ref, () => ({
+      download: handleDownload,
+    }));
+
+    return (
+      <div className="p-4 bg-white">
+        <QRCodeCanvas
+          ref={canvasRef}
+          value={url}
+          size={size}
+          bgColor="#ffffff"
+          fgColor="#000000"
+          level="H"
+        />
+      </div>
+    );
+  }
+);
 
 function QRCard({ qr, onDelete }) {
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const qrTargetUrl = `${qr.target_url}?qr=${qr.id}`
+  const qrRef = useRef<QrCodeGenRef>(null);
+
+  const qrTargetUrl = `${qr.target_url}?qr=${qr.id}`;
 
   async function copy() {
     try {
@@ -35,29 +91,17 @@ function QRCard({ qr, onDelete }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Copy failed');
-    }
-  }
-
-  async function download() {
-    try {
-      const res = await fetch(qrUrl(qrTargetUrl, 512));
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `scanify-qr-${qr.label || 'menu'}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      toast.error('Download failed');
+      toast.error("Copy failed");
     }
   }
 
   async function handleDelete() {
-    if (!confirm('Delete this QR code?')) return;
+    if (!confirm("Delete this QR code?")) return;
+
     setDeleting(true);
+
     await onDelete(qr.id);
+
     setDeleting(false);
   }
 
@@ -65,37 +109,54 @@ function QRCard({ qr, onDelete }) {
     <Card className="flex flex-col items-center gap-4 text-center">
       <div className="w-full flex items-center justify-between">
         <div className="text-left">
-          <p className="text-sm font-semibold text-theme">{qr.label || 'Menu QR'}</p>
-          <p className="text-xs text-theme2 truncate max-w-[160px]">{qr.target_url}</p>
+          <p className="text-sm font-semibold text-theme">
+            {qr.label || "Menu QR"}
+          </p>
+
+          <p className="text-xs text-theme2 truncate max-w-[160px]">
+            {qr.target_url}
+          </p>
         </div>
+
         <button
           onClick={handleDelete}
           disabled={deleting}
           className="w-7 h-7 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-50 transition"
         >
-          {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+          {deleting ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Trash2 size={13} />
+          )}
         </button>
       </div>
 
-
-
-      <Image
-        src={qrUrl(qrTargetUrl)}
-        width={200}
-        height={200}
-        unoptimized
-        alt="QR Code"
-        className="rounded-lg border"
-        style={{ borderColor: 'var(--border)' }}
+      <QrCodeGen
+        ref={qrRef}
+        url={qrTargetUrl}
+        size={256}
+        fileName={qr.label || "menu-qr-code"}
       />
 
       <div className="flex gap-2 w-full">
-        <Button variant="secondary" size="sm" className="flex-1" onClick={copy}>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="flex-1"
+          onClick={copy}
+        >
           {copied ? <Check size={13} /> : <Copy size={13} />}
-          {copied ? 'Copied' : 'Copy URL'}
+          {copied ? "Copied" : "Copy URL"}
         </Button>
-        <Button variant="primary" size="sm" className="flex-1" onClick={download}>
-          <Download size={13} /> Download
+
+        <Button
+          variant="primary"
+          size="sm"
+          className="flex-1"
+          onClick={() => qrRef.current?.download()}
+        >
+          <Download size={13} />
+          Download
         </Button>
       </div>
 

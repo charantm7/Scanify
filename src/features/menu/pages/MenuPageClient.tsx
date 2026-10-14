@@ -64,12 +64,15 @@ export default function MenuPageClient({
         selectedItemId,
         openItemModal,
         closeItemModal,
-    } = useMenuUI(categories);
+        setCurrentMenu,
+        currentMenu,
+    } = useMenuUI(categories, menus);
 
+    const currentCategory = categories.filter((category) => category.menu_id === currentMenu)
 
     const searchResults = useMemo(
         () => searchMenu(categories, searchQuery),
-        [categories, searchQuery]
+        [currentCategory, searchQuery]
     );
 
     const selectedItem = useMemo((): MenuItem | undefined => {
@@ -79,7 +82,8 @@ export default function MenuPageClient({
             if (found) return found;
         }
         return undefined;
-    }, [selectedItemId, categories]);
+    }, [selectedItemId, currentCategory]);
+
 
     useEffect(() => {
         fetch("/api/menu/track", {
@@ -137,15 +141,15 @@ export default function MenuPageClient({
             {hotel.slug && (
                 <MenuSwitcher
                     menus={menus}
-                    activeMenuId={activeMenu.id}
-                    hotelSlug={hotel.slug}
+                    setCurrentMenu={setCurrentMenu}
+                    currentMenu={currentMenu}
                 />
             )}
 
             {/* ── Category Nav ──────────────────────────────────────────────────── */}
             {!isSearching && (
                 <CategoryNav
-                    categories={categories}
+                    categories={currentCategory}
                     activeId={activeCategory}
                     style={customization.category_style}
                     navRef={navRef}
@@ -226,7 +230,7 @@ export default function MenuPageClient({
                             animate={{ opacity: 1 }}
                             className="flex flex-col gap-8"
                         >
-                            {categories.map((cat) => (
+                            {currentCategory.map((cat) => (
                                 <CategorySection
                                     key={cat.id}
                                     category={cat}

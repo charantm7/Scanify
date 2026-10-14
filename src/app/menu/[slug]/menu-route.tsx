@@ -15,7 +15,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { fetchMenuPage } from "../../../features/menu/services/menu.service";
+import { fetchHotelMetadata, fetchMenuPage } from "../../../features/menu/services/menu.service";
 import { buildThemeTokens, buildThemeStyleTag } from "../../../features/menu/utils/theme";
 import MenuPageClient from "../../../features/menu/pages/MenuPageClient";
 import { MenuPageSkeleton } from "../../../features/menu/components/MenuSkeleton";
@@ -26,7 +26,7 @@ export async function buildMenuMetadata(
     menuSlug?: string
 ): Promise<Metadata> {
     try {
-        const { hotel, activeMenu, menus } = await fetchMenuPage(slug, menuSlug);
+        const { hotel, menus, activeMenu } = await fetchHotelMetadata(slug, menuSlug);
 
         // Only qualify the title when the hotel actually has more than one
         // menu — "Spice Route Menu" reads better than "Spice Route — Main Menu"

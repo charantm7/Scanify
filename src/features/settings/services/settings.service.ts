@@ -8,7 +8,13 @@ export const settingsService = {
     },
 
     async updateEmail(supabase: SupabaseClient, email: string) {
-        const { error } = await supabase.auth.updateUser({ email });
+        const { error } = await supabase.auth.updateUser(
+            {
+                email: email,
+            },
+            {
+                emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth-callback?type=email_change`,
+            });
         if (error) throw error;
     },
 
