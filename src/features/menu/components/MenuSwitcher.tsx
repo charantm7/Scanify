@@ -16,11 +16,11 @@ import { publicMenuPath } from "../../../lib/domains";
 
 interface MenuSwitcherProps {
     menus: MenuSummary[];
-    activeMenuId: string;
-    hotelSlug: string;
+    setCurrentMenu: (id: string) => void;
+    currentMenu: string | null;
 }
 
-export function MenuSwitcher({ menus, activeMenuId, hotelSlug }: MenuSwitcherProps) {
+export function MenuSwitcher({ menus, setCurrentMenu, currentMenu }: MenuSwitcherProps) {
     // Nothing to switch between.
     if (menus.length <= 1) return null;
 
@@ -38,20 +38,12 @@ export function MenuSwitcher({ menus, activeMenuId, hotelSlug }: MenuSwitcherPro
                     style={{ scrollbarWidth: "none" }}
                 >
                     {menus.map((menu) => {
-                        const active = menu.id === activeMenuId;
-
-                        // The primary menu lives at the bare hotel URL, which is
-                        // what existing QR codes encode — keep linking there
-                        // rather than to an equivalent /<hotel>/<slug> form.
-                        const href = publicMenuPath(
-                            hotelSlug,
-                            menu.is_primary ? null : menu.slug
-                        );
+                        const active = menu.id === currentMenu;
 
                         return (
                             <li key={menu.id} className="flex-shrink-0">
-                                <Link
-                                    href={href}
+                                <button
+                                    onClick={() => setCurrentMenu(menu.id)}
                                     aria-current={active ? "page" : undefined}
                                     className="block px-3 py-2 text-xs font-semibold whitespace-nowrap transition-colors"
                                     style={{
@@ -62,7 +54,7 @@ export function MenuSwitcher({ menus, activeMenuId, hotelSlug }: MenuSwitcherPro
                                     }}
                                 >
                                     {menu.name}
-                                </Link>
+                                </button>
                             </li>
                         );
                     })}

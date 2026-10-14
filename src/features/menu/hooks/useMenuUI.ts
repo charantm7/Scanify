@@ -15,7 +15,7 @@ import {
     type RefCallback,
 } from "react";
 import { IO_ROOT_MARGIN, SCROLL_OFFSET_PX } from "../constant";
-import type { MenuCategory } from "../types";
+import type { MenuCategory, MenuSummary } from "../types";
 
 interface UseMenuUIReturn {
     // Search
@@ -35,15 +35,20 @@ interface UseMenuUIReturn {
     selectedItemId: string | null;
     openItemModal: (id: string) => void;
     closeItemModal: () => void;
+
+    setCurrentMenu: (id: string) => void;
+    currentMenu: string | null;
 }
 
-export function useMenuUI(categories: MenuCategory[]): UseMenuUIReturn {
+export function useMenuUI(categories: MenuCategory[], menus: MenuSummary[]): UseMenuUIReturn {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState<string | null>(
         categories[0]?.id ?? null
     );
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-
+    const [currentMenu, setCurrentMenu] = useState<string | null>(
+        menus?.find((menu) => menu.is_primary === true)?.id ?? null
+    );
     const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
     const navRef = useRef<HTMLDivElement | null>(null);
     const isManualScrolling = useRef(false);
@@ -144,5 +149,7 @@ export function useMenuUI(categories: MenuCategory[]): UseMenuUIReturn {
         selectedItemId,
         openItemModal,
         closeItemModal,
+        setCurrentMenu,
+        currentMenu
     };
 }
