@@ -24,8 +24,8 @@ function ItemPlaceholder({ name }: { name: string }) {
 function Price({ amount, currency = "₹" }: { amount: number; currency?: string }) {
     return (
         <span
-            className="font-bold text-base tabular-nums"
-            style={{ color: "var(--color-accent)", fontFamily: "var(--font-family)" }}
+            className="font-bold font-mono text-base tabular-nums"
+            style={{ color: "var(--color-accent)" }}
         >
             <span className="align-top  inline-block">{currency}</span>
             {amount.toFixed(0)}
@@ -221,7 +221,7 @@ function ListItem({ item, onClick, showImage, showDietary, showTags, showDescrip
             aria-label={`${item.name}, ₹${item.price}`}
             onClick={() => onClick(item.id)}
             onKeyDown={(e) => e.key === "Enter" && onClick(item.id)}
-            className="group flex items-center gap-3 py-3 border-b cursor-pointer transition-opacity duration-200 outline-none focus-visible:ring-2"
+            className="group flex items-center gap-4 py-3 border-b cursor-pointer transition-opacity duration-200 outline-none focus-visible:ring-2"
             style={{ borderColor: "var(--color-border)", opacity: item.is_available ? 1 : 0.55 }}
         >
             {showImage && (
@@ -230,28 +230,32 @@ function ListItem({ item, onClick, showImage, showDietary, showTags, showDescrip
                 </div>
             )}
 
-            <div className="flex flex-1 flex-col gap-2 min-w-0">
-                {showDietary && (
-                    <div className="flex-shrink-0 flex items-center gap-3">
-                        <DietaryIndicator dietaryType={item.dietary_type} />
-                        <p className="font-semibold text-sm" style={{ color: "var(--color-text)", fontFamily: "var(--font-family)" }}>
-                            {item.name}
+            <div className="flex flex-col gap-2">
+
+                <div className="flex flex-1 flex-col gap-1 min-w-0 max-w-[97%]">
+                    {showDietary && (
+                        <div className="flex-shrink-0 flex items-center gap-3">
+                            <DietaryIndicator dietaryType={item.dietary_type} />
+                            <p className="font-semibold text-sm" style={{ color: "var(--color-text)", fontFamily: "var(--font-family)" }}>
+                                {item.name}
+                            </p>
+                        </div>
+                    )}
+
+                    {showDescription && item.description && (
+                        <p
+                            className="text-xs leading-relaxed line-clamp-2"
+                            style={{ color: "var(--color-muted)" }}
+                        >
+                            {item.description}
                         </p>
-                    </div>
-                )}
+                    )}
 
-                {showDescription && item.description && (
-                    <p
-                        className="text-xs leading-relaxed line-clamp-1"
-                        style={{ color: "var(--color-muted)" }}
-                    >
-                        {item.description}
-                    </p>
-                )}
+                    {showTags && <ItemBadgeRow item={item} />}
+                </div>
+                <Price amount={Number(item.price)} />
 
-                {showTags && <ItemBadgeRow item={item} />}
             </div>
-            <Price amount={Number(item.price)} />
 
         </article>
     );
